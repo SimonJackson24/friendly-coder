@@ -30,7 +30,9 @@ const defaultModels = [
     value: "runwayml/stable-diffusion-v1-5",
     label: "Stable Diffusion v1.5",
   },
-];
+] as const;
+
+type ModelValue = typeof defaultModels[number]['value'];
 
 interface HuggingFaceModelSelectProps {
   currentModel?: string;
@@ -38,7 +40,9 @@ interface HuggingFaceModelSelectProps {
 
 export function HuggingFaceModelSelect({ currentModel }: HuggingFaceModelSelectProps) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(currentModel || defaultModels[0].value);
+  const [value, setValue] = useState<ModelValue>(
+    (currentModel as ModelValue) || defaultModels[0].value
+  );
   const { toast } = useToast();
 
   const handleSelect = async (currentValue: string) => {
@@ -69,7 +73,7 @@ export function HuggingFaceModelSelect({ currentModel }: HuggingFaceModelSelectP
       return;
     }
 
-    setValue(currentValue);
+    setValue(currentValue as ModelValue);
     setOpen(false);
     toast({
       title: "Success",
