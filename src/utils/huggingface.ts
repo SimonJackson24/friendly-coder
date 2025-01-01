@@ -46,7 +46,6 @@ export async function generateResponse(prompt: string): Promise<string> {
         body: JSON.stringify({
           inputs: prompt,
           parameters: {
-            return_full_text: false,
             max_new_tokens: settings.max_tokens || 1000
           },
         }),
@@ -54,9 +53,9 @@ export async function generateResponse(prompt: string): Promise<string> {
     );
 
     if (!response.ok) {
-      const error = await response.json();
-      console.error("Hugging Face API error:", error);
-      throw new Error(error.error || "Failed to generate response");
+      const errorText = await response.text();
+      console.error("Hugging Face API error response:", errorText);
+      throw new Error(`API request failed: ${errorText}`);
     }
 
     const result = await response.json();
@@ -68,7 +67,7 @@ export async function generateResponse(prompt: string): Promise<string> {
     } else if (result.generated_text) {
       return result.generated_text;
     } else {
-      return result;
+      return JSON.stringify(result);
     }
   } catch (error) {
     console.error("Error generating response:", error);
