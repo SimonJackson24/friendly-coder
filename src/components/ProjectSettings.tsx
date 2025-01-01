@@ -8,8 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ExternalLink } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ProjectSettingsProps {
   project: any;
@@ -20,6 +27,7 @@ export function ProjectSettings({ project }: ProjectSettingsProps) {
   const [supabaseUrl, setSupabaseUrl] = useState(project?.supabase_url || "");
   const [supabaseKey, setSupabaseKey] = useState("");
   const [envVars, setEnvVars] = useState<string>("");
+  const [showSupabaseHelp, setShowSupabaseHelp] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,7 +74,7 @@ export function ProjectSettings({ project }: ProjectSettingsProps) {
   };
 
   const handleCreateSupabaseProject = () => {
-    window.open("https://supabase.com/dashboard/new", "_blank");
+    window.open("https://supabase.com/dashboard/sign-in", "_blank");
   };
 
   const handleOpenSupabaseProject = () => {
@@ -106,9 +114,23 @@ export function ProjectSettings({ project }: ProjectSettingsProps) {
           
           <Alert>
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Link your Supabase project</AlertTitle>
-            <AlertDescription>
-              Connect your Supabase project to enable database management, authentication, and other backend features.
+            <AlertTitle>Connect your Supabase project</AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p>
+                To use Supabase with your project, you'll need to:
+              </p>
+              <ol className="list-decimal ml-4 space-y-1">
+                <li>Create a Supabase account if you haven't already</li>
+                <li>Create a new project in Supabase</li>
+                <li>Copy your project URL and paste it below</li>
+              </ol>
+              <Button 
+                variant="link" 
+                className="p-0 h-auto text-sm"
+                onClick={() => setShowSupabaseHelp(true)}
+              >
+                Need help setting up Supabase?
+              </Button>
             </AlertDescription>
           </Alert>
 
@@ -124,11 +146,21 @@ export function ProjectSettings({ project }: ProjectSettingsProps) {
             </div>
 
             <div className="flex space-x-2">
-              <Button variant="outline" onClick={handleCreateSupabaseProject}>
-                Create New Supabase Project
+              <Button 
+                variant="outline" 
+                onClick={handleCreateSupabaseProject}
+                className="flex items-center"
+              >
+                Sign in to Supabase
+                <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
-              <Button variant="outline" onClick={handleOpenSupabaseProject}>
-                Open Supabase Dashboard
+              <Button 
+                variant="outline" 
+                onClick={handleOpenSupabaseProject}
+                className="flex items-center"
+              >
+                Open Project Dashboard
+                <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -161,6 +193,41 @@ export function ProjectSettings({ project }: ProjectSettingsProps) {
           {updateProjectMutation.isPending ? "Saving..." : "Save Settings"}
         </Button>
       </div>
+
+      <Dialog open={showSupabaseHelp} onOpenChange={setShowSupabaseHelp}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Setting up Supabase</DialogTitle>
+            <DialogDescription className="space-y-4">
+              <div className="space-y-2">
+                <h4 className="font-medium">1. Create a Supabase Account</h4>
+                <p>Visit <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">Supabase.com</a> and sign up for an account if you haven't already.</p>
+              </div>
+              
+              <div className="space-y-2">
+                <h4 className="font-medium">2. Create a New Project</h4>
+                <p>After signing in:</p>
+                <ol className="list-decimal ml-4 space-y-1">
+                  <li>Click "New Project"</li>
+                  <li>Choose a name and password for your project</li>
+                  <li>Select a region (choose one close to your users)</li>
+                  <li>Click "Create Project"</li>
+                </ol>
+              </div>
+              
+              <div className="space-y-2">
+                <h4 className="font-medium">3. Get Your Project URL</h4>
+                <p>Once your project is created:</p>
+                <ol className="list-decimal ml-4 space-y-1">
+                  <li>Go to Project Settings</li>
+                  <li>Find the "Project URL" under "Project Configuration"</li>
+                  <li>Copy this URL and paste it in the settings above</li>
+                </ol>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
