@@ -1,15 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { HuggingFaceSettings } from "@/components/settings/HuggingFaceSettings";
+import { ModelParametersSettings } from "@/components/settings/ModelParametersSettings";
+import { AutoScalingSettings } from "@/components/settings/AutoScalingSettings";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -18,6 +14,8 @@ const Settings = () => {
   const [maxTokens, setMaxTokens] = useState(1000);
   const [computeType, setComputeType] = useState("cpu");
   const [instanceTier, setInstanceTier] = useState("small");
+  const [autoScalingEnabled, setAutoScalingEnabled] = useState(false);
+  const [idleTimeout, setIdleTimeout] = useState(15);
 
   const { data: settings, isLoading, refetch } = useQuery({
     queryKey: ["settings"],
@@ -49,14 +47,18 @@ const Settings = () => {
 
       const { data, error } = await supabase
         .from("settings")
-        .insert([{ 
+        .insert([{
           user_id: user.id,
           huggingface_model: 'black-forest-labs/FLUX.1-schnell',
           temperature: 0.7,
           max_tokens: 1000,
-          model_parameters: { 
+          model_parameters: {
             compute_type: 'cpu',
-            instance_tier: 'small'
+            instance_tier: 'small',
+            auto_scaling: {
+              enabled: false,
+              idle_timeout: 15
+            }
           }
         }])
         .select()
@@ -85,9 +87,18 @@ const Settings = () => {
       setApiKey(settings.api_key || "");
       setTemperature(settings.temperature || 0.7);
       setMaxTokens(settings.max_tokens || 1000);
-      const params = settings.model_parameters as { compute_type?: string; instance_tier?: string } || {};
+      const params = settings.model_parameters as {
+        compute_type?: string;
+        instance_tier?: string;
+        auto_scaling?: {
+          enabled: boolean;
+          idle_timeout: number;
+        };
+      } || {};
       setComputeType(params.compute_type || "cpu");
       setInstanceTier(params.instance_tier || "small");
+      setAutoScalingEnabled(params.auto_scaling?.enabled || false);
+      setIdleTimeout(params.auto_scaling?.idle_timeout || 15);
     }
   }, [settings]);
 
@@ -110,9 +121,13 @@ const Settings = () => {
         api_key: apiKey,
         temperature: temperature,
         max_tokens: maxTokens,
-        model_parameters: { 
+        model_parameters: {
           compute_type: computeType,
-          instance_tier: instanceTier
+          instance_tier: instanceTier,
+          auto_scaling: {
+            enabled: autoScalingEnabled,
+            idle_timeout: idleTimeout
+          }
         }
       })
       .eq("user_id", user.id);
@@ -151,52 +166,22 @@ const Settings = () => {
               onInstanceTierChange={setInstanceTier}
             />
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Model Parameters</CardTitle>
-                <CardDescription>
-                  Configure the parameters used for generating content
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="api-key">API Key</Label>
-                  <Input
-                    id="api-key"
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Enter your API key"
-                  />
-                </div>
+            <AutoScalingSettings
+              autoScalingEnabled={autoScalingEnabled}
+              idleTimeout={idleTimeout}
+              onAutoScalingChange={setAutoScalingEnabled}
+              onIdleTimeoutChange={setIdleTimeout}
+            />
 
-                <div className="space-y-2">
-                  <Label>Temperature: {temperature}</Label>
-                  <Slider
-                    value={[temperature]}
-                    onValueChange={(values) => setTemperature(values[0])}
-                    max={1}
-                    step={0.1}
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Max Tokens: {maxTokens}</Label>
-                  <Slider
-                    value={[maxTokens]}
-                    onValueChange={(values) => setMaxTokens(values[0])}
-                    max={2000}
-                    step={100}
-                    className="w-full"
-                  />
-                </div>
-
-                <Button onClick={handleSaveSettings} className="w-full">
-                  Save Settings
-                </Button>
-              </CardContent>
-            </Card>
+            <ModelParametersSettings
+              apiKey={apiKey}
+              temperature={temperature}
+              maxTokens={maxTokens}
+              onApiKeyChange={setApiKey}
+              onTemperatureChange={setTemperature}
+              onMaxTokensChange={setMaxTokens}
+              onSave={handleSaveSettings}
+            />
           </>
         )}
       </div>
