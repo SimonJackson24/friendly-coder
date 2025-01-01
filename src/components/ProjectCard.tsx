@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Archive, Edit, Trash2, GitFork, Download } from "lucide-react";
+import { Archive, Edit, Trash2, GitFork } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,45 +25,6 @@ export function ProjectCard({ id, title, description, status, onEdit, onDelete }
   const handleOpenProject = () => {
     console.log("Opening project:", id);
     navigate(`/assistant?projectId=${id}`);
-  };
-
-  const exportProject = async () => {
-    console.log("Exporting project:", id);
-    try {
-      // Fetch all files for the project
-      const { data: files, error: filesError } = await supabase
-        .from("files")
-        .select("*")
-        .eq("project_id", id);
-
-      if (filesError) throw filesError;
-
-      // Create a JSON file with the project data
-      const projectData = JSON.stringify(files, null, 2);
-      const blob = new Blob([projectData], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      
-      // Create a download link and trigger it
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${title.toLowerCase().replace(/\s+/g, "-")}-export.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast({
-        title: "Success",
-        description: "Project exported successfully",
-      });
-    } catch (error) {
-      console.error("Error exporting project:", error);
-      toast({
-        title: "Error",
-        description: "Failed to export project",
-        variant: "destructive",
-      });
-    }
   };
 
   const forkProject = useMutation({
@@ -189,13 +150,6 @@ export function ProjectCard({ id, title, description, status, onEdit, onDelete }
               disabled={forkProject.isPending}
             >
               <GitFork className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={exportProject}
-            >
-              <Download className="h-4 w-4" />
             </Button>
           </div>
         </div>

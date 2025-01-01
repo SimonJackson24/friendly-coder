@@ -22,42 +22,6 @@ serve(async (req) => {
     console.log(`Processing ${operation} operation for project ${projectId}`);
 
     switch (operation) {
-      case 'github-import':
-        const { repoUrl, projectName } = data;
-        console.log('Importing GitHub repository:', repoUrl);
-        
-        // Extract owner and repo from GitHub URL
-        const urlParts = repoUrl.replace(/\.git$/, '').split('/');
-        const owner = urlParts[urlParts.length - 2];
-        const repo = urlParts[urlParts.length - 1];
-        
-        // Fetch repository contents
-        const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch repository contents');
-        }
-        
-        const contents = await response.json();
-        const files = [];
-        
-        // Process each file in the repository
-        for (const item of contents) {
-          if (item.type === 'file') {
-            const fileResponse = await fetch(item.download_url);
-            const content = await fileResponse.text();
-            files.push({
-              name: item.name,
-              path: item.path,
-              content,
-              type: 'file'
-            });
-          }
-        }
-        
-        return new Response(JSON.stringify({ files }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-
       case 'analyze-dependencies':
         // Analyze package.json and provide recommendations
         const { packageData } = data;

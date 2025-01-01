@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,10 +20,17 @@ serve(async (req) => {
 
     if (!anthropicApiKey) {
       console.error("Missing Anthropic API key");
-      throw new Error("Anthropic API key not configured");
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    console.log("Processing request with prompt:", prompt);
+    console.log("Processing request with context:", prompt);
+    
+    // Extract build context if present
+    const hasBuildContext = prompt.includes('[Context:');
+    console.log("Request includes build context:", hasBuildContext);
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -38,20 +46,19 @@ serve(async (req) => {
           role: "user", 
           content: prompt 
         }],
+        system: hasBuildContext ? 
+          "You are a helpful AI assistant that helps fix build errors and improve code quality. When provided with build context, analyze it carefully to provide accurate solutions." :
+          "You are a helpful AI assistant that helps with code-related tasks."
       }),
     });
 
     if (!response.ok) {
       console.error("Anthropic API error:", await response.text());
-      throw new Error("Failed to get response from Anthropic API");
+      throw new Error("Failed to generate response");
     }
 
     const data = await response.json();
     console.log("Generated response successfully");
-
-    if (!data.content || !data.content[0] || !data.content[0].text) {
-      throw new Error("Invalid response format from Anthropic API");
-    }
 
     return new Response(
       JSON.stringify({ response: data.content[0].text }),
@@ -59,16 +66,10 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("Error in generate-claude-response:", error);
+    console.error("Error:", error.message);
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : "Failed to generate response",
-        details: error
-      }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      }
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

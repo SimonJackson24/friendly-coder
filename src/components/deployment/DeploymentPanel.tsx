@@ -13,7 +13,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useQuery } from "@tanstack/react-query";
 
 interface DeploymentConfig {
   platform: string;
@@ -21,11 +20,7 @@ interface DeploymentConfig {
   environment?: 'production' | 'staging' | 'development';
 }
 
-interface DeploymentPanelProps {
-  projectId: string;
-}
-
-export function DeploymentPanel({ projectId }: DeploymentPanelProps) {
+export function DeploymentPanel() {
   const [platform, setPlatform] = useState<string>("");
   const [isDeploying, setIsDeploying] = useState(false);
   const [config, setConfig] = useState<DeploymentConfig>({
@@ -33,25 +28,6 @@ export function DeploymentPanel({ projectId }: DeploymentPanelProps) {
     environment: 'production'
   });
   const { toast } = useToast();
-
-  const { data: project } = useQuery({
-    queryKey: ["project", projectId],
-    queryFn: async () => {
-      console.log("Fetching project details:", projectId);
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .eq("id", projectId)
-        .single();
-
-      if (error) {
-        console.error("Error fetching project:", error);
-        throw error;
-      }
-
-      return data;
-    },
-  });
 
   const handleDeploy = async () => {
     if (!platform) {
@@ -68,7 +44,6 @@ export function DeploymentPanel({ projectId }: DeploymentPanelProps) {
       const response = await supabase.functions.invoke('project-operations', {
         body: { 
           operation: 'deploy',
-          projectId,
           data: { 
             platform,
             config
@@ -80,7 +55,7 @@ export function DeploymentPanel({ projectId }: DeploymentPanelProps) {
 
       toast({
         title: "Deployment Started",
-        description: `Deploying ${project?.title} to ${platform}. You'll be notified when it's complete.`,
+        description: `Deploying to ${platform}. You'll be notified when it's complete.`,
       });
     } catch (error) {
       console.error('Deployment error:', error);
@@ -170,11 +145,6 @@ export function DeploymentPanel({ projectId }: DeploymentPanelProps) {
               )}
             </Button>
           </div>
-          {project && (
-            <div className="mt-4 text-sm text-muted-foreground">
-              Deploying project: {project.title}
-            </div>
-          )}
         </Card>
       </div>
     </div>

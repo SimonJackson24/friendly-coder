@@ -1,28 +1,23 @@
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { AIModelSettings } from "@/components/settings/AIModelSettings";
-import { DeploymentSettings } from "@/components/settings/DeploymentSettings";
-import { PackageSettings } from "@/components/settings/PackageSettings";
-import { GitHubSection } from "@/components/settings/GitHubSection";
+import { HuggingFaceSettings } from "@/components/settings/HuggingFaceSettings";
+import { ModelParametersSettings } from "@/components/settings/ModelParametersSettings";
+import { AutoScalingSettings } from "@/components/settings/AutoScalingSettings";
 
 const Settings = () => {
   const { toast } = useToast();
-  const [settings, setSettings] = useState({
-    api_key: "",
-    anthropic_model: "claude-3-opus-20240229",
-    temperature: 0.7,
-    max_tokens: 1000,
-    github_token: "", // Changed from github_url to github_token to match DB schema
-    default_deployment_platform: "vercel",
-    default_package_registry: "npm",
-    platform_settings: {},
-  });
+  const [apiKey, setApiKey] = useState("");
+  const [temperature, setTemperature] = useState(0.7);
+  const [maxTokens, setMaxTokens] = useState(1000);
+  const [computeType, setComputeType] = useState("cpu");
+  const [instanceTier, setInstanceTier] = useState("small");
+  const [autoScalingEnabled, setAutoScalingEnabled] = useState(false);
+  const [idleTimeout, setIdleTimeout] = useState(15);
 
-  const { data: settingsData, isLoading, refetch } = useQuery({
+  const { data: settings, isLoading, refetch } = useQuery({
     queryKey: ["settings"],
     queryFn: async () => {
       console.log("Fetching settings...");
@@ -41,105 +36,160 @@ const Settings = () => {
     },
   });
 
-  const updateSettingsMutation = useMutation({
-    mutationFn: async (newSettings: any) => {
-      console.log("Updating settings:", newSettings);
+  useEffect(() => {
+    const createInitialSettings = async () => {
+      console.log("Creating initial settings...");
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
+      if (!user) {
+        console.log("No user found, skipping settings creation");
+        return;
+      }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("settings")
-        .upsert({
+        .insert([{
           user_id: user.id,
-          ...newSettings,
-        });
+          huggingface_model: 'black-forest-labs/FLUX.1-schnell',
+          temperature: 0.7,
+          max_tokens: 1000,
+          model_parameters: {
+            compute_type: 'cpu',
+            instance_tier: 'small',
+            auto_scaling: {
+              enabled: false,
+              idle_timeout: 15,
+              min_replicas: 0, // Added for HF API compatibility
+              max_replicas: 1  // Added for HF API compatibility
+            }
+          }
+        }])
+        .select()
+        .single();
 
-      if (error) throw error;
-    },
-    onSuccess: () => {
+      if (error && error.code !== "23505") {
+        console.error("Error creating initial settings:", error);
+        toast({
+          title: "Error",
+          description: "Failed to create initial settings",
+          variant: "destructive",
+        });
+      } else {
+        console.log("Initial settings created:", data);
+        refetch();
+      }
+    };
+
+    if (!isLoading && !settings) {
+      createInitialSettings();
+    }
+  }, [isLoading, settings, toast, refetch]);
+
+  useEffect(() => {
+    if (settings) {
+      setApiKey(settings.api_key || "");
+      setTemperature(settings.temperature || 0.7);
+      setMaxTokens(settings.max_tokens || 1000);
+      const params = settings.model_parameters as {
+        compute_type?: string;
+        instance_tier?: string;
+        auto_scaling?: {
+          enabled: boolean;
+          idle_timeout: number;
+          min_replicas: number;
+          max_replicas: number;
+        };
+      } || {};
+      setComputeType(params.compute_type || "cpu");
+      setInstanceTier(params.instance_tier || "small");
+      setAutoScalingEnabled(params.auto_scaling?.enabled || false);
+      setIdleTimeout(params.auto_scaling?.idle_timeout || 15);
+    }
+  }, [settings]);
+
+  const handleSaveSettings = async () => {
+    console.log("Saving settings with auto-scaling configuration...");
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error("No user found");
       toast({
-        title: "Success",
-        description: "Settings updated successfully",
+        title: "Error",
+        description: "You must be logged in to change settings",
+        variant: "destructive",
       });
-      refetch();
-    },
-    onError: (error) => {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("settings")
+      .update({
+        api_key: apiKey,
+        temperature: temperature,
+        max_tokens: maxTokens,
+        model_parameters: {
+          compute_type: computeType,
+          instance_tier: instanceTier,
+          auto_scaling: {
+            enabled: autoScalingEnabled,
+            idle_timeout: idleTimeout,
+            min_replicas: autoScalingEnabled ? 0 : 1, // Scale to zero if auto-scaling is enabled
+            max_replicas: 1 // Maximum of 1 replica for cost control
+          }
+        }
+      })
+      .eq("user_id", user.id);
+
+    if (error) {
       console.error("Error updating settings:", error);
       toast({
         title: "Error",
         description: "Failed to update settings",
         variant: "destructive",
       });
-    },
-  });
-
-  useEffect(() => {
-    if (settingsData) {
-      setSettings({
-        api_key: settingsData.api_key || "",
-        anthropic_model: settingsData.anthropic_model || "claude-3-opus-20240229",
-        temperature: settingsData.temperature || 0.7,
-        max_tokens: settingsData.max_tokens || 1000,
-        github_token: settingsData.github_token || "", // Changed from github_url to github_token
-        default_deployment_platform: settingsData.default_deployment_platform || "vercel",
-        default_package_registry: settingsData.default_package_registry || "npm",
-        platform_settings: settingsData.platform_settings || {},
-      });
+      return;
     }
-  }, [settingsData]);
 
-  const handleSave = () => {
-    updateSettingsMutation.mutate(settings);
+    toast({
+      title: "Success",
+      description: "Settings updated successfully",
+    });
+    refetch();
   };
-
-  if (isLoading) {
-    return (
-      <div className="container py-8">
-        <h1 className="text-3xl font-bold mb-8">Settings</h1>
-        <div className="space-y-6">
-          <Skeleton className="h-[400px] w-full" />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <Button onClick={handleSave} disabled={updateSettingsMutation.isPending}>
-          {updateSettingsMutation.isPending ? "Saving..." : "Save All Settings"}
-        </Button>
-      </div>
+      <h1 className="text-3xl font-bold mb-8">Settings</h1>
       
       <div className="grid gap-6">
-        <AIModelSettings
-          apiKey={settings.api_key}
-          model={settings.anthropic_model}
-          temperature={settings.temperature}
-          maxTokens={settings.max_tokens}
-          onApiKeyChange={(value) => setSettings(prev => ({ ...prev, api_key: value }))}
-          onModelChange={(value) => setSettings(prev => ({ ...prev, anthropic_model: value }))}
-          onTemperatureChange={(value) => setSettings(prev => ({ ...prev, temperature: value }))}
-          onMaxTokensChange={(value) => setSettings(prev => ({ ...prev, max_tokens: value }))}
-        />
+        {isLoading ? (
+          <Skeleton className="h-[400px] w-full" />
+        ) : (
+          <>
+            <HuggingFaceSettings
+              currentModel={settings?.huggingface_model}
+              computeType={computeType}
+              instanceTier={instanceTier}
+              onComputeTypeChange={setComputeType}
+              onInstanceTierChange={setInstanceTier}
+            />
 
-        <GitHubSection
-          githubUrl={settings.github_token} // Pass github_token as githubUrl prop
-          onChange={(value) => setSettings(prev => ({ ...prev, github_token: value }))}
-        />
+            <AutoScalingSettings
+              autoScalingEnabled={autoScalingEnabled}
+              idleTimeout={idleTimeout}
+              onAutoScalingChange={setAutoScalingEnabled}
+              onIdleTimeoutChange={setIdleTimeout}
+            />
 
-        <DeploymentSettings
-          platform={settings.default_deployment_platform}
-          platformSettings={settings.platform_settings}
-          onPlatformChange={(value) => setSettings(prev => ({ ...prev, default_deployment_platform: value }))}
-          onPlatformSettingsChange={(value) => setSettings(prev => ({ ...prev, platform_settings: value }))}
-        />
-
-        <PackageSettings
-          registry={settings.default_package_registry}
-          onRegistryChange={(value) => setSettings(prev => ({ ...prev, default_package_registry: value }))}
-        />
+            <ModelParametersSettings
+              apiKey={apiKey}
+              temperature={temperature}
+              maxTokens={maxTokens}
+              onApiKeyChange={setApiKey}
+              onTemperatureChange={setTemperature}
+              onMaxTokensChange={setMaxTokens}
+              onSave={handleSaveSettings}
+            />
+          </>
+        )}
       </div>
     </div>
   );
