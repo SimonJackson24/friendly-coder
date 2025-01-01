@@ -20,12 +20,20 @@ export default function Index() {
   const session = useSession();
   const navigate = useNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!session) {
       navigate("/login");
     }
   }, [session, navigate]);
+
+  const handleExportSuccess = (repoUrl: string) => {
+    toast({
+      title: "Success",
+      description: `Repository created successfully at ${repoUrl}`,
+    });
+  };
 
   if (!session) return null;
 
@@ -97,7 +105,7 @@ export default function Index() {
 
           <TabsContent value="github">
             <Card className="p-4">
-              <GitHubExport />
+              <GitHubExport onExportSuccess={handleExportSuccess} />
             </Card>
           </TabsContent>
 
