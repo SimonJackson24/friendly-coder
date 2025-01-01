@@ -17,16 +17,17 @@ const Settings = () => {
     return <div>No settings found</div>;
   }
 
-  const handleGeneralSettingsUpdate = (newSettings: any) => {
+  // Collect current settings before update
+  const handleGeneralSettingsSave = () => {
     updateSettings({
-      theme: newSettings.theme,
-      language: newSettings.language,
-      notifications: newSettings.notifications,
-      buildPreferences: newSettings.buildPreferences,
+      theme: settings.theme,
+      language: settings.language,
+      notifications: settings.notifications,
+      buildPreferences: settings.buildPreferences,
     });
   };
 
-  const handleModelSettingsUpdate = () => {
+  const handleModelSettingsSave = () => {
     updateSettings({
       apiKey: settings.apiKey,
       temperature: settings.temperature,
@@ -69,7 +70,7 @@ const Settings = () => {
             onLanguageChange={(language) => updateSettings({ language })}
             onNotificationsChange={(notifications) => updateSettings({ notifications })}
             onBuildPreferencesChange={(preferences) => updateSettings({ buildPreferences: preferences })}
-            onSave={handleGeneralSettingsUpdate}
+            onSave={handleGeneralSettingsSave}
           />
         </TabsContent>
 
@@ -81,7 +82,7 @@ const Settings = () => {
             onApiKeyChange={(apiKey) => updateSettings({ apiKey })}
             onTemperatureChange={(temperature) => updateSettings({ temperature })}
             onMaxTokensChange={(maxTokens) => updateSettings({ maxTokens })}
-            onSave={handleModelSettingsUpdate}
+            onSave={handleModelSettingsSave}
           />
         </TabsContent>
 
