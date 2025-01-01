@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { createClient } from 'https://esm.sh/@supabase_supabase-js@2.38.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,18 +14,18 @@ serve(async (req) => {
   }
 
   try {
-    const { operation, projectId, data } = await req.json();
+    const { operation, data } = await req.json();
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`Processing ${operation} operation for project ${projectId}`);
+    console.log(`Processing ${operation} operation`);
 
     switch (operation) {
       case 'analyze-dependencies':
         // Analyze package.json and provide recommendations
-        const { packageData } = data;
-        const analysis = await analyzeDependencies(packageData);
+        console.log('Analyzing dependencies:', data);
+        const analysis = await analyzeDependencies(data);
         return new Response(JSON.stringify(analysis), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -33,7 +33,7 @@ serve(async (req) => {
       case 'deploy':
         // Handle deployment to various platforms
         const { platform, config } = data;
-        const deploymentResult = await handleDeployment(platform, config, projectId);
+        const deploymentResult = await handleDeployment(platform, config);
         return new Response(JSON.stringify(deploymentResult), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -45,7 +45,7 @@ serve(async (req) => {
         if (!githubToken) {
           throw new Error('GitHub token not configured');
         }
-        const exportResult = await exportToGithub(repoName, isPrivate, githubToken, projectId);
+        const exportResult = await exportToGithub(repoName, isPrivate, githubToken);
         return new Response(JSON.stringify(exportResult), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -62,11 +62,16 @@ serve(async (req) => {
   }
 });
 
-async function analyzeDependencies(packageData: any) {
-  // Implement dependency analysis logic
-  const dependencies = Object.entries(packageData.dependencies || {});
-  const devDependencies = Object.entries(packageData.devDependencies || {});
+async function analyzeDependencies(data: any) {
+  // Safely access package data with defaults
+  const dependencies = Object.entries(data?.packageData?.dependencies || {});
+  const devDependencies = Object.entries(data?.packageData?.devDependencies || {});
   
+  console.log('Processing dependencies:', {
+    dependencies: dependencies.length,
+    devDependencies: devDependencies.length
+  });
+
   return {
     totalDependencies: dependencies.length + devDependencies.length,
     recommendations: [],
@@ -75,7 +80,7 @@ async function analyzeDependencies(packageData: any) {
   };
 }
 
-async function handleDeployment(platform: string, config: any, projectId: string) {
+async function handleDeployment(platform: string, config: any) {
   // Implement deployment logic for different platforms
   switch (platform) {
     case 'vercel':
@@ -89,7 +94,7 @@ async function handleDeployment(platform: string, config: any, projectId: string
   }
 }
 
-async function exportToGithub(repoName: string, isPrivate: boolean, token: string, projectId: string) {
+async function exportToGithub(repoName: string, isPrivate: boolean, token: string) {
   // Implement GitHub repository creation and code push
   const headers = {
     'Authorization': `Bearer ${token}`,
