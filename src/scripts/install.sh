@@ -34,7 +34,7 @@ check_status "Failed to update system packages"
 
 # Install required system dependencies
 echo -e "\n${GREEN}Installing system dependencies...${NC}"
-sudo apt-get install -y curl git build-essential
+sudo apt-get install -y curl git build-essential wget
 check_status "Failed to install system dependencies"
 
 # Check if Docker is installed
@@ -76,10 +76,28 @@ nvm install 20
 nvm use 20
 check_status "Failed to install Node.js"
 
-# Install Supabase CLI using npm (more reliable on ARM)
+# Install Supabase CLI using .deb package
 echo -e "\n${GREEN}Installing Supabase CLI...${NC}"
 if ! command -v supabase &> /dev/null; then
-    npm install -g supabase
+    # Detect architecture
+    ARCH=$(dpkg --print-architecture)
+    
+    # Latest stable version of Supabase CLI
+    SUPABASE_VERSION="1.127.0"
+    
+    if [ "$ARCH" = "arm64" ]; then
+        SUPABASE_DEB="supabase_${SUPABASE_VERSION}_linux_arm64.deb"
+    elif [ "$ARCH" = "amd64" ]; then
+        SUPABASE_DEB="supabase_${SUPABASE_VERSION}_linux_amd64.deb"
+    else
+        echo -e "${RED}Unsupported architecture: $ARCH${NC}"
+        exit 1
+    fi
+
+    # Download and install Supabase CLI
+    wget "https://github.com/supabase/cli/releases/download/v${SUPABASE_VERSION}/${SUPABASE_DEB}"
+    sudo dpkg -i "${SUPABASE_DEB}"
+    rm "${SUPABASE_DEB}"
     check_status "Failed to install Supabase CLI"
 else
     echo -e "${GREEN}✓ Supabase CLI is already installed${NC}"
