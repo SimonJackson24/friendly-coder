@@ -24,10 +24,14 @@ export function SettingsExport() {
         maxTokens: settings.maxTokens || 0,
         theme: settings.theme || "",
         language: settings.language || "",
-        notifications: settings.notifications || {},
-        buildPreferences: settings.buildPreferences || {},
-        editorPreferences: settings.editorPreferences || {},
-        securityPreferences: settings.securityPreferences || {},
+        notifications: settings.notifications ? 
+          JSON.parse(JSON.stringify(settings.notifications)) : {},
+        buildPreferences: settings.buildPreferences ? 
+          JSON.parse(JSON.stringify(settings.buildPreferences)) : {},
+        editorPreferences: settings.editorPreferences ? 
+          JSON.parse(JSON.stringify(settings.editorPreferences)) : {},
+        securityPreferences: settings.securityPreferences ? 
+          JSON.parse(JSON.stringify(settings.securityPreferences)) : {},
       };
 
       // Save export to settings_history
