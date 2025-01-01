@@ -82,7 +82,7 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
   };
 
   return (
-    <div className="flex flex-col h-[600px] md:h-[700px] border rounded-lg bg-background shadow-lg">
+    <div className="h-full flex flex-col bg-background/50 backdrop-blur-sm rounded-lg">
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-6">
           {messages.map((message, index) => (
@@ -100,10 +100,10 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
               )}
               <div
                 className={cn(
-                  "max-w-[85%] md:max-w-[75%] rounded-lg p-4 shadow-sm",
+                  "max-w-[85%] md:max-w-[75%] rounded-lg p-4",
                   message.role === "assistant" 
-                    ? "bg-card text-card-foreground" 
-                    : "bg-primary text-primary-foreground"
+                    ? "bg-card/50 text-card-foreground" 
+                    : "bg-primary/90 text-primary-foreground"
                 )}
               >
                 <div className="text-xs opacity-70 mb-2">
@@ -112,7 +112,7 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
                 <div className="whitespace-pre-wrap">{message.content}</div>
               </div>
               {message.role === "user" && (
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-primary/90 flex items-center justify-center">
                   <User className="w-4 h-4 text-primary-foreground" />
                 </div>
               )}
@@ -122,13 +122,13 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
         </div>
       </ScrollArea>
 
-      <form onSubmit={handleSubmit} className="p-4 border-t bg-card/50">
+      <form onSubmit={handleSubmit} className="p-4 border-t bg-card/30">
         <div className="flex gap-2">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 min-h-[60px] max-h-[120px] resize-none"
+            className="flex-1 min-h-[60px] max-h-[120px] resize-none bg-background/50"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();

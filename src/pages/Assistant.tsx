@@ -1,21 +1,13 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { ChatInterface } from "@/components/ChatInterface";
-import { FileExplorer } from "@/components/FileExplorer";
-import { FileEditor } from "@/components/FileEditor";
 import { useFileSystem, FileNode } from "@/hooks/useFileSystem";
 import { useToast } from "@/components/ui/use-toast";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProjectSettings } from "@/components/ProjectSettings";
-import { Console } from "@/components/Console";
 import { Preview } from "@/components/Preview";
-import { GitHubActions } from "@/components/github/GitHubActions";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronRight, ChevronDown } from "lucide-react";
+import { FileExplorerSection } from "@/components/assistant/FileExplorerSection";
+import { MainContent } from "@/components/assistant/MainContent";
 
 const Assistant = () => {
   const [searchParams] = useSearchParams();
@@ -26,15 +18,11 @@ const Assistant = () => {
   const [selectedFile, setSelectedFile] = useState<FileNode | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [buildErrors, setBuildErrors] = useState<string[]>([]);
-  const [isFileExplorerOpen, setIsFileExplorerOpen] = useState(true);
 
-  // Check authentication status
   useEffect(() => {
-    console.log("Checking authentication status:", session);
     if (!session) {
       console.log("No session found, redirecting to login");
       navigate("/login");
-      return;
     }
   }, [session, navigate]);
 
@@ -88,18 +76,6 @@ const Assistant = () => {
     updateFile.mutate({ id, content });
   };
 
-  const handleGitHubConnect = () => {
-    if (!project?.github_url) {
-      toast({
-        title: "GitHub Connection",
-        description: "Please add a GitHub URL in project settings first",
-        variant: "destructive",
-      });
-      return;
-    }
-    window.open(project.github_url, '_blank');
-  };
-
   const handleClearConsole = () => {
     setConsoleOutput([]);
     setBuildErrors([]);
@@ -110,88 +86,36 @@ const Assistant = () => {
   }
 
   return (
-    <div className="h-screen w-full bg-background overflow-hidden">
-      <div className="h-full p-2 md:p-4">
-        <div className="grid grid-cols-12 gap-4 h-full">
-          <div className="col-span-12 md:col-span-3 h-full overflow-hidden">
-            <Collapsible 
-              open={isFileExplorerOpen} 
-              onOpenChange={setIsFileExplorerOpen}
-              className="h-full flex flex-col"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold">Files</h3>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    {isFileExplorerOpen ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-              </div>
-              <CollapsibleContent className="flex-grow overflow-hidden">
-                <FileExplorer
-                  files={files}
-                  onFileSelect={handleFileSelect}
-                  onCreateFile={handleCreateFile}
-                  onDeleteFile={handleDeleteFile}
-                  isLoading={isLoading}
-                />
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
-          
-          <div className="col-span-12 md:col-span-5 h-full overflow-hidden">
-            <Tabs defaultValue="chat" className="h-full flex flex-col">
-              <TabsList className="w-full">
-                <TabsTrigger value="chat">Chat</TabsTrigger>
-                <TabsTrigger value="editor">Editor</TabsTrigger>
-                <TabsTrigger value="console">Console</TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
-                <TabsTrigger value="github">GitHub</TabsTrigger>
-              </TabsList>
-              
-              <div className="flex-grow overflow-hidden">
-                <TabsContent value="chat" className="h-full m-0">
-                  <ChatInterface projectId={projectId} />
-                </TabsContent>
-                
-                <TabsContent value="editor" className="h-full m-0">
-                  <FileEditor
-                    file={selectedFile}
-                    onSave={handleSaveFile}
-                    projectId={projectId}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="console" className="h-full m-0">
-                  <Console 
-                    logs={consoleOutput} 
-                    errors={buildErrors}
-                    onClear={handleClearConsole} 
-                  />
-                </TabsContent>
-                
-                <TabsContent value="settings" className="h-full m-0">
-                  <ProjectSettings project={project} />
-                </TabsContent>
-
-                <TabsContent value="github" className="h-full m-0">
-                  <GitHubActions />
-                </TabsContent>
-              </div>
-            </Tabs>
-          </div>
-          
-          <div className="col-span-12 md:col-span-4 h-full overflow-hidden">
-            <Preview
-              files={files}
-              onConsoleMessage={(message) => setConsoleOutput(prev => [...prev, message])}
-              onConsoleError={(error) => setBuildErrors(prev => [...prev, error])}
-            />
-          </div>
+    <div className="h-screen w-full bg-background">
+      <div className="h-full grid grid-cols-12 gap-4 p-2 md:p-4">
+        <div className="col-span-12 md:col-span-3 h-full">
+          <FileExplorerSection
+            files={files}
+            isLoading={isLoading}
+            onFileSelect={handleFileSelect}
+            onCreateFile={handleCreateFile}
+            onDeleteFile={handleDeleteFile}
+          />
+        </div>
+        
+        <div className="col-span-12 md:col-span-5 h-full">
+          <MainContent
+            projectId={projectId}
+            selectedFile={selectedFile}
+            consoleOutput={consoleOutput}
+            buildErrors={buildErrors}
+            onSaveFile={handleSaveFile}
+            onClearConsole={handleClearConsole}
+            project={project}
+          />
+        </div>
+        
+        <div className="col-span-12 md:col-span-4 h-full">
+          <Preview
+            files={files}
+            onConsoleMessage={(message) => setConsoleOutput(prev => [...prev, message])}
+            onConsoleError={(error) => setBuildErrors(prev => [...prev, error])}
+          />
         </div>
       </div>
     </div>
