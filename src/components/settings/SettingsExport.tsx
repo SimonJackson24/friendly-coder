@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSettings } from "@/hooks/useSettings";
 import { useState } from "react";
+import { Json } from "@/integrations/supabase/types";
 
 export function SettingsExport() {
   const { settings } = useSettings();
@@ -16,12 +17,25 @@ export function SettingsExport() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Convert settings to a plain object that matches Json type
+      const settingsForExport = {
+        apiKey: settings.apiKey,
+        temperature: settings.temperature,
+        maxTokens: settings.maxTokens,
+        theme: settings.theme,
+        language: settings.language,
+        notifications: settings.notifications,
+        buildPreferences: settings.buildPreferences,
+        editorPreferences: settings.editorPreferences,
+        securityPreferences: settings.securityPreferences,
+      } as Json;
+
       // Save export to settings_history
       const { error } = await supabase
         .from('settings_history')
         .insert({
           user_id: user.id,
-          settings_data: settings,
+          settings_data: settingsForExport,
           operation_type: 'export',
           description: `Settings exported on ${new Date().toLocaleString()}`
         });
