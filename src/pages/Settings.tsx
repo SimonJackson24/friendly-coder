@@ -71,11 +71,11 @@ const Settings = () => {
         notifications: {
           email: true,
           push: false
-        } as Json,
+        },
         build_preferences: {
           autoSave: true,
           lintOnSave: true
-        } as Json
+        }
       };
 
       const { data, error } = await supabase
@@ -111,14 +111,14 @@ const Settings = () => {
       setLanguage(settings.language || "en");
       
       // Parse notifications with type safety
-      const notificationSettings = settings.notifications as { email: boolean; push: boolean } | null;
+      const notificationSettings = settings.notifications as NotificationSettings;
       setNotifications({
         email: notificationSettings?.email ?? true,
         push: notificationSettings?.push ?? false
       });
       
       // Parse build preferences with type safety
-      const buildPrefs = settings.build_preferences as { autoSave: boolean; lintOnSave: boolean } | null;
+      const buildPrefs = settings.build_preferences as BuildPreferences;
       setBuildPreferences({
         autoSave: buildPrefs?.autoSave ?? true,
         lintOnSave: buildPrefs?.lintOnSave ?? true
@@ -147,8 +147,8 @@ const Settings = () => {
         max_tokens: maxTokens,
         theme,
         language,
-        notifications: notifications as Json,
-        build_preferences: buildPreferences as Json
+        notifications: notifications as unknown as Json,
+        build_preferences: buildPreferences as unknown as Json
       })
       .eq("user_id", user.id);
 
