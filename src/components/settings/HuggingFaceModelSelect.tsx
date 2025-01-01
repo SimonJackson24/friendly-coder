@@ -38,13 +38,22 @@ interface HuggingFaceModelSelectProps {
 
 export function HuggingFaceModelSelect({ currentModel }: HuggingFaceModelSelectProps) {
   const [open, setOpen] = useState(false);
+  // Initialize with currentModel if provided, otherwise use the first model
   const [value, setValue] = useState(currentModel || models[0].value);
   const { toast } = useToast();
 
   const handleSelect = async (currentValue: string) => {
     console.log("Selecting model:", currentValue);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      console.error("No user found");
+      toast({
+        title: "Error",
+        description: "You must be logged in to change settings",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const { error } = await supabase
       .from("settings")
@@ -69,6 +78,11 @@ export function HuggingFaceModelSelect({ currentModel }: HuggingFaceModelSelectP
     });
   };
 
+  // If no models are available, don't render the component
+  if (!models || models.length === 0) {
+    return null;
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -79,7 +93,7 @@ export function HuggingFaceModelSelect({ currentModel }: HuggingFaceModelSelectP
           className="w-full justify-between"
         >
           {value
-            ? models.find((model) => model.value === value)?.label
+            ? models.find((model) => model.value === value)?.label || "Select model..."
             : "Select model..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
