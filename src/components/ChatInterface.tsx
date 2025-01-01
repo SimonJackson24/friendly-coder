@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
-import { generateResponse } from "@/utils/claude";
+import { generateResponse } from "@/utils/huggingface";
 import Logger from "@/utils/logger";
 
 interface Message {
