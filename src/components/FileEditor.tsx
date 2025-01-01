@@ -3,16 +3,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { useMutation } from "@tanstack/react-query";
+import { FileNode } from "@/hooks/useFileSystem";
 
 interface FileEditorProps {
-  file: {
-    name: string;
-    content?: string;
-  } | null;
+  file: FileNode | null;
+  onSave?: (id: string, content: string) => void;
 }
 
-export function FileEditor({ file }: FileEditorProps) {
+export function FileEditor({ file, onSave }: FileEditorProps) {
   const [content, setContent] = useState("");
   const [originalContent, setOriginalContent] = useState("");
   const { toast } = useToast();
@@ -24,30 +22,19 @@ export function FileEditor({ file }: FileEditorProps) {
     }
   }, [file]);
 
-  const saveFileMutation = useMutation({
-    mutationFn: async () => {
-      // This would be replaced with your actual file save API call
-      console.log("Saving file:", file?.name, content);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-    },
-    onSuccess: () => {
+  const handleSave = () => {
+    if (!file) return;
+    
+    try {
+      onSave?.(file.id, content);
       setOriginalContent(content);
-      toast({
-        title: "File Saved",
-        description: `Successfully saved ${file?.name}`,
-      });
-    },
-    onError: () => {
+    } catch (error) {
       toast({
         title: "Error",
         description: "Failed to save file",
         variant: "destructive",
       });
-    },
-  });
-
-  const handleSave = () => {
-    saveFileMutation.mutate();
+    }
   };
 
   const hasChanges = content !== originalContent;
@@ -73,9 +60,9 @@ export function FileEditor({ file }: FileEditorProps) {
         </div>
         <Button 
           onClick={handleSave}
-          disabled={!hasChanges || saveFileMutation.isPending}
+          disabled={!hasChanges}
         >
-          {saveFileMutation.isPending ? "Saving..." : "Save Changes"}
+          Save Changes
         </Button>
       </div>
       <Textarea
