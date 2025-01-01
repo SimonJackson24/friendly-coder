@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { ChatInterface } from "@/components/ChatInterface";
 import { FileExplorer } from "@/components/FileExplorer";
@@ -24,6 +24,7 @@ const Assistant = () => {
   const [selectedFile, setSelectedFile] = useState<FileNode | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [buildErrors, setBuildErrors] = useState<string[]>([]);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Check authentication status
   useEffect(() => {
@@ -65,6 +66,42 @@ const Assistant = () => {
     updateFile,
     deleteFile,
   } = useFileSystem(projectId);
+
+  // Handle preview updates
+  useEffect(() => {
+    const updatePreview = () => {
+      if (!iframeRef.current || !files.length) return;
+
+      const htmlFile = files.find(f => f.name === "index.html");
+      if (!htmlFile?.content) return;
+
+      // Create a blob URL for the HTML content
+      const blob = new Blob([htmlFile.content], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+
+      // Update iframe src
+      iframeRef.current.src = url;
+
+      // Cleanup
+      return () => URL.revokeObjectURL(url);
+    };
+
+    updatePreview();
+  }, [files]);
+
+  // Handle console messages from iframe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === "console") {
+        setConsoleOutput(prev => [...prev, event.data.message]);
+      } else if (event.data.type === "error") {
+        setBuildErrors(prev => [...prev, event.data.message]);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   const handleFileSelect = (file: FileNode) => {
     console.log("Selected file:", file);
@@ -165,9 +202,9 @@ const Assistant = () => {
                 <h2 className="text-lg font-semibold">Preview</h2>
               </div>
               <iframe
+                ref={iframeRef}
                 title="Live Preview"
                 className="w-full h-[600px] rounded-b-lg"
-                src="about:blank"
                 sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
               />
             </Card>
