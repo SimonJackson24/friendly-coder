@@ -151,6 +151,7 @@ const Assistant = () => {
                 <FileEditor
                   file={selectedFile}
                   onSave={handleSaveFile}
+                  projectId={projectId}
                 />
               </TabsContent>
               
