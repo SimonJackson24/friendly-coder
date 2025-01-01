@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       files: {
         Row: {
+          build_status: string | null
           content: string | null
           created_at: string | null
           id: string
@@ -21,6 +22,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          build_status?: string | null
           content?: string | null
           created_at?: string | null
           id?: string
@@ -31,6 +33,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          build_status?: string | null
           content?: string | null
           created_at?: string | null
           id?: string
@@ -169,12 +172,72 @@ export type Database = {
         }
         Relationships: []
       }
+      version_history: {
+        Row: {
+          build_status: string
+          commit_message: string | null
+          content: string | null
+          created_at: string | null
+          created_by: string | null
+          error_logs: string[] | null
+          file_id: string
+          id: string
+          project_id: string
+          version_number: number
+        }
+        Insert: {
+          build_status?: string
+          commit_message?: string | null
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_logs?: string[] | null
+          file_id: string
+          id?: string
+          project_id: string
+          version_number: number
+        }
+        Update: {
+          build_status?: string
+          commit_message?: string | null
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_logs?: string[] | null
+          file_id?: string
+          id?: string
+          project_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "version_history_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "version_history_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_next_version_number: {
+        Args: {
+          p_project_id: string
+          p_file_id: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
