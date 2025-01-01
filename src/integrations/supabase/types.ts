@@ -88,6 +88,7 @@ export type Database = {
       }
       settings: {
         Row: {
+          anthropic_model: string | null
           api_key: string | null
           created_at: string | null
           huggingface_model: string | null
@@ -99,6 +100,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          anthropic_model?: string | null
           api_key?: string | null
           created_at?: string | null
           huggingface_model?: string | null
@@ -110,6 +112,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          anthropic_model?: string | null
           api_key?: string | null
           created_at?: string | null
           huggingface_model?: string | null

@@ -30,9 +30,9 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
     setIsLoading(true);
 
     try {
-      console.log("Sending prompt to Hugging Face:", userMessage);
+      console.log("Sending prompt to Claude:", userMessage);
       const response = await generateResponse(userMessage);
-      console.log("Received response:", response);
+      console.log("Received response from Claude:", response);
       
       setMessages((prev) => [...prev, { role: "assistant", content: response }]);
     } catch (error) {
