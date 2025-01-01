@@ -10,7 +10,7 @@ import { AIDebugger } from "@/components/ai/AIDebugger";
 import { GitHubExport } from "@/components/github/GitHubExport";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Package, Bug, Github, Rocket } from "lucide-react";
+import { Plus, Package, Bug, Github, Rocket, FolderGit2 } from "lucide-react";
 import { useState } from "react";
 
 export default function Index() {
@@ -25,68 +25,101 @@ export default function Index() {
   }
 
   return (
-    <div className="container py-8">
+    <div className="container py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">My Projects</h1>
-        <div className="flex gap-2">
-          <Button onClick={() => setIsCreateOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            New Project
-          </Button>
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
+          <p className="mt-2 text-lg text-muted-foreground">
+            Manage your projects and development tools
+          </p>
         </div>
+        <Button 
+          onClick={() => setIsCreateOpen(true)}
+          size="lg"
+          className="gap-2"
+        >
+          <Plus className="w-5 h-5" />
+          New Project
+        </Button>
       </div>
 
-      <Tabs defaultValue="projects" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-          <TabsTrigger value="packages">
-            <Package className="w-4 h-4 mr-2" />
-            Package Manager
-          </TabsTrigger>
-          <TabsTrigger value="ai-debug">
-            <Bug className="w-4 h-4 mr-2" />
-            AI Debug
-          </TabsTrigger>
-          <TabsTrigger value="deployment">
-            <Rocket className="w-4 h-4 mr-2" />
-            Deployment
-          </TabsTrigger>
-          <TabsTrigger value="github">
-            <Github className="w-4 h-4 mr-2" />
-            GitHub Export
-          </TabsTrigger>
-        </TabsList>
+      <div className="grid grid-cols-1 gap-8">
+        <Card className="p-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold flex items-center gap-2">
+              <FolderGit2 className="w-6 h-6 text-primary" />
+              Your Projects
+            </h2>
+            <p className="text-muted-foreground">
+              Access and manage your development projects
+            </p>
+          </div>
+          <ProjectList userId={session.user.id} />
+        </Card>
 
-        <TabsContent value="projects">
-          <Card className="p-4">
-            <ProjectList userId={session.user.id} />
-          </Card>
-        </TabsContent>
+        <Card className="p-6">
+          <Tabs defaultValue="packages" className="space-y-6">
+            <TabsList className="grid grid-cols-4 gap-4 bg-muted/50 p-1">
+              <TabsTrigger value="packages" className="gap-2">
+                <Package className="w-4 h-4" />
+                Package Manager
+              </TabsTrigger>
+              <TabsTrigger value="ai-debug" className="gap-2">
+                <Bug className="w-4 h-4" />
+                AI Debug
+              </TabsTrigger>
+              <TabsTrigger value="deployment" className="gap-2">
+                <Rocket className="w-4 h-4" />
+                Deployment
+              </TabsTrigger>
+              <TabsTrigger value="github" className="gap-2">
+                <Github className="w-4 h-4" />
+                GitHub Export
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="packages">
-          <Card className="p-4">
-            <PackageManager />
-          </Card>
-        </TabsContent>
+            <TabsContent value="packages" className="space-y-4">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-semibold">Package Manager</h3>
+                <p className="text-muted-foreground">
+                  Install, update, and manage your project dependencies
+                </p>
+              </div>
+              <PackageManager />
+            </TabsContent>
 
-        <TabsContent value="ai-debug">
-          <Card className="p-4">
-            <AIDebugger />
-          </Card>
-        </TabsContent>
+            <TabsContent value="ai-debug" className="space-y-4">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-semibold">AI Debugger</h3>
+                <p className="text-muted-foreground">
+                  Get intelligent insights and fixes for your code
+                </p>
+              </div>
+              <AIDebugger />
+            </TabsContent>
 
-        <TabsContent value="deployment">
-          <Card className="p-4">
-            <DeploymentPanel />
-          </Card>
-        </TabsContent>
+            <TabsContent value="deployment" className="space-y-4">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-semibold">Deployment</h3>
+                <p className="text-muted-foreground">
+                  Deploy your projects to various platforms
+                </p>
+              </div>
+              <DeploymentPanel />
+            </TabsContent>
 
-        <TabsContent value="github">
-          <Card className="p-4">
-            <GitHubExport />
-          </Card>
-        </TabsContent>
-      </Tabs>
+            <TabsContent value="github" className="space-y-4">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-semibold">GitHub Export</h3>
+                <p className="text-muted-foreground">
+                  Export your projects directly to GitHub repositories
+                </p>
+              </div>
+              <GitHubExport />
+            </TabsContent>
+          </Tabs>
+        </Card>
+      </div>
 
       <CreateProjectDialog 
         isOpen={isCreateOpen} 
