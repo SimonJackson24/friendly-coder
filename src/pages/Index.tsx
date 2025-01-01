@@ -27,6 +27,8 @@ export default function Index() {
 
   if (!session) return null;
 
+  console.log("Rendering Index page with session:", session?.user?.id);
+
   return (
     <ProjectProvider>
       <div className="container py-8">
