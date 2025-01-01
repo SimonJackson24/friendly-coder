@@ -1,17 +1,28 @@
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ModelParametersSettings } from "@/components/settings/ModelParametersSettings";
+import { Button } from "@/components/ui/button";
+import { AIModelSettings } from "@/components/settings/AIModelSettings";
+import { DeploymentSettings } from "@/components/settings/DeploymentSettings";
+import { PackageSettings } from "@/components/settings/PackageSettings";
+import { GitHubSection } from "@/components/settings/GitHubSection";
 
 const Settings = () => {
   const { toast } = useToast();
-  const [apiKey, setApiKey] = useState("");
-  const [temperature, setTemperature] = useState(0.7);
-  const [maxTokens, setMaxTokens] = useState(1000);
+  const [settings, setSettings] = useState({
+    api_key: "",
+    anthropic_model: "claude-3-opus-20240229",
+    temperature: 0.7,
+    max_tokens: 1000,
+    github_token: "",
+    default_deployment_platform: "vercel",
+    default_package_registry: "npm",
+    platform_settings: {},
+  });
 
-  const { data: settings, isLoading, refetch } = useQuery({
+  const { data: settingsData, isLoading, refetch } = useQuery({
     queryKey: ["settings"],
     queryFn: async () => {
       console.log("Fetching settings...");
@@ -30,109 +41,105 @@ const Settings = () => {
     },
   });
 
-  useEffect(() => {
-    const createInitialSettings = async () => {
-      console.log("Creating initial settings...");
+  const updateSettingsMutation = useMutation({
+    mutationFn: async (newSettings: any) => {
+      console.log("Updating settings:", newSettings);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log("No user found, skipping settings creation");
-        return;
-      }
+      if (!user) throw new Error("No user found");
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("settings")
-        .insert([{
+        .upsert({
           user_id: user.id,
-          temperature: 0.7,
-          max_tokens: 1000,
-          anthropic_model: 'claude-3-opus-20240229'
-        }])
-        .select()
-        .single();
-
-      if (error && error.code !== "23505") {
-        console.error("Error creating initial settings:", error);
-        toast({
-          title: "Error",
-          description: "Failed to create initial settings",
-          variant: "destructive",
+          ...newSettings,
         });
-      } else {
-        console.log("Initial settings created:", data);
-        refetch();
-      }
-    };
 
-    if (!isLoading && !settings) {
-      createInitialSettings();
-    }
-  }, [isLoading, settings, toast, refetch]);
-
-  useEffect(() => {
-    if (settings) {
-      setApiKey(settings.api_key || "");
-      setTemperature(settings.temperature || 0.7);
-      setMaxTokens(settings.max_tokens || 1000);
-    }
-  }, [settings]);
-
-  const handleSaveSettings = async () => {
-    console.log("Saving settings...");
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      console.error("No user found");
+      if (error) throw error;
+    },
+    onSuccess: () => {
       toast({
-        title: "Error",
-        description: "You must be logged in to change settings",
-        variant: "destructive",
+        title: "Success",
+        description: "Settings updated successfully",
       });
-      return;
-    }
-
-    const { error } = await supabase
-      .from("settings")
-      .update({
-        api_key: apiKey,
-        temperature: temperature,
-        max_tokens: maxTokens,
-      })
-      .eq("user_id", user.id);
-
-    if (error) {
+      refetch();
+    },
+    onError: (error) => {
       console.error("Error updating settings:", error);
       toast({
         title: "Error",
         description: "Failed to update settings",
         variant: "destructive",
       });
-      return;
-    }
+    },
+  });
 
-    toast({
-      title: "Success",
-      description: "Settings updated successfully",
-    });
-    refetch();
+  useEffect(() => {
+    if (settingsData) {
+      setSettings({
+        api_key: settingsData.api_key || "",
+        anthropic_model: settingsData.anthropic_model || "claude-3-opus-20240229",
+        temperature: settingsData.temperature || 0.7,
+        max_tokens: settingsData.max_tokens || 1000,
+        github_token: settingsData.github_token || "",
+        default_deployment_platform: settingsData.default_deployment_platform || "vercel",
+        default_package_registry: settingsData.default_package_registry || "npm",
+        platform_settings: settingsData.platform_settings || {},
+      });
+    }
+  }, [settingsData]);
+
+  const handleSave = () => {
+    updateSettingsMutation.mutate(settings);
   };
+
+  if (isLoading) {
+    return (
+      <div className="container py-8">
+        <h1 className="text-3xl font-bold mb-8">Settings</h1>
+        <div className="space-y-6">
+          <Skeleton className="h-[400px] w-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Settings</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Settings</h1>
+        <Button onClick={handleSave} disabled={updateSettingsMutation.isPending}>
+          {updateSettingsMutation.isPending ? "Saving..." : "Save All Settings"}
+        </Button>
+      </div>
       
       <div className="grid gap-6">
-        {isLoading ? (
-          <Skeleton className="h-[400px] w-full" />
-        ) : (
-          <ModelParametersSettings
-            apiKey={apiKey}
-            temperature={temperature}
-            maxTokens={maxTokens}
-            onApiKeyChange={setApiKey}
-            onTemperatureChange={setTemperature}
-            onMaxTokensChange={setMaxTokens}
-            onSave={handleSaveSettings}
-          />
-        )}
+        <AIModelSettings
+          apiKey={settings.api_key}
+          model={settings.anthropic_model}
+          temperature={settings.temperature}
+          maxTokens={settings.max_tokens}
+          onApiKeyChange={(value) => setSettings(prev => ({ ...prev, api_key: value }))}
+          onModelChange={(value) => setSettings(prev => ({ ...prev, anthropic_model: value }))}
+          onTemperatureChange={(value) => setSettings(prev => ({ ...prev, temperature: value }))}
+          onMaxTokensChange={(value) => setSettings(prev => ({ ...prev, max_tokens: value }))}
+        />
+
+        <GitHubSection
+          githubToken={settings.github_token}
+          onChange={(value) => setSettings(prev => ({ ...prev, github_token: value }))}
+        />
+
+        <DeploymentSettings
+          platform={settings.default_deployment_platform}
+          platformSettings={settings.platform_settings}
+          onPlatformChange={(value) => setSettings(prev => ({ ...prev, default_deployment_platform: value }))}
+          onPlatformSettingsChange={(value) => setSettings(prev => ({ ...prev, platform_settings: value }))}
+        />
+
+        <PackageSettings
+          registry={settings.default_package_registry}
+          onRegistryChange={(value) => setSettings(prev => ({ ...prev, default_package_registry: value }))}
+        />
       </div>
     </div>
   );

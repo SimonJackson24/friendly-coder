@@ -111,7 +111,6 @@ export type Database = {
           default_deployment_platform: string | null
           default_package_registry: string | null
           github_token: string | null
-          huggingface_model: string | null
           id: string
           max_tokens: number | null
           platform_settings: Json | null
@@ -126,7 +125,6 @@ export type Database = {
           default_deployment_platform?: string | null
           default_package_registry?: string | null
           github_token?: string | null
-          huggingface_model?: string | null
           id?: string
           max_tokens?: number | null
           platform_settings?: Json | null
@@ -141,7 +139,6 @@ export type Database = {
           default_deployment_platform?: string | null
           default_package_registry?: string | null
           github_token?: string | null
-          huggingface_model?: string | null
           id?: string
           max_tokens?: number | null
           platform_settings?: Json | null

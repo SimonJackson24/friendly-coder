@@ -1,24 +1,36 @@
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 interface GitHubSectionProps {
-  githubUrl: string;
-  onChange: (url: string) => void;
+  githubToken: string;
+  onChange: (token: string) => void;
 }
 
-export function GitHubSection({ githubUrl, onChange }: GitHubSectionProps) {
+export function GitHubSection({ githubToken, onChange }: GitHubSectionProps) {
   return (
-    <div className="space-y-4">
-      <h3 className="text-md font-medium">GitHub Configuration</h3>
-      <div>
-        <Label htmlFor="github-url">GitHub URL</Label>
-        <Input
-          id="github-url"
-          value={githubUrl}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="https://github.com/username/repo"
-        />
-      </div>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>GitHub Integration</CardTitle>
+        <CardDescription>
+          Configure your GitHub integration settings
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <Label htmlFor="github-token">GitHub Personal Access Token</Label>
+          <Input
+            id="github-token"
+            type="password"
+            value={githubToken}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="Enter your GitHub token"
+          />
+          <p className="text-sm text-muted-foreground mt-1">
+            Required for GitHub repository operations
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
