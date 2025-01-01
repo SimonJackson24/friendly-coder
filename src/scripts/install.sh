@@ -108,11 +108,14 @@ echo -e "\n${GREEN}Setting up local configuration...${NC}"
 supabase status -o env > .env.local
 check_status "Failed to create environment configuration"
 
+# Get hostname
+HOSTNAME=$(hostname)
+
 echo -e "\n${GREEN}Installation complete!${NC}"
 echo -e "\nYou can now access:"
-echo -e "- Frontend: ${YELLOW}http://localhost:8080${NC}"
-echo -e "- Supabase Studio: ${YELLOW}http://localhost:54323${NC}"
+echo -e "- Frontend: ${YELLOW}http://${HOSTNAME}:3000${NC}"
+echo -e "- Supabase Studio: ${YELLOW}http://${HOSTNAME}:54323${NC}"
 echo -e "\n${YELLOW}Important Notes:${NC}"
 echo -e "1. If this is your first time running Docker, you may need to log out and back in"
-echo -e "2. Make sure ports 8080 and 54323 are not in use"
+echo -e "2. Make sure ports 3000 and 54323 are not in use"
 echo -e "3. To start the development server, run: ${YELLOW}npm run dev${NC}"
