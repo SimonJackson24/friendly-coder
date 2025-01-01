@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ProjectList } from "@/components/projects/ProjectList";
 import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
+import { ImportProjectDialog } from "@/components/projects/ImportProjectDialog";
 import { PackageManager } from "@/components/package/PackageManager";
 import { DeploymentPanel } from "@/components/deployment/DeploymentPanel";
 import { AIDebugger } from "@/components/ai/AIDebugger";
@@ -11,13 +12,14 @@ import { GitHubExport } from "@/components/github/GitHubExport";
 import { ProjectSelector } from "@/components/projects/ProjectSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Package, Bug, Github, Rocket, FolderGit2 } from "lucide-react";
+import { Plus, Package, Bug, Github, Rocket, FolderGit2, Upload } from "lucide-react";
 import { useState } from "react";
 
 export default function Index() {
   const session = useSession();
   const navigate = useNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string>();
   const { toast } = useToast();
 
@@ -40,14 +42,25 @@ export default function Index() {
             Manage your projects and development tools
           </p>
         </div>
-        <Button 
-          onClick={() => setIsCreateOpen(true)}
-          size="lg"
-          className="gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          New Project
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setIsImportOpen(true)}
+            size="lg"
+            variant="outline"
+            className="gap-2"
+          >
+            <Upload className="w-5 h-5" />
+            Import Project
+          </Button>
+          <Button 
+            onClick={() => setIsCreateOpen(true)}
+            size="lg"
+            className="gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            New Project
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-8">
@@ -141,6 +154,11 @@ export default function Index() {
       <CreateProjectDialog 
         isOpen={isCreateOpen} 
         onOpenChange={setIsCreateOpen}
+        userId={session.user.id}
+      />
+      <ImportProjectDialog
+        isOpen={isImportOpen}
+        onOpenChange={setIsImportOpen}
         userId={session.user.id}
       />
     </div>
