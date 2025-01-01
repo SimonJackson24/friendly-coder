@@ -79,11 +79,15 @@ export function useFileSystem(projectId: string | null) {
   });
 
   const updateFile = useMutation({
-    mutationFn: async ({ id, content }: { id: string; content: string }) => {
-      console.log("Updating file:", { id, content });
+    mutationFn: async ({ id, content, path }: { id: string; content?: string; path?: string }) => {
+      console.log("Updating file:", { id, content, path });
+      const updateData: { content?: string; path?: string } = {};
+      if (content !== undefined) updateData.content = content;
+      if (path !== undefined) updateData.path = path;
+
       const { data, error } = await supabase
         .from("files")
-        .update({ content })
+        .update(updateData)
         .eq("id", id)
         .select()
         .single();
@@ -140,12 +144,46 @@ export function useFileSystem(projectId: string | null) {
     },
   });
 
+  const moveFile = useMutation({
+    mutationFn: async ({ fileId, newPath }: { fileId: string; newPath: string }) => {
+      console.log("Moving file:", { fileId, newPath });
+      const { data, error } = await supabase
+        .from("files")
+        .update({ path: newPath })
+        .eq("id", fileId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error moving file:", error);
+        throw error;
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["files", projectId] });
+      toast({
+        title: "Success",
+        description: "File moved successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to move file",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     files,
     isLoading,
     createFile,
     updateFile,
     deleteFile,
+    moveFile,
   };
 }
 
