@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { FileNode } from "@/hooks/useFileSystem";
+import Editor from "@monaco-editor/react";
 
 interface FileEditorProps {
   file: FileNode | null;
@@ -37,6 +37,26 @@ export function FileEditor({ file, onSave }: FileEditorProps) {
     }
   };
 
+  const getLanguage = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'js':
+      case 'jsx':
+        return 'javascript';
+      case 'ts':
+      case 'tsx':
+        return 'typescript';
+      case 'html':
+        return 'html';
+      case 'css':
+        return 'css';
+      case 'json':
+        return 'json';
+      default:
+        return 'plaintext';
+    }
+  };
+
   const hasChanges = content !== originalContent;
 
   if (!file) {
@@ -65,10 +85,20 @@ export function FileEditor({ file, onSave }: FileEditorProps) {
           Save Changes
         </Button>
       </div>
-      <Textarea
+      <Editor
+        height="500px"
+        language={getLanguage(file.name)}
         value={content}
-        onChange={(e) => setContent(e.target.value)}
-        className="font-mono h-[500px]"
+        onChange={(value) => setContent(value || "")}
+        theme="vs-dark"
+        options={{
+          minimap: { enabled: false },
+          fontSize: 14,
+          lineNumbers: 'on',
+          scrollBeyondLastLine: false,
+          automaticLayout: true,
+          tabSize: 2,
+        }}
       />
     </Card>
   );

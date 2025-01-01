@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { ChatInterface } from "@/components/ChatInterface";
 import { FileExplorer } from "@/components/FileExplorer";
@@ -7,9 +7,9 @@ import { useFileSystem, FileNode } from "@/hooks/useFileSystem";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
 import { ProjectSettings } from "@/components/ProjectSettings";
 import { Console } from "@/components/Console";
+import { Preview } from "@/components/Preview";
 import { Github } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +24,6 @@ const Assistant = () => {
   const [selectedFile, setSelectedFile] = useState<FileNode | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [buildErrors, setBuildErrors] = useState<string[]>([]);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Check authentication status
   useEffect(() => {
@@ -67,42 +66,6 @@ const Assistant = () => {
     deleteFile,
   } = useFileSystem(projectId);
 
-  // Handle preview updates
-  useEffect(() => {
-    const updatePreview = () => {
-      if (!iframeRef.current || !files.length) return;
-
-      const htmlFile = files.find(f => f.name === "index.html");
-      if (!htmlFile?.content) return;
-
-      // Create a blob URL for the HTML content
-      const blob = new Blob([htmlFile.content], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-
-      // Update iframe src
-      iframeRef.current.src = url;
-
-      // Cleanup
-      return () => URL.revokeObjectURL(url);
-    };
-
-    updatePreview();
-  }, [files]);
-
-  // Handle console messages from iframe
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === "console") {
-        setConsoleOutput(prev => [...prev, event.data.message]);
-      } else if (event.data.type === "error") {
-        setBuildErrors(prev => [...prev, event.data.message]);
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []);
-
   const handleFileSelect = (file: FileNode) => {
     console.log("Selected file:", file);
     setSelectedFile(file);
@@ -111,7 +74,7 @@ const Assistant = () => {
   const handleCreateFile = (name: string, type: "file" | "folder") => {
     if (!projectId) return;
     
-    const path = name; // For now, create files at root level
+    const path = name;
     createFile.mutate({ name, path, type });
   };
 
@@ -134,6 +97,11 @@ const Assistant = () => {
     }
     
     window.open(project.github_url, '_blank');
+  };
+
+  const handleClearConsole = () => {
+    setConsoleOutput([]);
+    setBuildErrors([]);
   };
 
   // If not authenticated, don't render anything
@@ -187,7 +155,11 @@ const Assistant = () => {
               </TabsContent>
               
               <TabsContent value="console" className="mt-4">
-                <Console logs={consoleOutput} errors={buildErrors} />
+                <Console 
+                  logs={consoleOutput} 
+                  errors={buildErrors}
+                  onClear={handleClearConsole} 
+                />
               </TabsContent>
               
               <TabsContent value="settings" className="mt-4">
@@ -197,17 +169,11 @@ const Assistant = () => {
           </div>
           
           <div className="col-span-4">
-            <Card>
-              <div className="p-4 border-b">
-                <h2 className="text-lg font-semibold">Preview</h2>
-              </div>
-              <iframe
-                ref={iframeRef}
-                title="Live Preview"
-                className="w-full h-[600px] rounded-b-lg"
-                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-              />
-            </Card>
+            <Preview
+              files={files}
+              onConsoleMessage={(message) => setConsoleOutput(prev => [...prev, message])}
+              onConsoleError={(error) => setBuildErrors(prev => [...prev, error])}
+            />
           </div>
         </div>
       </div>
