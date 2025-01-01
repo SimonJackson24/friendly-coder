@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { ChatInterface } from "@/components/ChatInterface";
 import { FileExplorer } from "@/components/FileExplorer";
 import { FileEditor } from "@/components/FileEditor";
@@ -13,14 +13,27 @@ import { Console } from "@/components/Console";
 import { Github } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@supabase/auth-helpers-react";
 
 const Assistant = () => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId");
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const session = useSession();
   const [selectedFile, setSelectedFile] = useState<FileNode | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [buildErrors, setBuildErrors] = useState<string[]>([]);
+
+  // Check authentication status
+  useEffect(() => {
+    console.log("Checking authentication status:", session);
+    if (!session) {
+      console.log("No session found, redirecting to login");
+      navigate("/login");
+      return;
+    }
+  }, [session, navigate]);
 
   const { data: project } = useQuery({
     queryKey: ["project", projectId],
@@ -42,7 +55,7 @@ const Assistant = () => {
       console.log("Project details fetched:", data);
       return data;
     },
-    enabled: !!projectId,
+    enabled: !!projectId && !!session,
   });
 
   const {
@@ -85,6 +98,11 @@ const Assistant = () => {
     
     window.open(project.github_url, '_blank');
   };
+
+  // If not authenticated, don't render anything
+  if (!session) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
