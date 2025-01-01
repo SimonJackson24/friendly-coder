@@ -1,4 +1,4 @@
-import { Home, MessageSquare } from "lucide-react";
+import { Home, MessageSquare, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export const Navigation = () => {
@@ -27,6 +27,15 @@ export const Navigation = () => {
           >
             <MessageSquare className="h-4 w-4" />
             AI Assistant
+          </Link>
+          <Link
+            to="/settings"
+            className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
+              isActive("/settings") ? "text-primary" : "text-muted-foreground"
+            }`}
+          >
+            <Settings className="h-4 w-4" />
+            Settings
           </Link>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import Index from "./pages/Index";
 import Assistant from "./pages/Assistant";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/assistant" element={<Assistant />} />
+              <Route path="/settings" element={<Settings />} />
             </Routes>
           </main>
         </div>
