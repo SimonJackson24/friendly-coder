@@ -1,9 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 
-interface HuggingFaceResponse {
-  generated_text: string;
-}
-
 export async function getHuggingFaceSettings() {
   console.log("Fetching Hugging Face settings...");
   const { data: { user } } = await supabase.auth.getUser();
@@ -45,8 +41,9 @@ export async function generateResponse(prompt: string): Promise<string> {
         },
         body: JSON.stringify({
           inputs: prompt,
+          // FLUX.1-schnell doesn't support max_new_tokens, using simpler request format
           parameters: {
-            max_new_tokens: settings.max_tokens || 1000
+            temperature: settings.temperature || 0.7
           },
         }),
       }
