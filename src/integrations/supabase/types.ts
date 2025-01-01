@@ -54,8 +54,10 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string | null
+          forked_from: string | null
           github_url: string | null
           id: string
+          is_template: boolean | null
           status: string
           supabase_url: string | null
           title: string
@@ -65,8 +67,10 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
+          forked_from?: string | null
           github_url?: string | null
           id?: string
+          is_template?: boolean | null
           status?: string
           supabase_url?: string | null
           title: string
@@ -76,15 +80,25 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string | null
+          forked_from?: string | null
           github_url?: string | null
           id?: string
+          is_template?: boolean | null
           status?: string
           supabase_url?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "projects_forked_from_fkey"
+            columns: ["forked_from"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       settings: {
         Row: {
