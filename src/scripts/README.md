@@ -1,10 +1,10 @@
-# Raspberry Pi Installation Guide
+# Installation Guide
 
-This guide will help you set up the complete application with Supabase locally on your Raspberry Pi.
+This guide will help you set up the complete application with Supabase locally.
 
 ## Prerequisites
 
-- Raspberry Pi running Raspberry Pi OS
+- Linux/macOS/WSL environment
 - Internet connection
 - Sudo privileges
 - At least 4GB of RAM recommended
@@ -12,26 +12,19 @@ This guide will help you set up the complete application with Supabase locally o
 
 ## Step-by-Step Installation
 
-1. **Prepare your Raspberry Pi**
+1. **Prepare your system**
    ```bash
    # Update your system
    sudo apt-get update
    sudo apt-get upgrade -y
    ```
 
-2. **Clone the Repository**
-   ```bash
-   # Clone the repository
-   git clone <YOUR_REPOSITORY_URL>
-   cd <REPOSITORY_NAME>
-   ```
-
-3. **Make the Installation Script Executable**
+2. **Make the Installation Script Executable**
    ```bash
    chmod +x src/scripts/install.sh
    ```
 
-4. **Run the Installation Script**
+3. **Run the Installation Script**
    ```bash
    ./src/scripts/install.sh
    ```
@@ -39,18 +32,19 @@ This guide will help you set up the complete application with Supabase locally o
    The script will:
    - Install Docker if not present
    - Install Docker Compose if not present
-   - Install Node.js if not present
+   - Install Node.js 20.x if not present
    - Install Supabase CLI
    - Initialize and start Supabase locally
    - Install project dependencies
-   - Set up local configuration
-   - Start the development server
+   - Configure local Supabase credentials
 
 ## Accessing the Application
 
 After installation:
 - Frontend: http://localhost:8080
 - Supabase Studio: http://localhost:54323
+  - Email: admin@admin.com
+  - Password: admin
 
 ## Troubleshooting
 
@@ -72,12 +66,6 @@ After installation:
    ```bash
    # Check available memory
    free -h
-   # If needed, increase swap space:
-   sudo dphys-swapfile swapoff
-   sudo nano /etc/dphys-swapfile
-   # Set CONF_SWAPSIZE=2048
-   sudo dphys-swapfile setup
-   sudo dphys-swapfile swapon
    ```
 
 4. **Supabase Services**
@@ -115,16 +103,9 @@ After installation:
 
 ## System Requirements
 
-- CPU: Any Raspberry Pi 4 or newer
+- CPU: Any modern processor (x86_64 or ARM)
 - RAM: Minimum 4GB (8GB recommended)
 - Storage: At least 10GB free space
-- OS: Raspberry Pi OS (64-bit recommended)
+- OS: Linux/macOS/WSL
 - Docker: Version 20.10 or newer
-- Node.js: Version 18 or newer
-
-## Additional Resources
-
-- [Docker Documentation](https://docs.docker.com/)
-- [Supabase Documentation](https://supabase.com/docs)
-- [Node.js Documentation](https://nodejs.org/docs)
-- [Raspberry Pi Documentation](https://www.raspberrypi.com/documentation/)
+- Node.js: Version 20.x
