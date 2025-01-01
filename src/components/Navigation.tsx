@@ -1,42 +1,39 @@
-import { Home, MessageSquare, Settings } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useNavigate } from "react-router-dom";
 
 export const Navigation = () => {
-  const location = useLocation();
+  const session = useSession();
+  const supabase = useSupabaseClient();
+  const navigate = useNavigate();
 
-  const isActive = (path: string) => location.pathname === path;
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
 
   return (
-    <nav className="border-b bg-background">
-      <div className="container mx-auto">
-        <div className="flex h-16 items-center gap-6">
-          <Link
-            to="/"
-            className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
-              isActive("/") ? "text-primary" : "text-muted-foreground"
-            }`}
-          >
-            <Home className="h-4 w-4" />
-            Projects
-          </Link>
-          <Link
-            to="/assistant"
-            className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
-              isActive("/assistant") ? "text-primary" : "text-muted-foreground"
-            }`}
-          >
-            <MessageSquare className="h-4 w-4" />
-            AI Assistant
-          </Link>
-          <Link
-            to="/settings"
-            className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
-              isActive("/settings") ? "text-primary" : "text-muted-foreground"
-            }`}
-          >
-            <Settings className="h-4 w-4" />
-            Settings
-          </Link>
+    <nav className="border-b">
+      <div className="container flex items-center justify-between h-16">
+        <Link to="/" className="font-bold text-xl">
+          Project Manager
+        </Link>
+        
+        <div className="flex items-center gap-4">
+          {session ? (
+            <>
+              <Link to="/assistant">
+                <Button variant="ghost">Assistant</Button>
+              </Link>
+              <Link to="/settings">
+                <Button variant="ghost">Settings</Button>
+              </Link>
+              <Button variant="outline" onClick={handleLogout}>
+                Logout
+              </Button>
+            </>
+          ) : null}
         </div>
       </div>
     </nav>

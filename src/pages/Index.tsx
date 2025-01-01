@@ -1,17 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useSession } from "@supabase/auth-helpers-react";
 import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
 import { ProjectList } from "@/components/projects/ProjectList";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const session = useSession();
+  const navigate = useNavigate();
 
   console.log("Auth state:", session ? "User logged in" : "No user");
+
+  useEffect(() => {
+    if (!session) {
+      console.log("No session found, redirecting to login");
+      navigate("/login");
+    }
+  }, [session, navigate]);
 
   const handleCreateProject = () => {
     if (!session?.user) {
@@ -26,14 +35,7 @@ const Index = () => {
   };
 
   if (!session?.user) {
-    return (
-      <div className="container py-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4">Welcome to Project Manager</h1>
-          <p className="text-muted-foreground">Please sign in to manage your projects.</p>
-        </div>
-      </div>
-    );
+    return null; // Don't render anything while redirecting
   }
 
   return (
