@@ -7,6 +7,7 @@ import { SecurityPreferencesSection } from "@/components/settings/SecurityPrefer
 import { SettingsHeader } from "@/components/settings/SettingsHeader";
 import { SettingsExport } from "@/components/settings/SettingsExport";
 import { SettingsImport } from "@/components/settings/SettingsImport";
+import { GitHubSection } from "@/components/settings/GitHubSection";
 import { useSettings } from "@/hooks/useSettings";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -31,6 +32,7 @@ const Settings = () => {
       <Tabs defaultValue="general" className="space-y-6">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="integrations">Integrations</TabsTrigger>
           <TabsTrigger value="model">Model</TabsTrigger>
           <TabsTrigger value="editor">Editor</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
@@ -56,6 +58,13 @@ const Settings = () => {
                 buildPreferences: settings.buildPreferences,
               });
             }}
+          />
+        </TabsContent>
+
+        <TabsContent value="integrations" className="space-y-6">
+          <GitHubSection 
+            githubUrl="" 
+            onChange={() => {}} 
           />
         </TabsContent>
 
