@@ -25,6 +25,20 @@ export function GitHubImport() {
       return;
     }
 
+    // Extract owner and repo from URL
+    const urlMatch = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+    if (!urlMatch) {
+      toast({
+        title: "Error",
+        description: "Invalid GitHub repository URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const [, owner, repo] = urlMatch;
+    console.log('Importing from GitHub:', { owner, repo });
+
     if (!selectedProject?.id) {
       toast({
         title: "Error",
@@ -36,36 +50,71 @@ export function GitHubImport() {
 
     setIsImporting(true);
     try {
-      console.log('Starting GitHub import process');
-      
-      const response = await supabase.functions.invoke('project-operations', {
-        body: { 
-          operation: 'github-import',
-          data: { 
-            repoUrl,
-            projectId: selectedProject.id
-          }
-        }
-      });
+      // Fetch repository contents directly from GitHub's public API
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch repository contents');
+      }
 
-      if (response.error) throw response.error;
-      console.log('Import successful:', response.data);
+      const contents = await response.json();
+      console.log('Fetched repository contents:', contents);
+
+      // Update project with GitHub URL
+      await supabase
+        .from('projects')
+        .update({ 
+          github_url: repoUrl,
+          github_import_status: 'importing'
+        })
+        .eq('id', selectedProject.id);
+
+      // Import each file
+      for (const item of contents) {
+        if (item.type === 'file') {
+          const fileContent = await fetch(item.download_url).then(res => res.text());
+          await supabase
+            .from('files')
+            .insert({
+              project_id: selectedProject.id,
+              name: item.name,
+              path: item.path,
+              content: fileContent,
+              type: 'file'
+            });
+        }
+      }
+
+      // Update import status
+      await supabase
+        .from('projects')
+        .update({ 
+          github_import_status: 'completed',
+          github_branch: 'main'
+        })
+        .eq('id', selectedProject.id);
 
       toast({
         title: "Success",
         description: "Repository imported successfully",
       });
 
-      // Redirect to assistant view with the project
       navigate(`/assistant?projectId=${selectedProject.id}`);
 
     } catch (error) {
       console.error('GitHub import error:', error);
       toast({
         title: "Error",
-        description: "Failed to import repository",
+        description: "Failed to import repository. Make sure the repository is public.",
         variant: "destructive",
       });
+
+      await supabase
+        .from('projects')
+        .update({ 
+          github_import_status: 'error',
+          github_import_error: error.message
+        })
+        .eq('id', selectedProject.id);
     } finally {
       setIsImporting(false);
     }
@@ -80,7 +129,7 @@ export function GitHubImport() {
 
       <Alert>
         <AlertDescription>
-          Import an existing GitHub repository to start working on it with AI Studio.
+          Import a public GitHub repository by entering its URL below. Private repositories require authentication through Settings.
         </AlertDescription>
       </Alert>
 
