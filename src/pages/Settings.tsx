@@ -6,6 +6,7 @@ import { ModelParametersSettings } from "@/components/settings/ModelParametersSe
 import { DatabaseStatistics } from "@/components/settings/DatabaseStatistics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
+import { Json } from "@/integrations/supabase/types";
 
 interface NotificationSettings {
   email: boolean;
@@ -61,23 +62,25 @@ const Settings = () => {
         return;
       }
 
+      const initialSettings = {
+        user_id: user.id,
+        temperature: 0.7,
+        max_tokens: 1000,
+        theme: 'system',
+        language: 'en',
+        notifications: {
+          email: true,
+          push: false
+        } as Json,
+        build_preferences: {
+          autoSave: true,
+          lintOnSave: true
+        } as Json
+      };
+
       const { data, error } = await supabase
         .from("settings")
-        .insert([{
-          user_id: user.id,
-          temperature: 0.7,
-          max_tokens: 1000,
-          theme: 'system',
-          language: 'en',
-          notifications: {
-            email: true,
-            push: false
-          },
-          build_preferences: {
-            autoSave: true,
-            lintOnSave: true
-          }
-        }])
+        .insert([initialSettings])
         .select()
         .single();
 
@@ -108,14 +111,14 @@ const Settings = () => {
       setLanguage(settings.language || "en");
       
       // Parse notifications with type safety
-      const notificationSettings = settings.notifications as NotificationSettings;
+      const notificationSettings = settings.notifications as { email: boolean; push: boolean } | null;
       setNotifications({
         email: notificationSettings?.email ?? true,
         push: notificationSettings?.push ?? false
       });
       
       // Parse build preferences with type safety
-      const buildPrefs = settings.build_preferences as BuildPreferences;
+      const buildPrefs = settings.build_preferences as { autoSave: boolean; lintOnSave: boolean } | null;
       setBuildPreferences({
         autoSave: buildPrefs?.autoSave ?? true,
         lintOnSave: buildPrefs?.lintOnSave ?? true
@@ -144,8 +147,8 @@ const Settings = () => {
         max_tokens: maxTokens,
         theme,
         language,
-        notifications,
-        build_preferences: buildPreferences
+        notifications: notifications as Json,
+        build_preferences: buildPreferences as Json
       })
       .eq("user_id", user.id);
 
