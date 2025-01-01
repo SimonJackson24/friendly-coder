@@ -10,7 +10,7 @@ import { AIDebugger } from "@/components/ai/AIDebugger";
 import { ProjectSelector } from "@/components/projects/ProjectSelector";
 import { DatabaseDownload } from "@/components/database/DatabaseDownload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Package, Bug, Rocket, Database } from "lucide-react";
+import { Plus, Package, Bug, Rocket, Database, LayoutDashboard, BrainCog } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ProjectProvider } from "@/contexts/ProjectContext";
 
@@ -31,68 +31,83 @@ export default function Index() {
 
   return (
     <ProjectProvider>
-      <div className="container py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">My Projects</h1>
-          <div className="flex gap-2">
-            <Button onClick={() => setIsCreateOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              New Project
-            </Button>
+      <div className="container py-8 px-4 md:px-8 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div className="flex items-center gap-3">
+            <BrainCog className="h-8 w-8 text-primary" />
+            <div>
+              <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
+                My Projects
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Manage and organize your AI-powered projects
+              </p>
+            </div>
           </div>
+          <Button 
+            onClick={() => setIsCreateOpen(true)}
+            size="lg"
+            className="shadow-lg hover:shadow-primary/20 transition-all duration-300"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            New Project
+          </Button>
         </div>
 
-        <Tabs defaultValue="projects" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="packages">
-              <Package className="w-4 h-4 mr-2" />
-              Package Manager
+        <div className="mb-6">
+          <ProjectSelector />
+        </div>
+
+        <Tabs defaultValue="projects" className="space-y-6">
+          <TabsList className="w-full justify-start gap-2 p-1 bg-black/40">
+            <TabsTrigger value="projects" className="gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              Projects
             </TabsTrigger>
-            <TabsTrigger value="ai-debug">
-              <Bug className="w-4 h-4 mr-2" />
+            <TabsTrigger value="packages" className="gap-2">
+              <Package className="w-4 h-4" />
+              Packages
+            </TabsTrigger>
+            <TabsTrigger value="ai-debug" className="gap-2">
+              <Bug className="w-4 h-4" />
               AI Debug
             </TabsTrigger>
-            <TabsTrigger value="deployment">
-              <Rocket className="w-4 h-4 mr-2" />
+            <TabsTrigger value="deployment" className="gap-2">
+              <Rocket className="w-4 h-4" />
               Deployment
             </TabsTrigger>
-            <TabsTrigger value="database">
-              <Database className="w-4 h-4 mr-2" />
+            <TabsTrigger value="database" className="gap-2">
+              <Database className="w-4 h-4" />
               Database
             </TabsTrigger>
           </TabsList>
 
-          <div className="mb-4">
-            <ProjectSelector />
-          </div>
-
           <TabsContent value="projects">
-            <Card className="p-4">
+            <Card className="p-6 bg-black/75 backdrop-blur-md border-white/10">
               <ProjectList userId={session.user.id} />
             </Card>
           </TabsContent>
 
           <TabsContent value="packages">
-            <Card className="p-4">
+            <Card className="p-6 bg-black/75 backdrop-blur-md border-white/10">
               <PackageManager />
             </Card>
           </TabsContent>
 
           <TabsContent value="ai-debug">
-            <Card className="p-4">
+            <Card className="p-6 bg-black/75 backdrop-blur-md border-white/10">
               <AIDebugger />
             </Card>
           </TabsContent>
 
           <TabsContent value="deployment">
-            <Card className="p-4">
+            <Card className="p-6 bg-black/75 backdrop-blur-md border-white/10">
               <DeploymentPanel />
             </Card>
           </TabsContent>
 
           <TabsContent value="database">
-            <Card className="p-4">
+            <Card className="p-6 bg-black/75 backdrop-blur-md border-white/10">
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold">Database Management</h2>
                 <DatabaseDownload />

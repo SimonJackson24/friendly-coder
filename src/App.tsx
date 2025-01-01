@@ -17,9 +17,9 @@ function App() {
     <SessionContextProvider supabaseClient={supabase}>
       <QueryClientProvider client={queryClient}>
         <Router>
-          <div className="min-h-screen bg-background">
+          <div className="min-h-screen bg-gradient-to-br from-black to-black/95 text-white">
             <Navigation />
-            <main>
+            <main className="min-h-[calc(100vh-4rem)]">
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
