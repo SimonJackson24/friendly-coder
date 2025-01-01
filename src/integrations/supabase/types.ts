@@ -47,23 +47,35 @@ export type Database = {
       }
       settings: {
         Row: {
+          api_key: string | null
           created_at: string | null
           huggingface_model: string | null
           id: string
+          max_tokens: number | null
+          model_parameters: Json | null
+          temperature: number | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          api_key?: string | null
           created_at?: string | null
           huggingface_model?: string | null
           id?: string
+          max_tokens?: number | null
+          model_parameters?: Json | null
+          temperature?: number | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          api_key?: string | null
           created_at?: string | null
           huggingface_model?: string | null
           id?: string
+          max_tokens?: number | null
+          model_parameters?: Json | null
+          temperature?: number | null
           updated_at?: string | null
           user_id?: string
         }
