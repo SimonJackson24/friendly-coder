@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { FileNode } from "../useFileSystem";
+import Logger from "@/utils/logger";
 
 export function useFileMutations(projectId: string | null) {
   const { toast } = useToast();
@@ -11,6 +12,8 @@ export function useFileMutations(projectId: string | null) {
     mutationFn: async ({ name, path, type, content = "" }: Partial<FileNode>) => {
       console.log("Creating file:", { name, path, type, content });
       if (!projectId) throw new Error("No project selected");
+
+      Logger.logFileOperation('create', path!, { name, type, content });
 
       const { data, error } = await supabase
         .from("files")
@@ -25,7 +28,7 @@ export function useFileMutations(projectId: string | null) {
         .single();
 
       if (error) {
-        console.error("Error creating file:", error);
+        Logger.logBuildError(error, path);
         throw error;
       }
 
@@ -50,6 +53,8 @@ export function useFileMutations(projectId: string | null) {
   const updateFile = useMutation({
     mutationFn: async ({ id, content, path }: { id: string; content?: string; path?: string }) => {
       console.log("Updating file:", { id, content, path });
+      Logger.logFileOperation('update', path || id, { content });
+
       const updateData: { content?: string; path?: string } = {};
       if (content !== undefined) updateData.content = content;
       if (path !== undefined) updateData.path = path;
@@ -62,7 +67,7 @@ export function useFileMutations(projectId: string | null) {
         .single();
 
       if (error) {
-        console.error("Error updating file:", error);
+        Logger.logBuildError(error, path);
         throw error;
       }
 
@@ -87,13 +92,15 @@ export function useFileMutations(projectId: string | null) {
   const deleteFile = useMutation({
     mutationFn: async (id: string) => {
       console.log("Deleting file:", id);
+      Logger.logFileOperation('delete', id);
+
       const { error } = await supabase
         .from("files")
         .delete()
         .eq("id", id);
 
       if (error) {
-        console.error("Error deleting file:", error);
+        Logger.logBuildError(error);
         throw error;
       }
     },
@@ -116,6 +123,8 @@ export function useFileMutations(projectId: string | null) {
   const moveFile = useMutation({
     mutationFn: async ({ fileId, newPath }: { fileId: string; newPath: string }) => {
       console.log("Moving file:", { fileId, newPath });
+      Logger.logFileOperation('move', newPath, { fileId });
+
       const { data, error } = await supabase
         .from("files")
         .update({ path: newPath })
@@ -124,7 +133,7 @@ export function useFileMutations(projectId: string | null) {
         .single();
 
       if (error) {
-        console.error("Error moving file:", error);
+        Logger.logBuildError(error, newPath);
         throw error;
       }
 

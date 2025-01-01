@@ -5,9 +5,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { generateResponse } from "@/utils/huggingface";
 import Logger from "@/utils/logger";
-import { Loader2, Send, Bot, User, AlertTriangle } from "lucide-react";
+import { Loader2, Send, Bot, User, AlertTriangle, Package, Database, FileCode } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Message {
   role: "user" | "assistant";
@@ -60,10 +60,16 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
       // Get enhanced context
       const context = Logger.getContextSummary();
       const contextEnhancedPrompt = `
-[Context: 
-Build Errors: ${JSON.stringify(context.recentBuildErrors)}
-Schema Changes: ${JSON.stringify(context.recentSchemaChanges)}
-Package Operations: ${JSON.stringify(context.recentPackageOperations)}
+[System Context:
+Build Status: ${context.buildErrorCount} recent errors
+Schema Changes: ${context.schemaChangeCount} recent changes
+Package Operations: ${context.packageOperationCount} recent operations
+File Operations: ${context.fileOperationCount} recent operations
+
+Recent Build Errors: ${JSON.stringify(context.recentBuildErrors)}
+Recent Schema Changes: ${JSON.stringify(context.recentSchemaChanges)}
+Recent Package Operations: ${JSON.stringify(context.recentPackageOperations)}
+Recent File Operations: ${JSON.stringify(context.recentFileOperations)}
 ]
 
 ${userMessage}`;
@@ -88,20 +94,56 @@ ${userMessage}`;
     }
   };
 
-  // Display context alerts if there are recent issues
+  // Get context for alerts
   const context = Logger.getContextSummary();
-  const hasRecentIssues = context.recentBuildErrors.length > 0 || 
-                         context.recentSchemaChanges.length > 0;
+  const hasRecentIssues = context.buildErrorCount > 0 || 
+                         context.schemaChangeCount > 0 || 
+                         context.packageOperationCount > 0;
 
   return (
     <div className="h-full flex flex-col bg-background/50 backdrop-blur-sm rounded-lg">
       {hasRecentIssues && (
-        <Alert variant="warning" className="m-4">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            There are recent build errors or schema changes that might affect the AI's responses.
-          </AlertDescription>
-        </Alert>
+        <div className="space-y-2 p-4">
+          {context.buildErrorCount > 0 && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Build Errors</AlertTitle>
+              <AlertDescription>
+                There are {context.buildErrorCount} recent build errors that might affect the AI's responses.
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {context.schemaChangeCount > 0 && (
+            <Alert>
+              <Database className="h-4 w-4" />
+              <AlertTitle>Schema Changes</AlertTitle>
+              <AlertDescription>
+                {context.schemaChangeCount} recent database schema changes detected.
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {context.packageOperationCount > 0 && (
+            <Alert>
+              <Package className="h-4 w-4" />
+              <AlertTitle>Package Changes</AlertTitle>
+              <AlertDescription>
+                {context.packageOperationCount} recent package operations performed.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {context.fileOperationCount > 0 && (
+            <Alert>
+              <FileCode className="h-4 w-4" />
+              <AlertTitle>File System Changes</AlertTitle>
+              <AlertDescription>
+                {context.fileOperationCount} recent file operations performed.
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
       )}
 
       <ScrollArea className="flex-1 p-4">

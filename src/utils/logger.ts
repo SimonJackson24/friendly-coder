@@ -12,6 +12,7 @@ class Logger {
   private static buildErrors: LogEntry[] = [];
   private static schemaChanges: LogEntry[] = [];
   private static packageOperations: LogEntry[] = [];
+  private static fileSystemOperations: LogEntry[] = [];
 
   static log(level: LogLevel, message: string, context?: any) {
     const entry = {
@@ -32,8 +33,10 @@ class Logger {
       case 'build':
         if (context?.error) {
           this.buildErrors.push(entry);
+          console.error(`[BUILD][${entry.timestamp}] ${message}`, context || '');
+        } else {
+          console.log(`[BUILD][${entry.timestamp}] ${message}`, context || '');
         }
-        console.log(`[BUILD][${entry.timestamp}] ${message}`, context || '');
         break;
       case 'package':
         this.packageOperations.push(entry);
@@ -70,15 +73,29 @@ class Logger {
     return this.packageOperations;
   }
 
+  static getFileSystemOperations() {
+    return this.fileSystemOperations;
+  }
+
   static getLastBuildError() {
     return this.buildErrors[this.buildErrors.length - 1];
   }
 
   static getContextSummary() {
+    const recentBuildErrors = this.buildErrors.slice(-5);
+    const recentSchemaChanges = this.schemaChanges.slice(-5);
+    const recentPackageOps = this.packageOperations.slice(-5);
+    const recentFileOps = this.fileSystemOperations.slice(-5);
+
     return {
-      recentBuildErrors: this.buildErrors.slice(-5),
-      recentSchemaChanges: this.schemaChanges.slice(-5),
-      recentPackageOperations: this.packageOperations.slice(-5),
+      recentBuildErrors,
+      recentSchemaChanges,
+      recentPackageOperations: recentPackageOps,
+      recentFileOperations: recentFileOps,
+      buildErrorCount: this.buildErrors.length,
+      schemaChangeCount: this.schemaChanges.length,
+      packageOperationCount: this.packageOperations.length,
+      fileOperationCount: this.fileSystemOperations.length,
     };
   }
 
@@ -87,6 +104,31 @@ class Logger {
     this.buildErrors = [];
     this.schemaChanges = [];
     this.packageOperations = [];
+    this.fileSystemOperations = [];
+  }
+
+  static logFileOperation(operation: string, path: string, details?: any) {
+    this.fileSystemOperations.push({
+      timestamp: new Date().toISOString(),
+      level: 'info',
+      message: `File ${operation}: ${path}`,
+      context: details
+    });
+  }
+
+  static logSchemaChange(table: string, operation: string, details?: any) {
+    this.log('schema', `Schema ${operation} on table ${table}`, details);
+  }
+
+  static logPackageOperation(operation: string, packageName: string, version?: string) {
+    this.log('package', `Package ${operation}: ${packageName}${version ? `@${version}` : ''}`, { version });
+  }
+
+  static logBuildError(error: Error | string, file?: string) {
+    this.log('build', typeof error === 'string' ? error : error.message, {
+      error: typeof error === 'string' ? { message: error } : error,
+      file
+    });
   }
 }
 
