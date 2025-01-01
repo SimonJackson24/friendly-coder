@@ -20,7 +20,7 @@ serve(async (req) => {
     if (!anthropicApiKey) {
       console.error("Missing Anthropic API key");
       return new Response(
-        JSON.stringify({ error: "Missing API configuration" }),
+        JSON.stringify({ error: "Missing Anthropic API key configuration" }),
         { 
           status: 500, 
           headers: { 
@@ -55,7 +55,7 @@ serve(async (req) => {
       const errorText = await response.text();
       console.error("Anthropic API error:", errorText);
       return new Response(
-        JSON.stringify({ error: "Failed to generate response from Claude" }),
+        JSON.stringify({ error: "Failed to generate response from Claude", details: errorText }),
         { 
           status: 500, 
           headers: { 
