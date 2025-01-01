@@ -1,172 +1,49 @@
-import { useEffect, useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { ModelParametersSettings } from "@/components/settings/ModelParametersSettings";
-import { DatabaseStatistics } from "@/components/settings/DatabaseStatistics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ModelParametersSettings } from "@/components/settings/ModelParametersSettings";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
-import { Json } from "@/integrations/supabase/types";
-
-interface NotificationSettings {
-  email: boolean;
-  push: boolean;
-}
-
-interface BuildPreferences {
-  autoSave: boolean;
-  lintOnSave: boolean;
-}
+import { DatabaseStatistics } from "@/components/settings/DatabaseStatistics";
+import { EditorPreferencesSection } from "@/components/settings/EditorPreferencesSection";
+import { SecurityPreferencesSection } from "@/components/settings/SecurityPreferencesSection";
+import { useSettings } from "@/hooks/useSettings";
 
 const Settings = () => {
-  const { toast } = useToast();
-  const [apiKey, setApiKey] = useState("");
-  const [temperature, setTemperature] = useState(0.7);
-  const [maxTokens, setMaxTokens] = useState(1000);
-  const [theme, setTheme] = useState("system");
-  const [language, setLanguage] = useState("en");
-  const [notifications, setNotifications] = useState<NotificationSettings>({ 
-    email: true, 
-    push: false 
-  });
-  const [buildPreferences, setBuildPreferences] = useState<BuildPreferences>({
-    autoSave: true,
-    lintOnSave: true,
-  });
+  const { settings, isLoading, updateSettings, isUpdating } = useSettings();
 
-  const { data: settings, isLoading, refetch } = useQuery({
-    queryKey: ["settings"],
-    queryFn: async () => {
-      console.log("Fetching settings...");
-      const { data: settings, error } = await supabase
-        .from("settings")
-        .select("*")
-        .maybeSingle();
+  if (isLoading) {
+    return <div>Loading settings...</div>;
+  }
 
-      if (error) {
-        console.error("Error fetching settings:", error);
-        throw error;
-      }
+  if (!settings) {
+    return <div>No settings found</div>;
+  }
 
-      console.log("Settings fetched:", settings);
-      return settings;
-    },
-  });
-
-  useEffect(() => {
-    const createInitialSettings = async () => {
-      console.log("Creating initial settings...");
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.log("No user found, skipping settings creation");
-        return;
-      }
-
-      const initialSettings = {
-        user_id: user.id,
-        temperature: 0.7,
-        max_tokens: 1000,
-        theme: 'system',
-        language: 'en',
-        notifications: {
-          email: true,
-          push: false
-        },
-        build_preferences: {
-          autoSave: true,
-          lintOnSave: true
-        }
-      };
-
-      const { data, error } = await supabase
-        .from("settings")
-        .insert([initialSettings])
-        .select()
-        .single();
-
-      if (error && error.code !== "23505") {
-        console.error("Error creating initial settings:", error);
-        toast({
-          title: "Error",
-          description: "Failed to create initial settings",
-          variant: "destructive",
-        });
-      } else {
-        console.log("Initial settings created:", data);
-        refetch();
-      }
-    };
-
-    if (!isLoading && !settings) {
-      createInitialSettings();
-    }
-  }, [isLoading, settings, toast, refetch]);
-
-  useEffect(() => {
-    if (settings) {
-      setApiKey(settings.api_key || "");
-      setTemperature(settings.temperature || 0.7);
-      setMaxTokens(settings.max_tokens || 1000);
-      setTheme(settings.theme || "system");
-      setLanguage(settings.language || "en");
-      
-      // Parse notifications with type safety
-      const notificationSettings = settings.notifications as unknown as NotificationSettings;
-      setNotifications({
-        email: notificationSettings?.email ?? true,
-        push: notificationSettings?.push ?? false
-      });
-      
-      // Parse build preferences with type safety
-      const buildPrefs = settings.build_preferences as unknown as BuildPreferences;
-      setBuildPreferences({
-        autoSave: buildPrefs?.autoSave ?? true,
-        lintOnSave: buildPrefs?.lintOnSave ?? true
-      });
-    }
-  }, [settings]);
-
-  const handleSaveSettings = async () => {
-    console.log("Saving settings...");
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      console.error("No user found");
-      toast({
-        title: "Error",
-        description: "You must be logged in to change settings",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const { error } = await supabase
-      .from("settings")
-      .update({
-        api_key: apiKey,
-        temperature: temperature,
-        max_tokens: maxTokens,
-        theme,
-        language,
-        notifications: notifications as unknown as Json,
-        build_preferences: buildPreferences as unknown as Json
-      })
-      .eq("user_id", user.id);
-
-    if (error) {
-      console.error("Error updating settings:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update settings",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Success",
-      description: "Settings updated successfully",
+  const handleGeneralSettingsUpdate = (newSettings: any) => {
+    updateSettings({
+      theme: newSettings.theme,
+      language: newSettings.language,
+      notifications: newSettings.notifications as unknown as Json,
+      build_preferences: newSettings.buildPreferences as unknown as Json,
     });
-    refetch();
+  };
+
+  const handleModelSettingsUpdate = () => {
+    updateSettings({
+      api_key: settings.api_key,
+      temperature: settings.temperature,
+      max_tokens: settings.max_tokens,
+    });
+  };
+
+  const handleEditorPreferencesUpdate = (preferences: any) => {
+    updateSettings({
+      editor_preferences: preferences as unknown as Json,
+    });
+  };
+
+  const handleSecurityPreferencesUpdate = (preferences: any) => {
+    updateSettings({
+      security_preferences: preferences as unknown as Json,
+    });
   };
 
   return (
@@ -177,32 +54,52 @@ const Settings = () => {
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="model">Model</TabsTrigger>
+          <TabsTrigger value="editor">Editor</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="database">Database</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
           <GeneralSettings
-            theme={theme}
-            language={language}
-            notifications={notifications}
-            buildPreferences={buildPreferences}
-            onThemeChange={setTheme}
-            onLanguageChange={setLanguage}
-            onNotificationsChange={setNotifications}
-            onBuildPreferencesChange={setBuildPreferences}
-            onSave={handleSaveSettings}
+            theme={settings.theme}
+            language={settings.language}
+            notifications={settings.notifications as unknown as any}
+            buildPreferences={settings.build_preferences as unknown as any}
+            onThemeChange={(theme) => updateSettings({ theme })}
+            onLanguageChange={(language) => updateSettings({ language })}
+            onNotificationsChange={(notifications) => 
+              updateSettings({ notifications: notifications as unknown as Json })}
+            onBuildPreferencesChange={(preferences) => 
+              updateSettings({ build_preferences: preferences as unknown as Json })}
+            onSave={handleGeneralSettingsUpdate}
           />
         </TabsContent>
 
         <TabsContent value="model">
           <ModelParametersSettings
-            apiKey={apiKey}
-            temperature={temperature}
-            maxTokens={maxTokens}
-            onApiKeyChange={setApiKey}
-            onTemperatureChange={setTemperature}
-            onMaxTokensChange={setMaxTokens}
-            onSave={handleSaveSettings}
+            apiKey={settings.api_key || ""}
+            temperature={settings.temperature || 0.7}
+            maxTokens={settings.max_tokens || 1000}
+            onApiKeyChange={(apiKey) => updateSettings({ api_key: apiKey })}
+            onTemperatureChange={(temperature) => updateSettings({ temperature })}
+            onMaxTokensChange={(maxTokens) => updateSettings({ max_tokens: maxTokens })}
+            onSave={handleModelSettingsUpdate}
+          />
+        </TabsContent>
+
+        <TabsContent value="editor">
+          <EditorPreferencesSection
+            preferences={settings.editor_preferences as unknown as any}
+            onUpdate={handleEditorPreferencesUpdate}
+            isUpdating={isUpdating}
+          />
+        </TabsContent>
+
+        <TabsContent value="security">
+          <SecurityPreferencesSection
+            preferences={settings.security_preferences as unknown as any}
+            onUpdate={handleSecurityPreferencesUpdate}
+            isUpdating={isUpdating}
           />
         </TabsContent>
 
