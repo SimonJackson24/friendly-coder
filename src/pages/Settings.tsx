@@ -7,6 +7,16 @@ import { DatabaseStatistics } from "@/components/settings/DatabaseStatistics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
 
+interface NotificationSettings {
+  email: boolean;
+  push: boolean;
+}
+
+interface BuildPreferences {
+  autoSave: boolean;
+  lintOnSave: boolean;
+}
+
 const Settings = () => {
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState("");
@@ -14,8 +24,11 @@ const Settings = () => {
   const [maxTokens, setMaxTokens] = useState(1000);
   const [theme, setTheme] = useState("system");
   const [language, setLanguage] = useState("en");
-  const [notifications, setNotifications] = useState({ email: true, push: false });
-  const [buildPreferences, setBuildPreferences] = useState({
+  const [notifications, setNotifications] = useState<NotificationSettings>({ 
+    email: true, 
+    push: false 
+  });
+  const [buildPreferences, setBuildPreferences] = useState<BuildPreferences>({
     autoSave: true,
     lintOnSave: true,
   });
@@ -93,12 +106,20 @@ const Settings = () => {
       setMaxTokens(settings.max_tokens || 1000);
       setTheme(settings.theme || "system");
       setLanguage(settings.language || "en");
-      // Parse JSON fields with type checking
-      const notificationSettings = settings.notifications || { email: true, push: false };
-      setNotifications(typeof notificationSettings === 'object' ? notificationSettings : { email: true, push: false });
       
-      const buildPrefs = settings.build_preferences || { autoSave: true, lintOnSave: true };
-      setBuildPreferences(typeof buildPrefs === 'object' ? buildPrefs : { autoSave: true, lintOnSave: true });
+      // Parse notifications with type safety
+      const notificationSettings = settings.notifications as NotificationSettings;
+      setNotifications({
+        email: notificationSettings?.email ?? true,
+        push: notificationSettings?.push ?? false
+      });
+      
+      // Parse build preferences with type safety
+      const buildPrefs = settings.build_preferences as BuildPreferences;
+      setBuildPreferences({
+        autoSave: buildPrefs?.autoSave ?? true,
+        lintOnSave: buildPrefs?.lintOnSave ?? true
+      });
     }
   }, [settings]);
 
