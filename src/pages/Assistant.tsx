@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { ChatInterface } from "@/components/ChatInterface";
 import { FileExplorer } from "@/components/FileExplorer";
