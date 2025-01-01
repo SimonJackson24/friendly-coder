@@ -2,21 +2,24 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ModelParametersSettings } from "@/components/settings/ModelParametersSettings";
 import { AutoScalingSettings } from "@/components/settings/AutoScalingSettings";
 import { DatabaseStatistics } from "@/components/settings/DatabaseStatistics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GeneralSettings } from "@/components/settings/GeneralSettings";
 
 const Settings = () => {
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState("");
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1000);
-  const [computeType, setComputeType] = useState("cpu");
-  const [instanceTier, setInstanceTier] = useState("small");
-  const [autoScalingEnabled, setAutoScalingEnabled] = useState(false);
-  const [idleTimeout, setIdleTimeout] = useState(15);
+  const [theme, setTheme] = useState("system");
+  const [language, setLanguage] = useState("en");
+  const [notifications, setNotifications] = useState({ email: true, push: false });
+  const [buildPreferences, setBuildPreferences] = useState({
+    autoSave: true,
+    lintOnSave: true,
+  });
 
   const { data: settings, isLoading, refetch } = useQuery({
     queryKey: ["settings"],
@@ -50,18 +53,17 @@ const Settings = () => {
         .from("settings")
         .insert([{
           user_id: user.id,
-          huggingface_model: 'black-forest-labs/FLUX.1-schnell',
           temperature: 0.7,
           max_tokens: 1000,
-          model_parameters: {
-            compute_type: 'cpu',
-            instance_tier: 'small',
-            auto_scaling: {
-              enabled: false,
-              idle_timeout: 15,
-              min_replicas: 0, // Added for HF API compatibility
-              max_replicas: 1  // Added for HF API compatibility
-            }
+          theme: 'system',
+          language: 'en',
+          notifications: {
+            email: true,
+            push: false
+          },
+          build_preferences: {
+            autoSave: true,
+            lintOnSave: true
           }
         }])
         .select()
@@ -90,25 +92,18 @@ const Settings = () => {
       setApiKey(settings.api_key || "");
       setTemperature(settings.temperature || 0.7);
       setMaxTokens(settings.max_tokens || 1000);
-      const params = settings.model_parameters as {
-        compute_type?: string;
-        instance_tier?: string;
-        auto_scaling?: {
-          enabled: boolean;
-          idle_timeout: number;
-          min_replicas: number;
-          max_replicas: number;
-        };
-      } || {};
-      setComputeType(params.compute_type || "cpu");
-      setInstanceTier(params.instance_tier || "small");
-      setAutoScalingEnabled(params.auto_scaling?.enabled || false);
-      setIdleTimeout(params.auto_scaling?.idle_timeout || 15);
+      setTheme(settings.theme || "system");
+      setLanguage(settings.language || "en");
+      setNotifications(settings.notifications || { email: true, push: false });
+      setBuildPreferences(settings.build_preferences || {
+        autoSave: true,
+        lintOnSave: true
+      });
     }
   }, [settings]);
 
   const handleSaveSettings = async () => {
-    console.log("Saving settings with auto-scaling configuration...");
+    console.log("Saving settings...");
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       console.error("No user found");
@@ -126,16 +121,10 @@ const Settings = () => {
         api_key: apiKey,
         temperature: temperature,
         max_tokens: maxTokens,
-        model_parameters: {
-          compute_type: computeType,
-          instance_tier: instanceTier,
-          auto_scaling: {
-            enabled: autoScalingEnabled,
-            idle_timeout: idleTimeout,
-            min_replicas: autoScalingEnabled ? 0 : 1, // Scale to zero if auto-scaling is enabled
-            max_replicas: 1 // Maximum of 1 replica for cost control
-          }
-        }
+        theme,
+        language,
+        notifications,
+        build_preferences: buildPreferences
       })
       .eq("user_id", user.id);
 
@@ -163,11 +152,26 @@ const Settings = () => {
       <Tabs defaultValue="general" className="space-y-6">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="model">Model</TabsTrigger>
           <TabsTrigger value="database">Database</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general" className="space-y-6">
+        <TabsContent value="general">
+          <GeneralSettings
+            theme={theme}
+            language={language}
+            notifications={notifications}
+            buildPreferences={buildPreferences}
+            onThemeChange={setTheme}
+            onLanguageChange={setLanguage}
+            onNotificationsChange={setNotifications}
+            onBuildPreferencesChange={setBuildPreferences}
+            onSave={handleSaveSettings}
+          />
+        </TabsContent>
+
+        <TabsContent value="model">
           <ModelParametersSettings
             apiKey={apiKey}
             temperature={temperature}
@@ -177,13 +181,6 @@ const Settings = () => {
             onMaxTokensChange={setMaxTokens}
             onSave={handleSaveSettings}
           />
-
-          <AutoScalingSettings
-            autoScalingEnabled={autoScalingEnabled}
-            idleTimeout={idleTimeout}
-            onAutoScalingChange={setAutoScalingEnabled}
-            onIdleTimeoutChange={setIdleTimeout}
-          />
         </TabsContent>
 
         <TabsContent value="database">
@@ -191,7 +188,7 @@ const Settings = () => {
         </TabsContent>
 
         <TabsContent value="integrations" className="space-y-6">
-          {/* Add your integration settings components here */}
+          <AutoScalingSettings />
         </TabsContent>
       </Tabs>
     </div>
