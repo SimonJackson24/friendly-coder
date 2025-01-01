@@ -80,7 +80,7 @@ export function GitHubImport() {
 
       <Alert>
         <AlertDescription>
-          Import an existing GitHub repository to start working on it with Lovable.
+          Import an existing GitHub repository to start working on it with AI Studio.
         </AlertDescription>
       </Alert>
 

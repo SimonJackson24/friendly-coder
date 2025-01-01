@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# Welcome to your AI Studio project
 
 ## Installation Guide
 
@@ -95,7 +95,7 @@ The development server will start on http://localhost:8080
 
 You can deploy this project in several ways:
 
-1. Using Lovable's built-in deployment feature
+1. Using AI Studio's built-in deployment feature
 2. Manual deployment to platforms like Netlify, Vercel, or GitHub Pages
 
 ## Support
@@ -105,4 +105,4 @@ If you encounter any issues, please:
 2. Verify all environment variables are set correctly
 3. Ensure all dependencies are installed properly
 
-For more information, visit our [documentation](https://docs.lovable.dev/).
+For more information, visit our [documentation](https://docs.aistudio.dev/).
