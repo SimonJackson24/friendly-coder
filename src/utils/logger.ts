@@ -1,4 +1,4 @@
-type LogLevel = 'info' | 'warn' | 'error' | 'build';
+type LogLevel = 'info' | 'warn' | 'error' | 'build' | 'package' | 'schema';
 type LogEntry = {
   timestamp: string;
   level: LogLevel;
@@ -8,7 +8,10 @@ type LogEntry = {
 
 class Logger {
   private static logs: LogEntry[] = [];
-  private static maxLogs = 1000; // Keep last 1000 logs
+  private static maxLogs = 1000;
+  private static buildErrors: LogEntry[] = [];
+  private static schemaChanges: LogEntry[] = [];
+  private static packageOperations: LogEntry[] = [];
 
   static log(level: LogLevel, message: string, context?: any) {
     const entry = {
@@ -24,16 +27,27 @@ class Logger {
       this.logs.shift();
     }
 
-    // Also log to console
+    // Categorize specific logs
     switch (level) {
-      case 'warn':
-        console.warn(`[${entry.timestamp}] ${message}`, context || '');
+      case 'build':
+        if (context?.error) {
+          this.buildErrors.push(entry);
+        }
+        console.log(`[BUILD][${entry.timestamp}] ${message}`, context || '');
+        break;
+      case 'package':
+        this.packageOperations.push(entry);
+        console.log(`[PACKAGE][${entry.timestamp}] ${message}`, context || '');
+        break;
+      case 'schema':
+        this.schemaChanges.push(entry);
+        console.log(`[SCHEMA][${entry.timestamp}] ${message}`, context || '');
         break;
       case 'error':
         console.error(`[${entry.timestamp}] ${message}`, context || '');
         break;
-      case 'build':
-        console.log(`[BUILD][${entry.timestamp}] ${message}`, context || '');
+      case 'warn':
+        console.warn(`[${entry.timestamp}] ${message}`, context || '');
         break;
       default:
         console.log(`[${entry.timestamp}] ${message}`, context || '');
@@ -44,14 +58,35 @@ class Logger {
     return this.logs;
   }
 
+  static getBuildErrors() {
+    return this.buildErrors;
+  }
+
+  static getSchemaChanges() {
+    return this.schemaChanges;
+  }
+
+  static getPackageOperations() {
+    return this.packageOperations;
+  }
+
   static getLastBuildError() {
-    return this.logs
-      .filter(log => log.level === 'error' || log.level === 'build')
-      .pop();
+    return this.buildErrors[this.buildErrors.length - 1];
+  }
+
+  static getContextSummary() {
+    return {
+      recentBuildErrors: this.buildErrors.slice(-5),
+      recentSchemaChanges: this.schemaChanges.slice(-5),
+      recentPackageOperations: this.packageOperations.slice(-5),
+    };
   }
 
   static clearLogs() {
     this.logs = [];
+    this.buildErrors = [];
+    this.schemaChanges = [];
+    this.packageOperations = [];
   }
 }
 

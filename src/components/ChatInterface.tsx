@@ -5,8 +5,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { generateResponse } from "@/utils/huggingface";
 import Logger from "@/utils/logger";
-import { Loader2, Send, Bot, User } from "lucide-react";
+import { Loader2, Send, Bot, User, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Message {
   role: "user" | "assistant";
@@ -56,10 +57,16 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
     Logger.log('info', 'Sending prompt to Claude', { prompt: userMessage });
 
     try {
-      const lastBuildError = Logger.getLastBuildError();
-      const contextEnhancedPrompt = lastBuildError 
-        ? `[Context: Last build error: ${JSON.stringify(lastBuildError)}]\n${userMessage}`
-        : userMessage;
+      // Get enhanced context
+      const context = Logger.getContextSummary();
+      const contextEnhancedPrompt = `
+[Context: 
+Build Errors: ${JSON.stringify(context.recentBuildErrors)}
+Schema Changes: ${JSON.stringify(context.recentSchemaChanges)}
+Package Operations: ${JSON.stringify(context.recentPackageOperations)}
+]
+
+${userMessage}`;
 
       const response = await generateResponse(contextEnhancedPrompt);
       Logger.log('info', 'Received response from Claude', { response });
@@ -81,8 +88,22 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
     }
   };
 
+  // Display context alerts if there are recent issues
+  const context = Logger.getContextSummary();
+  const hasRecentIssues = context.recentBuildErrors.length > 0 || 
+                         context.recentSchemaChanges.length > 0;
+
   return (
     <div className="h-full flex flex-col bg-background/50 backdrop-blur-sm rounded-lg">
+      {hasRecentIssues && (
+        <Alert variant="warning" className="m-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            There are recent build errors or schema changes that might affect the AI's responses.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-6">
           {messages.map((message, index) => (
