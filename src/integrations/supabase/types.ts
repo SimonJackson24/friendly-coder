@@ -111,8 +111,10 @@ export type Database = {
           default_deployment_platform: string | null
           default_package_registry: string | null
           github_token: string | null
+          huggingface_model: string | null
           id: string
           max_tokens: number | null
+          model_parameters: Json | null
           platform_settings: Json | null
           temperature: number | null
           updated_at: string | null
@@ -125,8 +127,10 @@ export type Database = {
           default_deployment_platform?: string | null
           default_package_registry?: string | null
           github_token?: string | null
+          huggingface_model?: string | null
           id?: string
           max_tokens?: number | null
+          model_parameters?: Json | null
           platform_settings?: Json | null
           temperature?: number | null
           updated_at?: string | null
@@ -139,8 +143,10 @@ export type Database = {
           default_deployment_platform?: string | null
           default_package_registry?: string | null
           github_token?: string | null
+          huggingface_model?: string | null
           id?: string
           max_tokens?: number | null
+          model_parameters?: Json | null
           platform_settings?: Json | null
           temperature?: number | null
           updated_at?: string | null

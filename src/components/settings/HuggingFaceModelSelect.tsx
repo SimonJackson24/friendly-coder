@@ -60,7 +60,19 @@ export function HuggingFaceModelSelect({ currentModel }: HuggingFaceModelSelectP
 
     const { error } = await supabase
       .from("settings")
-      .update({ huggingface_model: currentValue })
+      .update({ 
+        huggingface_model: currentValue,
+        model_parameters: {
+          compute_type: "cpu",
+          instance_tier: "small",
+          auto_scaling: {
+            enabled: false,
+            idle_timeout: 15,
+            min_replicas: 1,
+            max_replicas: 1
+          }
+        }
+      })
       .eq("user_id", user.id);
 
     if (error) {
