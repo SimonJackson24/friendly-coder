@@ -6,7 +6,6 @@ import { Search, Plus, Trash2, RefreshCw, AlertTriangle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useProject } from "@/contexts/ProjectContext";
 
 interface Package {
   name: string;
@@ -21,69 +20,24 @@ export function PackageManager() {
   const [availablePackages, setAvailablePackages] = useState<Package[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
-  const { selectedProject } = useProject();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (selectedProject) {
-      fetchPackages();
-    }
-  }, [selectedProject]);
+    fetchPackages();
+  }, []);
 
   const fetchPackages = async () => {
-    if (!selectedProject) {
-      toast({
-        title: "No project selected",
-        description: "Please select a project to analyze packages.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
-      console.log('Fetching packages for project:', selectedProject.id);
-      
-      // Mock package.json data for testing
-      const mockPackageJson = {
-        dependencies: {
-          "react": "^18.2.0",
-          "react-dom": "^18.2.0"
-        },
-        devDependencies: {
-          "typescript": "^4.9.3",
-          "vite": "^4.1.0"
-        }
-      };
-
+      // Fetch installed packages from package.json
       const { data: packageData, error } = await supabase.functions.invoke('project-operations', {
-        body: { 
-          operation: 'analyze-dependencies',
-          data: { 
-            projectId: selectedProject.id,
-            packageData: mockPackageJson
-          }
-        }
+        body: { operation: 'analyze-dependencies', data: { /* package.json content */ } }
       });
 
       if (error) throw error;
 
-      console.log('Analysis results:', packageData);
       setAnalysisResults(packageData);
-      
-      // Update installed packages list based on the mock data
-      const installed = [
-        ...Object.entries(mockPackageJson.dependencies).map(([name, version]) => ({
-          name,
-          version: version as string
-        })),
-        ...Object.entries(mockPackageJson.devDependencies).map(([name, version]) => ({
-          name,
-          version: version as string
-        }))
-      ];
-      
-      setInstalledPackages(installed);
-      
+      // Update installed packages list
+      // This would come from your actual package.json
     } catch (error) {
       console.error('Error fetching packages:', error);
       toast({

@@ -14,18 +14,18 @@ serve(async (req) => {
   }
 
   try {
-    const { operation, data } = await req.json();
+    const { operation, projectId, data } = await req.json();
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`Processing ${operation} operation with data:`, data);
+    console.log(`Processing ${operation} operation for project ${projectId}`);
 
     switch (operation) {
       case 'analyze-dependencies':
         // Analyze package.json and provide recommendations
-        console.log('Analyzing dependencies:', data);
-        const analysis = await analyzeDependencies(data);
+        const { packageData } = data;
+        const analysis = await analyzeDependencies(packageData);
         return new Response(JSON.stringify(analysis), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -33,7 +33,7 @@ serve(async (req) => {
       case 'deploy':
         // Handle deployment to various platforms
         const { platform, config } = data;
-        const deploymentResult = await handleDeployment(platform, config);
+        const deploymentResult = await handleDeployment(platform, config, projectId);
         return new Response(JSON.stringify(deploymentResult), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -45,7 +45,7 @@ serve(async (req) => {
         if (!githubToken) {
           throw new Error('GitHub token not configured');
         }
-        const exportResult = await exportToGithub(repoName, isPrivate, githubToken);
+        const exportResult = await exportToGithub(repoName, isPrivate, githubToken, projectId);
         return new Response(JSON.stringify(exportResult), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -62,33 +62,20 @@ serve(async (req) => {
   }
 });
 
-async function analyzeDependencies(data: any) {
-  try {
-    console.log('Received package data:', data);
-    
-    // Safely access package data with defaults
-    const packageData = data?.packageData || {};
-    const dependencies = Object.entries(packageData.dependencies || {});
-    const devDependencies = Object.entries(packageData.devDependencies || {});
-    
-    console.log('Processing dependencies:', {
-      dependencies: dependencies.length,
-      devDependencies: devDependencies.length
-    });
-
-    return {
-      totalDependencies: dependencies.length + devDependencies.length,
-      recommendations: [],
-      securityIssues: [],
-      outdatedPackages: []
-    };
-  } catch (error) {
-    console.error('Error analyzing dependencies:', error);
-    throw error;
-  }
+async function analyzeDependencies(packageData: any) {
+  // Implement dependency analysis logic
+  const dependencies = Object.entries(packageData.dependencies || {});
+  const devDependencies = Object.entries(packageData.devDependencies || {});
+  
+  return {
+    totalDependencies: dependencies.length + devDependencies.length,
+    recommendations: [],
+    securityIssues: [],
+    outdatedPackages: []
+  };
 }
 
-async function handleDeployment(platform: string, config: any) {
+async function handleDeployment(platform: string, config: any, projectId: string) {
   // Implement deployment logic for different platforms
   switch (platform) {
     case 'vercel':
@@ -102,7 +89,7 @@ async function handleDeployment(platform: string, config: any) {
   }
 }
 
-async function exportToGithub(repoName: string, isPrivate: boolean, token: string) {
+async function exportToGithub(repoName: string, isPrivate: boolean, token: string, projectId: string) {
   // Implement GitHub repository creation and code push
   const headers = {
     'Authorization': `Bearer ${token}`,
