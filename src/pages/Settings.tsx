@@ -3,19 +3,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { HuggingFaceSettings } from "@/components/settings/HuggingFaceSettings";
 import { ModelParametersSettings } from "@/components/settings/ModelParametersSettings";
-import { AutoScalingSettings } from "@/components/settings/AutoScalingSettings";
 
 const Settings = () => {
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState("");
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1000);
-  const [computeType, setComputeType] = useState("cpu");
-  const [instanceTier, setInstanceTier] = useState("small");
-  const [autoScalingEnabled, setAutoScalingEnabled] = useState(false);
-  const [idleTimeout, setIdleTimeout] = useState(15);
 
   const { data: settings, isLoading, refetch } = useQuery({
     queryKey: ["settings"],
@@ -49,19 +43,9 @@ const Settings = () => {
         .from("settings")
         .insert([{
           user_id: user.id,
-          huggingface_model: 'black-forest-labs/FLUX.1-schnell',
           temperature: 0.7,
           max_tokens: 1000,
-          model_parameters: {
-            compute_type: 'cpu',
-            instance_tier: 'small',
-            auto_scaling: {
-              enabled: false,
-              idle_timeout: 15,
-              min_replicas: 0, // Added for HF API compatibility
-              max_replicas: 1  // Added for HF API compatibility
-            }
-          }
+          anthropic_model: 'claude-3-opus-20240229'
         }])
         .select()
         .single();
@@ -89,25 +73,11 @@ const Settings = () => {
       setApiKey(settings.api_key || "");
       setTemperature(settings.temperature || 0.7);
       setMaxTokens(settings.max_tokens || 1000);
-      const params = settings.model_parameters as {
-        compute_type?: string;
-        instance_tier?: string;
-        auto_scaling?: {
-          enabled: boolean;
-          idle_timeout: number;
-          min_replicas: number;
-          max_replicas: number;
-        };
-      } || {};
-      setComputeType(params.compute_type || "cpu");
-      setInstanceTier(params.instance_tier || "small");
-      setAutoScalingEnabled(params.auto_scaling?.enabled || false);
-      setIdleTimeout(params.auto_scaling?.idle_timeout || 15);
     }
   }, [settings]);
 
   const handleSaveSettings = async () => {
-    console.log("Saving settings with auto-scaling configuration...");
+    console.log("Saving settings...");
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       console.error("No user found");
@@ -125,16 +95,6 @@ const Settings = () => {
         api_key: apiKey,
         temperature: temperature,
         max_tokens: maxTokens,
-        model_parameters: {
-          compute_type: computeType,
-          instance_tier: instanceTier,
-          auto_scaling: {
-            enabled: autoScalingEnabled,
-            idle_timeout: idleTimeout,
-            min_replicas: autoScalingEnabled ? 0 : 1, // Scale to zero if auto-scaling is enabled
-            max_replicas: 1 // Maximum of 1 replica for cost control
-          }
-        }
       })
       .eq("user_id", user.id);
 
@@ -163,32 +123,15 @@ const Settings = () => {
         {isLoading ? (
           <Skeleton className="h-[400px] w-full" />
         ) : (
-          <>
-            <HuggingFaceSettings
-              currentModel={settings?.huggingface_model}
-              computeType={computeType}
-              instanceTier={instanceTier}
-              onComputeTypeChange={setComputeType}
-              onInstanceTierChange={setInstanceTier}
-            />
-
-            <AutoScalingSettings
-              autoScalingEnabled={autoScalingEnabled}
-              idleTimeout={idleTimeout}
-              onAutoScalingChange={setAutoScalingEnabled}
-              onIdleTimeoutChange={setIdleTimeout}
-            />
-
-            <ModelParametersSettings
-              apiKey={apiKey}
-              temperature={temperature}
-              maxTokens={maxTokens}
-              onApiKeyChange={setApiKey}
-              onTemperatureChange={setTemperature}
-              onMaxTokensChange={setMaxTokens}
-              onSave={handleSaveSettings}
-            />
-          </>
+          <ModelParametersSettings
+            apiKey={apiKey}
+            temperature={temperature}
+            maxTokens={maxTokens}
+            onApiKeyChange={setApiKey}
+            onTemperatureChange={setTemperature}
+            onMaxTokensChange={setMaxTokens}
+            onSave={handleSaveSettings}
+          />
         )}
       </div>
     </div>

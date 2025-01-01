@@ -108,10 +108,13 @@ export type Database = {
           anthropic_model: string | null
           api_key: string | null
           created_at: string | null
+          default_deployment_platform: string | null
+          default_package_registry: string | null
+          github_token: string | null
           huggingface_model: string | null
           id: string
           max_tokens: number | null
-          model_parameters: Json | null
+          platform_settings: Json | null
           temperature: number | null
           updated_at: string | null
           user_id: string
@@ -120,10 +123,13 @@ export type Database = {
           anthropic_model?: string | null
           api_key?: string | null
           created_at?: string | null
+          default_deployment_platform?: string | null
+          default_package_registry?: string | null
+          github_token?: string | null
           huggingface_model?: string | null
           id?: string
           max_tokens?: number | null
-          model_parameters?: Json | null
+          platform_settings?: Json | null
           temperature?: number | null
           updated_at?: string | null
           user_id: string
@@ -132,10 +138,13 @@ export type Database = {
           anthropic_model?: string | null
           api_key?: string | null
           created_at?: string | null
+          default_deployment_platform?: string | null
+          default_package_registry?: string | null
+          github_token?: string | null
           huggingface_model?: string | null
           id?: string
           max_tokens?: number | null
-          model_parameters?: Json | null
+          platform_settings?: Json | null
           temperature?: number | null
           updated_at?: string | null
           user_id?: string
