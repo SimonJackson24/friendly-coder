@@ -17,18 +17,18 @@ export function SettingsExport() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Convert settings to a plain object that matches Json type
-      const settingsForExport = {
-        apiKey: settings.apiKey,
-        temperature: settings.temperature,
-        maxTokens: settings.maxTokens,
-        theme: settings.theme,
-        language: settings.language,
-        notifications: settings.notifications,
-        buildPreferences: settings.buildPreferences,
-        editorPreferences: settings.editorPreferences,
-        securityPreferences: settings.securityPreferences,
-      } as Json;
+      // Convert settings to a plain object and ensure it matches Json type
+      const settingsForExport: Json = {
+        apiKey: settings.apiKey || null,
+        temperature: settings.temperature || 0,
+        maxTokens: settings.maxTokens || 0,
+        theme: settings.theme || "",
+        language: settings.language || "",
+        notifications: settings.notifications || {},
+        buildPreferences: settings.buildPreferences || {},
+        editorPreferences: settings.editorPreferences || {},
+        securityPreferences: settings.securityPreferences || {},
+      };
 
       // Save export to settings_history
       const { error } = await supabase
