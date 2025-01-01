@@ -16,7 +16,7 @@ const Settings = () => {
     anthropic_model: "claude-3-opus-20240229",
     temperature: 0.7,
     max_tokens: 1000,
-    github_url: "", // Changed from github_token to github_url
+    github_token: "", // Changed from github_url to github_token to match DB schema
     default_deployment_platform: "vercel",
     default_package_registry: "npm",
     platform_settings: {},
@@ -80,7 +80,7 @@ const Settings = () => {
         anthropic_model: settingsData.anthropic_model || "claude-3-opus-20240229",
         temperature: settingsData.temperature || 0.7,
         max_tokens: settingsData.max_tokens || 1000,
-        github_url: settingsData.github_url || "", // Changed from github_token
+        github_token: settingsData.github_token || "", // Changed from github_url to github_token
         default_deployment_platform: settingsData.default_deployment_platform || "vercel",
         default_package_registry: settingsData.default_package_registry || "npm",
         platform_settings: settingsData.platform_settings || {},
@@ -125,8 +125,8 @@ const Settings = () => {
         />
 
         <GitHubSection
-          githubUrl={settings.github_url}
-          onChange={(value) => setSettings(prev => ({ ...prev, github_url: value }))}
+          githubUrl={settings.github_token} // Pass github_token as githubUrl prop
+          onChange={(value) => setSettings(prev => ({ ...prev, github_token: value }))}
         />
 
         <DeploymentSettings
