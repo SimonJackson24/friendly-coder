@@ -1,8 +1,7 @@
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, ExternalLink, GitFork } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Archive, Edit, Trash2, GitFork } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,11 +12,11 @@ interface ProjectCardProps {
   title: string;
   description: string;
   status: "active" | "archived";
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export const ProjectCard = ({ id, title, description, status, onEdit, onDelete }: ProjectCardProps) => {
+export function ProjectCard({ id, title, description, status, onEdit, onDelete }: ProjectCardProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -31,10 +30,11 @@ export const ProjectCard = ({ id, title, description, status, onEdit, onDelete }
   const forkProject = useMutation({
     mutationFn: async () => {
       if (!session?.user?.id) {
-        throw new Error("User must be logged in to fork a project");
+        console.error("Fork attempt without user session");
+        throw new Error("You must be logged in to fork a project");
       }
 
-      console.log("Forking project:", id);
+      console.log("Initiating project fork:", { projectId: id, userId: session.user.id });
       
       // First, get the project details
       const { data: projectData, error: fetchError } = await supabase
@@ -43,35 +43,50 @@ export const ProjectCard = ({ id, title, description, status, onEdit, onDelete }
         .eq("id", id)
         .single();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error("Error fetching project for fork:", fetchError);
+        throw new Error("Failed to fetch project details");
+      }
 
       // Create new project as a fork
       const { data: newProject, error: createError } = await supabase
         .from("projects")
         .insert({
           title: `${projectData.title} (Fork)`,
-          description: projectData.description,
+          description: projectData.description || "Forked project",
           status: "active",
           forked_from: id,
-          user_id: session.user.id
+          user_id: session.user.id,
+          // Preserve AI context by copying relevant fields
+          github_url: projectData.github_url,
+          supabase_url: projectData.supabase_url,
+          is_template: false // Forks are never templates
         })
         .select()
         .single();
 
-      if (createError) throw createError;
+      if (createError) {
+        console.error("Error creating forked project:", createError);
+        throw new Error("Failed to create forked project");
+      }
 
-      // Copy all files from the original project
-      const { data: files, error: filesError } = await supabase
+      console.log("Project forked successfully:", newProject);
+
+      // Copy all files from original project to the new fork
+      const { data: originalFiles, error: filesError } = await supabase
         .from("files")
         .select("*")
         .eq("project_id", id);
 
-      if (filesError) throw filesError;
+      if (filesError) {
+        console.error("Error fetching original files:", filesError);
+        throw new Error("Failed to fetch original files");
+      }
 
-      if (files && files.length > 0) {
-        const newFiles = files.map(file => ({
+      if (originalFiles.length > 0) {
+        const newFiles = originalFiles.map(file => ({
           ...file,
-          id: undefined,
+          id: undefined, // Let Supabase generate new IDs
           project_id: newProject.id,
           created_at: undefined,
           updated_at: undefined
@@ -81,7 +96,12 @@ export const ProjectCard = ({ id, title, description, status, onEdit, onDelete }
           .from("files")
           .insert(newFiles);
 
-        if (copyError) throw copyError;
+        if (copyError) {
+          console.error("Error copying files to forked project:", copyError);
+          throw new Error("Failed to copy project files");
+        }
+
+        console.log("Files copied successfully to forked project");
       }
 
       return newProject;
@@ -94,44 +114,52 @@ export const ProjectCard = ({ id, title, description, status, onEdit, onDelete }
       });
       navigate(`/assistant?projectId=${newProject.id}`);
     },
-    onError: (error) => {
-      console.error("Error forking project:", error);
+    onError: (error: Error) => {
+      console.error("Fork project error:", error);
       toast({
         title: "Error",
-        description: "Failed to fork project. Please try again.",
+        description: error.message || "Failed to fork project",
         variant: "destructive",
       });
     },
   });
 
   return (
-    <Card className="w-full bg-card hover:bg-card/90 transition-colors">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-        <Badge variant="outline" className={status === "active" ? "bg-green-500/10 text-green-500" : "bg-gray-500/10 text-gray-500"}>
-          {status}
-        </Badge>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground">{description}</p>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={onEdit}>
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={onDelete} className="text-destructive hover:bg-destructive/10">
-            <Trash2 className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => forkProject.mutate()} disabled={forkProject.isPending}>
-            <GitFork className="h-4 w-4" />
-          </Button>
+    <Card className="p-4">
+      <div className="space-y-2">
+        <div className="flex justify-between items-start">
+          <div className="space-y-1">
+            <h3 className="font-semibold">{title}</h3>
+            <p className="text-sm text-muted-foreground">{description}</p>
+          </div>
+          <div className="flex gap-2">
+            {onEdit && (
+              <Button variant="ghost" size="icon" onClick={onEdit}>
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+            {onDelete && (
+              <Button variant="ghost" size="icon" onClick={onDelete}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => forkProject.mutate()}
+              disabled={forkProject.isPending}
+            >
+              <GitFork className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <Button variant="outline" className="gap-2" onClick={handleOpenProject}>
-          <ExternalLink className="h-4 w-4" />
-          Open Project
-        </Button>
-      </CardFooter>
+        <div className="flex justify-between items-center">
+          <Button variant="outline" onClick={handleOpenProject}>
+            Open Project
+          </Button>
+          <span className="text-sm text-muted-foreground capitalize">{status}</span>
+        </div>
+      </div>
     </Card>
   );
-};
+}
