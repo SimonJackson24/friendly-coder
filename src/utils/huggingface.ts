@@ -46,9 +46,8 @@ export async function generateResponse(prompt: string): Promise<string> {
         body: JSON.stringify({
           inputs: prompt,
           parameters: {
-            temperature: settings.temperature || 0.7,
-            max_tokens: settings.max_tokens || 1000,
             return_full_text: false,
+            max_new_tokens: settings.max_tokens || 1000
           },
         }),
       }
