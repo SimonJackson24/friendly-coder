@@ -17,6 +17,14 @@ const Settings = () => {
     return <div>No settings found</div>;
   }
 
+  const handleEditorPreferencesUpdate = (editorPreferences: any) => {
+    updateSettings({ editorPreferences });
+  };
+
+  const handleSecurityPreferencesUpdate = (securityPreferences: any) => {
+    updateSettings({ securityPreferences });
+  };
+
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-8">Settings</h1>
