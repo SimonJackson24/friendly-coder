@@ -3,9 +3,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { HuggingFaceSettings } from "@/components/settings/HuggingFaceSettings";
 import { ModelParametersSettings } from "@/components/settings/ModelParametersSettings";
 import { AutoScalingSettings } from "@/components/settings/AutoScalingSettings";
+import { DatabaseStatistics } from "@/components/settings/DatabaseStatistics";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -159,38 +160,40 @@ const Settings = () => {
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-8">Settings</h1>
       
-      <div className="grid gap-6">
-        {isLoading ? (
-          <Skeleton className="h-[400px] w-full" />
-        ) : (
-          <>
-            <HuggingFaceSettings
-              currentModel={settings?.huggingface_model}
-              computeType={computeType}
-              instanceTier={instanceTier}
-              onComputeTypeChange={setComputeType}
-              onInstanceTierChange={setInstanceTier}
-            />
+      <Tabs defaultValue="general" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="database">Database</TabsTrigger>
+          <TabsTrigger value="integrations">Integrations</TabsTrigger>
+        </TabsList>
 
-            <AutoScalingSettings
-              autoScalingEnabled={autoScalingEnabled}
-              idleTimeout={idleTimeout}
-              onAutoScalingChange={setAutoScalingEnabled}
-              onIdleTimeoutChange={setIdleTimeout}
-            />
+        <TabsContent value="general" className="space-y-6">
+          <ModelParametersSettings
+            apiKey={apiKey}
+            temperature={temperature}
+            maxTokens={maxTokens}
+            onApiKeyChange={setApiKey}
+            onTemperatureChange={setTemperature}
+            onMaxTokensChange={setMaxTokens}
+            onSave={handleSaveSettings}
+          />
 
-            <ModelParametersSettings
-              apiKey={apiKey}
-              temperature={temperature}
-              maxTokens={maxTokens}
-              onApiKeyChange={setApiKey}
-              onTemperatureChange={setTemperature}
-              onMaxTokensChange={setMaxTokens}
-              onSave={handleSaveSettings}
-            />
-          </>
-        )}
-      </div>
+          <AutoScalingSettings
+            autoScalingEnabled={autoScalingEnabled}
+            idleTimeout={idleTimeout}
+            onAutoScalingChange={setAutoScalingEnabled}
+            onIdleTimeoutChange={setIdleTimeout}
+          />
+        </TabsContent>
+
+        <TabsContent value="database">
+          <DatabaseStatistics />
+        </TabsContent>
+
+        <TabsContent value="integrations" className="space-y-6">
+          {/* Add your integration settings components here */}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
