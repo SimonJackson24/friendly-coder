@@ -1,15 +1,19 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { GitFork, Loader2, Github } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useProject } from "@/contexts/ProjectContext";
 
 export function GitHubImport() {
   const [repoUrl, setRepoUrl] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { selectedProject } = useProject();
 
   const handleImport = async () => {
     if (!repoUrl) {
@@ -21,21 +25,39 @@ export function GitHubImport() {
       return;
     }
 
+    if (!selectedProject?.id) {
+      toast({
+        title: "Error",
+        description: "No project selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsImporting(true);
     try {
+      console.log('Starting GitHub import process');
+      
       const response = await supabase.functions.invoke('project-operations', {
         body: { 
           operation: 'github-import',
-          data: { repoUrl }
+          data: { 
+            repoUrl,
+            projectId: selectedProject.id
+          }
         }
       });
 
       if (response.error) throw response.error;
+      console.log('Import successful:', response.data);
 
       toast({
         title: "Success",
         description: "Repository imported successfully",
       });
+
+      // Redirect to assistant view with the project
+      navigate(`/assistant?projectId=${selectedProject.id}`);
 
     } catch (error) {
       console.error('GitHub import error:', error);
@@ -73,7 +95,7 @@ export function GitHubImport() {
 
         <Button 
           onClick={handleImport} 
-          disabled={isImporting} 
+          disabled={isImporting || !selectedProject} 
           className="w-full"
         >
           {isImporting ? (

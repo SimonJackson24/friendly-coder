@@ -23,18 +23,17 @@ serve(async (req) => {
 
     switch (operation) {
       case 'github-import':
-        const { repoUrl } = data;
+        const { repoUrl, projectId } = data;
         const githubToken = Deno.env.get('GITHUB_ACCESS_TOKEN');
         if (!githubToken) {
           throw new Error('GitHub token not configured');
         }
-        const importResult = await importFromGithub(repoUrl, githubToken);
+        const importResult = await importFromGithub(repoUrl, projectId, githubToken, supabase);
         return new Response(JSON.stringify(importResult), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
 
       case 'analyze-dependencies':
-        // Analyze package.json and provide recommendations
         console.log('Analyzing dependencies:', data);
         const analysis = await analyzeDependencies(data);
         return new Response(JSON.stringify(analysis), {
@@ -42,7 +41,6 @@ serve(async (req) => {
         });
 
       case 'deploy':
-        // Handle deployment to various platforms
         const { platform, config } = data;
         const deploymentResult = await handleDeployment(platform, config);
         return new Response(JSON.stringify(deploymentResult), {
@@ -50,7 +48,6 @@ serve(async (req) => {
         });
 
       case 'github-export':
-        // Handle GitHub repository creation and code push
         const { repoName, isPrivate } = data;
         const githubTokenExport = Deno.env.get('GITHUB_ACCESS_TOKEN');
         if (!githubTokenExport) {
@@ -73,44 +70,94 @@ serve(async (req) => {
   }
 });
 
-async function importFromGithub(repoUrl: string, token: string) {
-  // Extract owner and repo name from URL
+async function importFromGithub(repoUrl: string, projectId: string, token: string, supabase: any) {
+  console.log('Starting GitHub import:', { repoUrl, projectId });
+
   const urlParts = repoUrl.split('/');
   const owner = urlParts[urlParts.length - 2];
   const repo = urlParts[urlParts.length - 1];
 
-  // Fetch repository contents
-  const headers = {
-    'Authorization': `Bearer ${token}`,
-    'Accept': 'application/vnd.github.v3+json',
-    'Content-Type': 'application/json',
-  };
+  try {
+    await supabase
+      .from('projects')
+      .update({ 
+        github_import_status: 'importing',
+        github_url: repoUrl 
+      })
+      .eq('id', projectId);
 
-  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents`, {
-    headers,
-  });
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+    };
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch repository contents');
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents`, {
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch repository contents');
+    }
+
+    const contents = await response.json();
+    console.log('Fetched repository contents:', contents);
+
+    for (const item of contents) {
+      if (item.type === 'file') {
+        const fileContent = await fetch(item.download_url).then(res => res.text());
+        
+        await supabase
+          .from('files')
+          .insert({
+            project_id: projectId,
+            name: item.name,
+            path: item.path,
+            content: fileContent,
+            type: 'file'
+          });
+      }
+    }
+
+    await supabase
+      .from('projects')
+      .update({ 
+        github_import_status: 'completed',
+        github_branch: 'main',
+        github_commit_sha: contents[0]?.sha || null
+      })
+      .eq('id', projectId);
+
+    console.log('GitHub import completed successfully');
+    
+    return {
+      status: 'success',
+      projectId,
+      repository: {
+        owner,
+        repo,
+        url: repoUrl,
+      },
+    };
+  } catch (error) {
+    console.error('Error during GitHub import:', error);
+    
+    await supabase
+      .from('projects')
+      .update({ 
+        github_import_status: 'error',
+        github_import_error: error.message
+      })
+      .eq('id', projectId);
+    
+    throw error;
   }
-
-  const contents = await response.json();
-  return {
-    status: 'success',
-    contents,
-    repository: {
-      owner,
-      repo,
-      url: repoUrl,
-    },
-  };
 }
 
 async function analyzeDependencies(data: any) {
   try {
     console.log('Received package data:', data);
     
-    // Safely access package data with defaults
     const packageData = data?.packageData || {};
     const dependencies = Object.entries(packageData.dependencies || {});
     const devDependencies = Object.entries(packageData.devDependencies || {});
@@ -133,13 +180,10 @@ async function analyzeDependencies(data: any) {
 }
 
 async function handleDeployment(platform: string, config: any) {
-  // Implement deployment logic for different platforms
   switch (platform) {
     case 'vercel':
-      // Implement Vercel deployment
       return { status: 'pending', platform, url: null };
     case 'netlify':
-      // Implement Netlify deployment
       return { status: 'pending', platform, url: null };
     default:
       throw new Error(`Unsupported platform: ${platform}`);
@@ -147,14 +191,12 @@ async function handleDeployment(platform: string, config: any) {
 }
 
 async function exportToGithub(repoName: string, isPrivate: boolean, token: string) {
-  // Implement GitHub repository creation and code push
   const headers = {
     'Authorization': `Bearer ${token}`,
     'Accept': 'application/vnd.github.v3+json',
     'Content-Type': 'application/json',
   };
 
-  // Create repository
   const createRepoResponse = await fetch('https://api.github.com/user/repos', {
     method: 'POST',
     headers,

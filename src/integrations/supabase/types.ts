@@ -58,6 +58,10 @@ export type Database = {
           created_at: string | null
           description: string | null
           forked_from: string | null
+          github_branch: string | null
+          github_commit_sha: string | null
+          github_import_error: string | null
+          github_import_status: string | null
           github_url: string | null
           id: string
           is_template: boolean | null
@@ -71,6 +75,10 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           forked_from?: string | null
+          github_branch?: string | null
+          github_commit_sha?: string | null
+          github_import_error?: string | null
+          github_import_status?: string | null
           github_url?: string | null
           id?: string
           is_template?: boolean | null
@@ -84,6 +92,10 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           forked_from?: string | null
+          github_branch?: string | null
+          github_commit_sha?: string | null
+          github_import_error?: string | null
+          github_import_status?: string | null
           github_url?: string | null
           id?: string
           is_template?: boolean | null
