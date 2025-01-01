@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase_supabase-js@2.38.4';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,7 +19,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`Processing ${operation} operation`);
+    console.log(`Processing ${operation} operation with data:`, data);
 
     switch (operation) {
       case 'analyze-dependencies':
@@ -63,21 +63,29 @@ serve(async (req) => {
 });
 
 async function analyzeDependencies(data: any) {
-  // Safely access package data with defaults
-  const dependencies = Object.entries(data?.packageData?.dependencies || {});
-  const devDependencies = Object.entries(data?.packageData?.devDependencies || {});
-  
-  console.log('Processing dependencies:', {
-    dependencies: dependencies.length,
-    devDependencies: devDependencies.length
-  });
+  try {
+    console.log('Received package data:', data);
+    
+    // Safely access package data with defaults
+    const packageData = data?.packageData || {};
+    const dependencies = Object.entries(packageData.dependencies || {});
+    const devDependencies = Object.entries(packageData.devDependencies || {});
+    
+    console.log('Processing dependencies:', {
+      dependencies: dependencies.length,
+      devDependencies: devDependencies.length
+    });
 
-  return {
-    totalDependencies: dependencies.length + devDependencies.length,
-    recommendations: [],
-    securityIssues: [],
-    outdatedPackages: []
-  };
+    return {
+      totalDependencies: dependencies.length + devDependencies.length,
+      recommendations: [],
+      securityIssues: [],
+      outdatedPackages: []
+    };
+  } catch (error) {
+    console.error('Error analyzing dependencies:', error);
+    throw error;
+  }
 }
 
 async function handleDeployment(platform: string, config: any) {
