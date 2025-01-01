@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface ProjectCardProps {
   id: string;
@@ -20,6 +21,7 @@ export const ProjectCard = ({ id, title, description, status, onEdit, onDelete }
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const session = useSession();
 
   const handleOpenProject = () => {
     console.log("Opening project:", id);
@@ -28,6 +30,10 @@ export const ProjectCard = ({ id, title, description, status, onEdit, onDelete }
 
   const forkProject = useMutation({
     mutationFn: async () => {
+      if (!session?.user?.id) {
+        throw new Error("User must be logged in to fork a project");
+      }
+
       console.log("Forking project:", id);
       
       // First, get the project details
@@ -42,12 +48,13 @@ export const ProjectCard = ({ id, title, description, status, onEdit, onDelete }
       // Create new project as a fork
       const { data: newProject, error: createError } = await supabase
         .from("projects")
-        .insert([{
+        .insert({
           title: `${projectData.title} (Fork)`,
           description: projectData.description,
           status: "active",
-          forked_from: id
-        }])
+          forked_from: id,
+          user_id: session.user.id
+        })
         .select()
         .single();
 
