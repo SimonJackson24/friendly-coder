@@ -57,7 +57,9 @@ const Settings = () => {
             instance_tier: 'small',
             auto_scaling: {
               enabled: false,
-              idle_timeout: 15
+              idle_timeout: 15,
+              min_replicas: 0, // Added for HF API compatibility
+              max_replicas: 1  // Added for HF API compatibility
             }
           }
         }])
@@ -93,6 +95,8 @@ const Settings = () => {
         auto_scaling?: {
           enabled: boolean;
           idle_timeout: number;
+          min_replicas: number;
+          max_replicas: number;
         };
       } || {};
       setComputeType(params.compute_type || "cpu");
@@ -103,7 +107,7 @@ const Settings = () => {
   }, [settings]);
 
   const handleSaveSettings = async () => {
-    console.log("Saving settings...");
+    console.log("Saving settings with auto-scaling configuration...");
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       console.error("No user found");
@@ -126,7 +130,9 @@ const Settings = () => {
           instance_tier: instanceTier,
           auto_scaling: {
             enabled: autoScalingEnabled,
-            idle_timeout: idleTimeout
+            idle_timeout: idleTimeout,
+            min_replicas: autoScalingEnabled ? 0 : 1, // Scale to zero if auto-scaling is enabled
+            max_replicas: 1 // Maximum of 1 replica for cost control
           }
         }
       })
