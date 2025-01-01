@@ -111,12 +111,15 @@ export type Database = {
           created_at: string | null
           default_deployment_platform: string | null
           default_package_registry: string | null
+          editor_preferences: Json | null
           github_token: string | null
           id: string
           language: string | null
           max_tokens: number | null
+          model_parameters: Json | null
           notifications: Json | null
           platform_settings: Json | null
+          security_preferences: Json | null
           temperature: number | null
           theme: string | null
           updated_at: string | null
@@ -129,12 +132,15 @@ export type Database = {
           created_at?: string | null
           default_deployment_platform?: string | null
           default_package_registry?: string | null
+          editor_preferences?: Json | null
           github_token?: string | null
           id?: string
           language?: string | null
           max_tokens?: number | null
+          model_parameters?: Json | null
           notifications?: Json | null
           platform_settings?: Json | null
+          security_preferences?: Json | null
           temperature?: number | null
           theme?: string | null
           updated_at?: string | null
@@ -147,12 +153,15 @@ export type Database = {
           created_at?: string | null
           default_deployment_platform?: string | null
           default_package_registry?: string | null
+          editor_preferences?: Json | null
           github_token?: string | null
           id?: string
           language?: string | null
           max_tokens?: number | null
+          model_parameters?: Json | null
           notifications?: Json | null
           platform_settings?: Json | null
+          security_preferences?: Json | null
           temperature?: number | null
           theme?: string | null
           updated_at?: string | null
