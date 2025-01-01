@@ -13,6 +13,10 @@ export const Navigation = () => {
     navigate("/login");
   };
 
+  const handleLogin = () => {
+    navigate("/login");
+  };
+
   return (
     <nav className="border-b">
       <div className="container flex items-center justify-between h-16">
@@ -33,7 +37,9 @@ export const Navigation = () => {
                 Logout
               </Button>
             </>
-          ) : null}
+          ) : (
+            <Button onClick={handleLogin}>Login with Supabase</Button>
+          )}
         </div>
       </div>
     </nav>
