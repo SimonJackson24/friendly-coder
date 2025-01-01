@@ -1,62 +1,61 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Send } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/components/ui/use-toast";
+import { generateResponse } from "@/utils/huggingface";
 
 interface Message {
-  id: string;
+  role: "user" | "assistant";
   content: string;
-  sender: "user" | "ai";
-  timestamp: Date;
 }
 
-export const ChatInterface = () => {
+export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSend = () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!input.trim()) return;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      content: input,
-      sender: "user",
-      timestamp: new Date(),
-    };
-
-    setMessages([...messages, newMessage]);
+    const userMessage = input.trim();
     setInput("");
+    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setIsLoading(true);
 
-    // Mock AI response
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "This is a mock AI response. Backend integration pending.",
-        sender: "ai",
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, aiResponse]);
-    }, 1000);
+    try {
+      const response = await generateResponse(userMessage);
+      setMessages((prev) => [...prev, { role: "assistant", content: response }]);
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate response",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader>
-        <CardTitle>AI Assistant</CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
-        <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-          {messages.map((message) => (
+    <div className="flex flex-col h-[600px] border rounded-lg bg-background">
+      <ScrollArea className="flex-1 p-4">
+        <div className="space-y-4">
+          {messages.map((message, index) => (
             <div
-              key={message.id}
-              className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+              key={index}
+              className={`flex ${
+                message.role === "assistant" ? "justify-start" : "justify-end"
+              }`}
             >
               <div
-                className={`max-w-[80%] p-3 rounded-lg ${
-                  message.sender === "user"
-                    ? "bg-primary text-primary-foreground ml-4"
-                    : "bg-muted text-muted-foreground mr-4"
+                className={`max-w-[80%] rounded-lg p-3 ${
+                  message.role === "assistant"
+                    ? "bg-secondary text-secondary-foreground"
+                    : "bg-primary text-primary-foreground"
                 }`}
               >
                 {message.content}
@@ -64,20 +63,21 @@ export const ChatInterface = () => {
             </div>
           ))}
         </div>
+      </ScrollArea>
+
+      <form onSubmit={handleSubmit} className="p-4 border-t">
         <div className="flex gap-2">
-          <Input
+          <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSend()}
             placeholder="Type your message..."
             className="flex-1"
           />
-          <Button onClick={handleSend} className="gap-2">
-            <Send className="h-4 w-4" />
-            Send
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Sending..." : "Send"}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </form>
+    </div>
   );
-};
+}
