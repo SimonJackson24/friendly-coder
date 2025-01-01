@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card } from "./ui/card";
 import { FileNode } from "@/hooks/useFileSystem";
+import Logger from "@/utils/logger";
 
 interface PreviewProps {
   files: FileNode[];
@@ -10,30 +11,63 @@ interface PreviewProps {
 
 export function Preview({ files, onConsoleMessage, onConsoleError }: PreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [buildState, setBuildState] = useState<'idle' | 'building' | 'success' | 'error'>('idle');
+  const [lastSuccessfulState, setLastSuccessfulState] = useState<string | null>(null);
 
   useEffect(() => {
     const updatePreview = () => {
       if (!iframeRef.current || !files.length) return;
 
+      setBuildState('building');
+      Logger.log('build', 'Starting preview build', { fileCount: files.length });
+
       const htmlFile = files.find(f => f.name === "index.html");
-      if (!htmlFile?.content) return;
+      if (!htmlFile?.content) {
+        Logger.log('error', 'No HTML file found for preview');
+        setBuildState('error');
+        return;
+      }
 
-      const blob = new Blob([htmlFile.content], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
+      try {
+        const blob = new Blob([htmlFile.content], { type: "text/html" });
+        const url = URL.createObjectURL(blob);
 
-      iframeRef.current.src = url;
-      return () => URL.revokeObjectURL(url);
+        // Store successful state before updating
+        if (buildState === 'success') {
+          setLastSuccessfulState(htmlFile.content);
+        }
+
+        iframeRef.current.src = url;
+        setBuildState('success');
+        Logger.log('build', 'Preview build successful');
+
+        return () => URL.revokeObjectURL(url);
+      } catch (error) {
+        Logger.log('error', 'Preview build failed', { error });
+        setBuildState('error');
+        
+        // Revert to last successful state if available
+        if (lastSuccessfulState) {
+          Logger.log('build', 'Reverting to last successful build');
+          const blob = new Blob([lastSuccessfulState], { type: "text/html" });
+          const url = URL.createObjectURL(blob);
+          iframeRef.current.src = url;
+        }
+      }
     };
 
     updatePreview();
-  }, [files]);
+  }, [files, buildState]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === "console") {
+        Logger.log('info', 'Console message from preview', { message: event.data.message });
         onConsoleMessage(event.data.message);
       } else if (event.data.type === "error") {
+        Logger.log('error', 'Error from preview', { error: event.data.message });
         onConsoleError(event.data.message);
+        setBuildState('error');
       }
     };
 
@@ -45,6 +79,10 @@ export function Preview({ files, onConsoleMessage, onConsoleError }: PreviewProp
     <Card>
       <div className="p-4 border-b">
         <h2 className="text-lg font-semibold">Preview</h2>
+        <div className="text-sm text-muted-foreground">
+          Build status: {buildState}
+          {buildState === 'error' && lastSuccessfulState && ' (reverted to last working state)'}
+        </div>
       </div>
       <iframe
         ref={iframeRef}

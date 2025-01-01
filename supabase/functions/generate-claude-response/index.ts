@@ -26,7 +26,12 @@ serve(async (req) => {
       );
     }
 
-    console.log("Sending request to Anthropic API...");
+    console.log("Processing request with context:", prompt);
+    
+    // Extract build context if present
+    const hasBuildContext = prompt.includes('[Context:');
+    console.log("Request includes build context:", hasBuildContext);
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -41,6 +46,9 @@ serve(async (req) => {
           role: "user", 
           content: prompt 
         }],
+        system: hasBuildContext ? 
+          "You are a helpful AI assistant that helps fix build errors and improve code quality. When provided with build context, analyze it carefully to provide accurate solutions." :
+          "You are a helpful AI assistant that helps with code-related tasks."
       }),
     });
 
@@ -50,7 +58,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log("Received response from Anthropic");
+    console.log("Generated response successfully");
 
     return new Response(
       JSON.stringify({ response: data.content[0].text }),

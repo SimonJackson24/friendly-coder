@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { generateResponse } from "@/utils/huggingface";
+import Logger from "@/utils/logger";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  timestamp: string;
 }
 
 interface ChatInterfaceProps {
@@ -20,23 +22,48 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Load console logs into context
+  useEffect(() => {
+    const logs = Logger.getLogs();
+    if (logs.length > 0) {
+      Logger.log('info', 'Loaded previous logs into AI context', { count: logs.length });
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
     const userMessage = input.trim();
+    const timestamp = new Date().toISOString();
+    
     setInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setMessages((prev) => [...prev, { 
+      role: "user", 
+      content: userMessage,
+      timestamp 
+    }]);
+    
     setIsLoading(true);
+    Logger.log('info', 'Sending prompt to Claude', { prompt: userMessage });
 
     try {
-      console.log("Sending prompt to Claude:", userMessage);
-      const response = await generateResponse(userMessage);
-      console.log("Received response from Claude:", response);
+      // Include build context and logs in the prompt
+      const lastBuildError = Logger.getLastBuildError();
+      const contextEnhancedPrompt = lastBuildError 
+        ? `[Context: Last build error: ${JSON.stringify(lastBuildError)}]\n${userMessage}`
+        : userMessage;
+
+      const response = await generateResponse(contextEnhancedPrompt);
+      Logger.log('info', 'Received response from Claude', { response });
       
-      setMessages((prev) => [...prev, { role: "assistant", content: response }]);
+      setMessages((prev) => [...prev, { 
+        role: "assistant", 
+        content: response,
+        timestamp: new Date().toISOString()
+      }]);
     } catch (error) {
-      console.error("Error:", error);
+      Logger.log('error', 'Failed to generate response', { error });
       toast({
         title: "Error",
         description: "Failed to generate response. Please try again.",
@@ -65,6 +92,9 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
                     : "bg-primary text-primary-foreground"
                 }`}
               >
+                <div className="text-sm opacity-70 mb-1">
+                  {new Date(message.timestamp).toLocaleTimeString()}
+                </div>
                 {message.content}
               </div>
             </div>
