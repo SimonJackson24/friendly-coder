@@ -8,6 +8,7 @@ import { PackageManager } from "@/components/package/PackageManager";
 import { DeploymentPanel } from "@/components/deployment/DeploymentPanel";
 import { AIDebugger } from "@/components/ai/AIDebugger";
 import { GitHubExport } from "@/components/github/GitHubExport";
+import { ProjectSelector } from "@/components/projects/ProjectSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { Plus, Package, Bug, Github, Rocket, FolderGit2 } from "lucide-react";
@@ -17,12 +18,18 @@ export default function Index() {
   const session = useSession();
   const navigate = useNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>();
   const { toast } = useToast();
 
   if (!session) {
     navigate("/login");
     return null;
   }
+
+  const handleProjectSelect = (projectId: string) => {
+    console.log("Selected project:", projectId);
+    setSelectedProjectId(projectId);
+  };
 
   return (
     <div className="container py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -58,6 +65,16 @@ export default function Index() {
         </Card>
 
         <Card className="p-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold">Project Tools</h2>
+            <div className="mt-4">
+              <ProjectSelector 
+                value={selectedProjectId} 
+                onValueChange={handleProjectSelect} 
+              />
+            </div>
+          </div>
+
           <Tabs defaultValue="packages" className="space-y-6">
             <TabsList className="grid grid-cols-4 gap-4 bg-muted/50 p-1">
               <TabsTrigger value="packages" className="gap-2">
@@ -79,43 +96,43 @@ export default function Index() {
             </TabsList>
 
             <TabsContent value="packages" className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-2xl font-semibold">Package Manager</h3>
-                <p className="text-muted-foreground">
-                  Install, update, and manage your project dependencies
-                </p>
-              </div>
-              <PackageManager />
+              {selectedProjectId ? (
+                <PackageManager projectId={selectedProjectId} />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Please select a project to manage packages
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="ai-debug" className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-2xl font-semibold">AI Debugger</h3>
-                <p className="text-muted-foreground">
-                  Get intelligent insights and fixes for your code
-                </p>
-              </div>
-              <AIDebugger />
+              {selectedProjectId ? (
+                <AIDebugger projectId={selectedProjectId} />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Please select a project to use AI debugging
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="deployment" className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-2xl font-semibold">Deployment</h3>
-                <p className="text-muted-foreground">
-                  Deploy your projects to various platforms
-                </p>
-              </div>
-              <DeploymentPanel />
+              {selectedProjectId ? (
+                <DeploymentPanel projectId={selectedProjectId} />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Please select a project to manage deployment
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="github" className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-2xl font-semibold">GitHub Export</h3>
-                <p className="text-muted-foreground">
-                  Export your projects directly to GitHub repositories
-                </p>
-              </div>
-              <GitHubExport />
+              {selectedProjectId ? (
+                <GitHubExport projectId={selectedProjectId} />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Please select a project to export to GitHub
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </Card>

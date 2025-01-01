@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, AlertTriangle, CheckCircle, Code2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import Logger from "@/utils/logger";
+import { useQuery } from "@tanstack/react-query";
 
 interface DebugResult {
   type: 'error' | 'warning' | 'success';
@@ -14,24 +14,41 @@ interface DebugResult {
   suggestion?: string;
 }
 
-export function AIDebugger() {
+interface AIDebuggerProps {
+  projectId: string;
+}
+
+export function AIDebugger({ projectId }: AIDebuggerProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [debugResults, setDebugResults] = useState<DebugResult[]>([]);
+
+  const { data: projectFiles } = useQuery({
+    queryKey: ["project-files", projectId],
+    queryFn: async () => {
+      console.log("Fetching project files for analysis:", projectId);
+      const { data, error } = await supabase
+        .from("files")
+        .select("*")
+        .eq("project_id", projectId);
+
+      if (error) {
+        console.error("Error fetching project files:", error);
+        throw error;
+      }
+
+      return data;
+    },
+  });
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     try {
-      // Get recent logs and errors
-      const logs = Logger.getLogs();
-      const lastBuildError = Logger.getLastBuildError();
-
-      // Send to Claude for analysis
+      // Send project files to Claude for analysis
       const response = await supabase.functions.invoke('generate-claude-response', {
         body: {
-          prompt: `Analyze these application logs and errors for debugging purposes. Provide specific recommendations for fixes:
+          prompt: `Analyze these project files for debugging purposes. Provide specific recommendations for fixes:
           
-          Logs: ${JSON.stringify(logs)}
-          Last Build Error: ${JSON.stringify(lastBuildError)}
+          Files: ${JSON.stringify(projectFiles)}
           
           Format your response as a JSON array of debug results, each with:
           - type: 'error' | 'warning' | 'success'

@@ -5,13 +5,37 @@ import { useToast } from "@/components/ui/use-toast";
 import { Github, GitBranch, GitFork, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useQuery } from "@tanstack/react-query";
 
-export function GitHubExport() {
+interface GitHubExportProps {
+  projectId: string;
+}
+
+export function GitHubExport({ projectId }: GitHubExportProps) {
   const [repoName, setRepoName] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [recentExports, setRecentExports] = useState<any[]>([]);
   const { toast } = useToast();
+
+  const { data: project } = useQuery({
+    queryKey: ["project", projectId],
+    queryFn: async () => {
+      console.log("Fetching project details:", projectId);
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("id", projectId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching project:", error);
+        throw error;
+      }
+
+      return data;
+    },
+  });
 
   const handleExport = async () => {
     if (!repoName) {
@@ -28,6 +52,7 @@ export function GitHubExport() {
       const response = await supabase.functions.invoke('project-operations', {
         body: { 
           operation: 'github-export',
+          projectId,
           data: { 
             repoName,
             isPrivate
@@ -68,11 +93,13 @@ export function GitHubExport() {
         GitHub Export
       </h2>
 
-      <Alert>
-        <AlertDescription>
-          Export your project to a new GitHub repository. This will create a new repository and push your current code to it.
-        </AlertDescription>
-      </Alert>
+      {project && (
+        <Alert>
+          <AlertDescription>
+            Export {project.title} to a new GitHub repository. This will create a new repository and push your current code to it.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="space-y-4">
         <div className="space-y-2">
@@ -80,7 +107,7 @@ export function GitHubExport() {
           <Input
             value={repoName}
             onChange={(e) => setRepoName(e.target.value)}
-            placeholder="my-awesome-project"
+            placeholder={project?.title ? project.title.toLowerCase().replace(/\s+/g, '-') : 'my-awesome-project'}
           />
         </div>
 
