@@ -10,12 +10,14 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Settings = () => {
   const { toast } = useToast();
   const [apiKey, setApiKey] = useState("");
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1000);
+  const [computeType, setComputeType] = useState("cpu");
 
   const { data: settings, isLoading, refetch } = useQuery({
     queryKey: ["settings"],
@@ -51,7 +53,8 @@ const Settings = () => {
           user_id: user.id,
           huggingface_model: 'black-forest-labs/FLUX.1-schnell', // Default model
           temperature: 0.7,
-          max_tokens: 1000
+          max_tokens: 1000,
+          model_parameters: { compute_type: 'cpu' }
         }])
         .select()
         .single();
@@ -79,6 +82,7 @@ const Settings = () => {
       setApiKey(settings.api_key || "");
       setTemperature(settings.temperature || 0.7);
       setMaxTokens(settings.max_tokens || 1000);
+      setComputeType(settings.model_parameters?.compute_type || "cpu");
     }
   }, [settings]);
 
@@ -101,6 +105,7 @@ const Settings = () => {
         api_key: apiKey,
         temperature: temperature,
         max_tokens: maxTokens,
+        model_parameters: { compute_type: computeType }
       })
       .eq("user_id", user.id);
 
@@ -141,6 +146,20 @@ const Settings = () => {
                 currentModel={settings?.huggingface_model}
               />
             ) : null}
+
+            <div className="space-y-2">
+              <Label htmlFor="compute-type">Compute Type</Label>
+              <Select value={computeType} onValueChange={setComputeType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select compute type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cpu">CPU (Default)</SelectItem>
+                  <SelectItem value="cuda">CUDA (GPU)</SelectItem>
+                  <SelectItem value="webgpu">WebGPU</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="api-key">API Key</Label>
