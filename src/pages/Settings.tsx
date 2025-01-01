@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { HuggingFaceModelSelect } from "@/components/settings/HuggingFaceModelSelect";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { HuggingFaceSettings } from "@/components/settings/HuggingFaceSettings";
 
 const Settings = () => {
   const { toast } = useToast();
@@ -18,6 +17,7 @@ const Settings = () => {
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1000);
   const [computeType, setComputeType] = useState("cpu");
+  const [instanceTier, setInstanceTier] = useState("small");
 
   const { data: settings, isLoading, refetch } = useQuery({
     queryKey: ["settings"],
@@ -51,15 +51,18 @@ const Settings = () => {
         .from("settings")
         .insert([{ 
           user_id: user.id,
-          huggingface_model: 'black-forest-labs/FLUX.1-schnell', // Default model
+          huggingface_model: 'black-forest-labs/FLUX.1-schnell',
           temperature: 0.7,
           max_tokens: 1000,
-          model_parameters: { compute_type: 'cpu' }
+          model_parameters: { 
+            compute_type: 'cpu',
+            instance_tier: 'small'
+          }
         }])
         .select()
         .single();
 
-      if (error && error.code !== "23505") { // Ignore unique violation errors
+      if (error && error.code !== "23505") {
         console.error("Error creating initial settings:", error);
         toast({
           title: "Error",
@@ -68,7 +71,7 @@ const Settings = () => {
         });
       } else {
         console.log("Initial settings created:", data);
-        refetch(); // Refresh the data after creating initial settings
+        refetch();
       }
     };
 
@@ -82,7 +85,9 @@ const Settings = () => {
       setApiKey(settings.api_key || "");
       setTemperature(settings.temperature || 0.7);
       setMaxTokens(settings.max_tokens || 1000);
-      setComputeType(settings.model_parameters?.compute_type || "cpu");
+      const params = settings.model_parameters as { compute_type?: string; instance_tier?: string } || {};
+      setComputeType(params.compute_type || "cpu");
+      setInstanceTier(params.instance_tier || "small");
     }
   }, [settings]);
 
@@ -105,7 +110,10 @@ const Settings = () => {
         api_key: apiKey,
         temperature: temperature,
         max_tokens: maxTokens,
-        model_parameters: { compute_type: computeType }
+        model_parameters: { 
+          compute_type: computeType,
+          instance_tier: instanceTier
+        }
       })
       .eq("user_id", user.id);
 
@@ -131,74 +139,66 @@ const Settings = () => {
       <h1 className="text-3xl font-bold mb-8">Settings</h1>
       
       <div className="grid gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>AI Model Settings</CardTitle>
-            <CardDescription>
-              Configure the AI models used for generating content
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {isLoading ? (
-              <Skeleton className="h-10 w-full" />
-            ) : settings ? (
-              <HuggingFaceModelSelect
-                currentModel={settings?.huggingface_model}
-              />
-            ) : null}
+        {isLoading ? (
+          <Skeleton className="h-[400px] w-full" />
+        ) : (
+          <>
+            <HuggingFaceSettings
+              currentModel={settings?.huggingface_model}
+              computeType={computeType}
+              instanceTier={instanceTier}
+              onComputeTypeChange={setComputeType}
+              onInstanceTierChange={setInstanceTier}
+            />
 
-            <div className="space-y-2">
-              <Label htmlFor="compute-type">Compute Type</Label>
-              <Select value={computeType} onValueChange={setComputeType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select compute type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cpu">CPU (Default)</SelectItem>
-                  <SelectItem value="cuda">CUDA (GPU)</SelectItem>
-                  <SelectItem value="webgpu">WebGPU</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Model Parameters</CardTitle>
+                <CardDescription>
+                  Configure the parameters used for generating content
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="api-key">API Key</Label>
+                  <Input
+                    id="api-key"
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="Enter your API key"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="api-key">API Key</Label>
-              <Input
-                id="api-key"
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter your API key"
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label>Temperature: {temperature}</Label>
+                  <Slider
+                    value={[temperature]}
+                    onValueChange={(values) => setTemperature(values[0])}
+                    max={1}
+                    step={0.1}
+                    className="w-full"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label>Temperature: {temperature}</Label>
-              <Slider
-                value={[temperature]}
-                onValueChange={(values) => setTemperature(values[0])}
-                max={1}
-                step={0.1}
-                className="w-full"
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label>Max Tokens: {maxTokens}</Label>
+                  <Slider
+                    value={[maxTokens]}
+                    onValueChange={(values) => setMaxTokens(values[0])}
+                    max={2000}
+                    step={100}
+                    className="w-full"
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label>Max Tokens: {maxTokens}</Label>
-              <Slider
-                value={[maxTokens]}
-                onValueChange={(values) => setMaxTokens(values[0])}
-                max={2000}
-                step={100}
-                className="w-full"
-              />
-            </div>
-
-            <Button onClick={handleSaveSettings} className="w-full">
-              Save Settings
-            </Button>
-          </CardContent>
-        </Card>
+                <Button onClick={handleSaveSettings} className="w-full">
+                  Save Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </div>
   );
