@@ -86,7 +86,7 @@ const Assistant = () => {
   }
 
   return (
-    <div className="h-screen w-full bg-gradient-to-br from-background to-muted overflow-hidden">
+    <div className="h-screen w-full bg-background">
       <div className="h-full grid grid-cols-12 gap-4 p-2 md:p-4">
         <div className="col-span-12 md:col-span-3 h-full">
           <FileExplorerSection
