@@ -17,36 +17,6 @@ const Settings = () => {
     return <div>No settings found</div>;
   }
 
-  // Collect current settings before update
-  const handleGeneralSettingsSave = () => {
-    updateSettings({
-      theme: settings.theme,
-      language: settings.language,
-      notifications: settings.notifications,
-      buildPreferences: settings.buildPreferences,
-    });
-  };
-
-  const handleModelSettingsSave = () => {
-    updateSettings({
-      apiKey: settings.apiKey,
-      temperature: settings.temperature,
-      maxTokens: settings.maxTokens,
-    });
-  };
-
-  const handleEditorPreferencesUpdate = (preferences: any) => {
-    updateSettings({
-      editorPreferences: preferences,
-    });
-  };
-
-  const handleSecurityPreferencesUpdate = (preferences: any) => {
-    updateSettings({
-      securityPreferences: preferences,
-    });
-  };
-
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-8">Settings</h1>
@@ -70,7 +40,14 @@ const Settings = () => {
             onLanguageChange={(language) => updateSettings({ language })}
             onNotificationsChange={(notifications) => updateSettings({ notifications })}
             onBuildPreferencesChange={(preferences) => updateSettings({ buildPreferences: preferences })}
-            onSave={handleGeneralSettingsSave}
+            onSave={() => {
+              updateSettings({
+                theme: settings.theme,
+                language: settings.language,
+                notifications: settings.notifications,
+                buildPreferences: settings.buildPreferences,
+              });
+            }}
           />
         </TabsContent>
 
@@ -82,7 +59,13 @@ const Settings = () => {
             onApiKeyChange={(apiKey) => updateSettings({ apiKey })}
             onTemperatureChange={(temperature) => updateSettings({ temperature })}
             onMaxTokensChange={(maxTokens) => updateSettings({ maxTokens })}
-            onSave={handleModelSettingsSave}
+            onSave={() => {
+              updateSettings({
+                apiKey: settings.apiKey,
+                temperature: settings.temperature,
+                maxTokens: settings.maxTokens,
+              });
+            }}
           />
         </TabsContent>
 

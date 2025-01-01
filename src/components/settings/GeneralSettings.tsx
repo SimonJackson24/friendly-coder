@@ -3,22 +3,17 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { NotificationSettings, BuildPreferences } from "@/hooks/useSettings";
 
 interface GeneralSettingsProps {
   theme: string;
   language: string;
-  notifications: {
-    email: boolean;
-    push: boolean;
-  };
-  buildPreferences: {
-    autoSave: boolean;
-    lintOnSave: boolean;
-  };
+  notifications: NotificationSettings;
+  buildPreferences: BuildPreferences;
   onThemeChange: (value: string) => void;
   onLanguageChange: (value: string) => void;
-  onNotificationsChange: (value: { email: boolean; push: boolean }) => void;
-  onBuildPreferencesChange: (value: { autoSave: boolean; lintOnSave: boolean }) => void;
+  onNotificationsChange: (value: NotificationSettings) => void;
+  onBuildPreferencesChange: (value: BuildPreferences) => void;
   onSave: () => void;
 }
 
