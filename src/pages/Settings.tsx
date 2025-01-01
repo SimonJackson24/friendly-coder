@@ -37,6 +37,44 @@ const Settings = () => {
   });
 
   useEffect(() => {
+    const createInitialSettings = async () => {
+      console.log("Creating initial settings...");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log("No user found, skipping settings creation");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("settings")
+        .insert([{ 
+          user_id: user.id,
+          huggingface_model: 'black-forest-labs/FLUX.1-schnell', // Default model
+          temperature: 0.7,
+          max_tokens: 1000
+        }])
+        .select()
+        .single();
+
+      if (error && error.code !== "23505") { // Ignore unique violation errors
+        console.error("Error creating initial settings:", error);
+        toast({
+          title: "Error",
+          description: "Failed to create initial settings",
+          variant: "destructive",
+        });
+      } else {
+        console.log("Initial settings created:", data);
+        refetch(); // Refresh the data after creating initial settings
+      }
+    };
+
+    if (!isLoading && !settings) {
+      createInitialSettings();
+    }
+  }, [isLoading, settings, toast, refetch]);
+
+  useEffect(() => {
     if (settings) {
       setApiKey(settings.api_key || "");
       setTemperature(settings.temperature || 0.7);
@@ -98,11 +136,11 @@ const Settings = () => {
           <CardContent className="space-y-6">
             {isLoading ? (
               <Skeleton className="h-10 w-full" />
-            ) : (
+            ) : settings ? (
               <HuggingFaceModelSelect
                 currentModel={settings?.huggingface_model}
               />
-            )}
+            ) : null}
 
             <div className="space-y-2">
               <Label htmlFor="api-key">API Key</Label>
