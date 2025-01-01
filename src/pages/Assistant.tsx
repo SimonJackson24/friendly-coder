@@ -109,6 +109,17 @@ const Assistant = () => {
       <div className="container py-8">
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-3">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Files</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGitHubConnect}
+              >
+                <Github className="mr-2 h-4 w-4" />
+                GitHub
+              </Button>
+            </div>
             <FileExplorer
               files={files}
               onFileSelect={handleFileSelect}
