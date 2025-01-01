@@ -39,7 +39,7 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
       console.error("Error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate response",
+        description: "Failed to generate response. Please try again.",
         variant: "destructive",
       });
     } finally {
