@@ -13,9 +13,10 @@ import { ProjectSelector } from "@/components/projects/ProjectSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { Plus, Package, Bug, Github, Rocket, FolderGit2, Upload } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Index() {
+  console.log("Index component rendering");
   const session = useSession();
   const navigate = useNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -23,7 +24,12 @@ export default function Index() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>();
   const { toast } = useToast();
 
+  useEffect(() => {
+    console.log("Session state:", session);
+  }, [session]);
+
   if (!session) {
+    console.log("No session found, redirecting to login");
     navigate("/login");
     return null;
   }
@@ -163,4 +169,4 @@ export default function Index() {
       />
     </div>
   );
-}
+};
