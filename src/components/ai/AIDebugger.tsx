@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, AlertTriangle, CheckCircle, Code2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useProject } from "@/contexts/ProjectContext";
 import Logger from "@/utils/logger";
+import { useToast } from "@/components/ui/use-toast";
 
 interface DebugResult {
   type: 'error' | 'warning' | 'success';
@@ -17,8 +19,19 @@ interface DebugResult {
 export function AIDebugger() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [debugResults, setDebugResults] = useState<DebugResult[]>([]);
+  const { selectedProject } = useProject();
+  const { toast } = useToast();
 
   const handleAnalyze = async () => {
+    if (!selectedProject) {
+      toast({
+        title: "No project selected",
+        description: "Please select a project to analyze.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsAnalyzing(true);
     try {
       // Get recent logs and errors
@@ -28,6 +41,7 @@ export function AIDebugger() {
       // Send to Claude for analysis
       const response = await supabase.functions.invoke('generate-claude-response', {
         body: {
+          projectId: selectedProject.id,
           prompt: `Analyze these application logs and errors for debugging purposes. Provide specific recommendations for fixes:
           
           Logs: ${JSON.stringify(logs)}
@@ -65,7 +79,7 @@ export function AIDebugger() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">AI Debugger</h2>
-        <Button onClick={handleAnalyze} disabled={isAnalyzing}>
+        <Button onClick={handleAnalyze} disabled={isAnalyzing || !selectedProject}>
           {isAnalyzing ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
