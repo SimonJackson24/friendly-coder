@@ -22,6 +22,17 @@ serve(async (req) => {
     console.log(`Processing ${operation} operation with data:`, data);
 
     switch (operation) {
+      case 'github-import':
+        const { repoUrl } = data;
+        const githubToken = Deno.env.get('GITHUB_ACCESS_TOKEN');
+        if (!githubToken) {
+          throw new Error('GitHub token not configured');
+        }
+        const importResult = await importFromGithub(repoUrl, githubToken);
+        return new Response(JSON.stringify(importResult), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+
       case 'analyze-dependencies':
         // Analyze package.json and provide recommendations
         console.log('Analyzing dependencies:', data);
@@ -41,11 +52,11 @@ serve(async (req) => {
       case 'github-export':
         // Handle GitHub repository creation and code push
         const { repoName, isPrivate } = data;
-        const githubToken = Deno.env.get('GITHUB_ACCESS_TOKEN');
-        if (!githubToken) {
+        const githubTokenExport = Deno.env.get('GITHUB_ACCESS_TOKEN');
+        if (!githubTokenExport) {
           throw new Error('GitHub token not configured');
         }
-        const exportResult = await exportToGithub(repoName, isPrivate, githubToken);
+        const exportResult = await exportToGithub(repoName, isPrivate, githubTokenExport);
         return new Response(JSON.stringify(exportResult), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -61,6 +72,39 @@ serve(async (req) => {
     });
   }
 });
+
+async function importFromGithub(repoUrl: string, token: string) {
+  // Extract owner and repo name from URL
+  const urlParts = repoUrl.split('/');
+  const owner = urlParts[urlParts.length - 2];
+  const repo = urlParts[urlParts.length - 1];
+
+  // Fetch repository contents
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json',
+  };
+
+  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch repository contents');
+  }
+
+  const contents = await response.json();
+  return {
+    status: 'success',
+    contents,
+    repository: {
+      owner,
+      repo,
+      url: repoUrl,
+    },
+  };
+}
 
 async function analyzeDependencies(data: any) {
   try {
