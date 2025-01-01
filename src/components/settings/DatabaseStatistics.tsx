@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { Database, Signal, ChartLine } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -98,23 +98,37 @@ export function DatabaseStatistics() {
             </CardHeader>
             <CardContent>
               <div className="h-[200px] w-full">
-                <ChartContainer
-                  className="h-full w-full"
-                  config={{
-                    operations: {
-                      theme: {
-                        light: "hsl(var(--primary))",
-                        dark: "hsl(var(--primary))",
-                      },
-                    },
-                  }}
-                >
+                <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={stats?.operationsHistory}>
                     <XAxis dataKey="date" />
                     <YAxis />
-                    <ChartTooltip>
-                      <ChartTooltipContent />
-                    </ChartTooltip>
+                    <Tooltip content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="rounded-lg border bg-background p-2 shadow-sm">
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="flex flex-col">
+                                <span className="text-[0.70rem] uppercase text-muted-foreground">
+                                  Date
+                                </span>
+                                <span className="font-bold text-muted-foreground">
+                                  {label}
+                                </span>
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-[0.70rem] uppercase text-muted-foreground">
+                                  Operations
+                                </span>
+                                <span className="font-bold">
+                                  {payload[0].value}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }} />
                     <Area
                       type="monotone"
                       dataKey="operations"
@@ -122,7 +136,7 @@ export function DatabaseStatistics() {
                       fill="hsl(var(--primary)/.2)"
                     />
                   </AreaChart>
-                </ChartContainer>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
