@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { generateResponse } from "@/utils/huggingface";
 import Logger from "@/utils/logger";
+import { Loader2, Send, Bot, User } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Message {
   role: "user" | "assistant";
@@ -21,14 +23,20 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Load console logs into context
   useEffect(() => {
     const logs = Logger.getLogs();
     if (logs.length > 0) {
       Logger.log('info', 'Loaded previous logs into AI context', { count: logs.length });
     }
   }, []);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +56,6 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
     Logger.log('info', 'Sending prompt to Claude', { prompt: userMessage });
 
     try {
-      // Include build context and logs in the prompt
       const lastBuildError = Logger.getLastBuildError();
       const contextEnhancedPrompt = lastBuildError 
         ? `[Context: Last build error: ${JSON.stringify(lastBuildError)}]\n${userMessage}`
@@ -75,43 +82,71 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
   };
 
   return (
-    <div className="flex flex-col h-[600px] border rounded-lg bg-background">
+    <div className="flex flex-col h-[600px] md:h-[700px] border rounded-lg bg-background shadow-lg">
       <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
+        <div className="space-y-6">
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`flex ${
+              className={cn(
+                "flex gap-3 text-sm md:text-base",
                 message.role === "assistant" ? "justify-start" : "justify-end"
-              }`}
+              )}
             >
+              {message.role === "assistant" && (
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Bot className="w-4 h-4 text-primary" />
+                </div>
+              )}
               <div
-                className={`max-w-[80%] rounded-lg p-3 ${
-                  message.role === "assistant"
-                    ? "bg-secondary text-secondary-foreground"
+                className={cn(
+                  "max-w-[85%] md:max-w-[75%] rounded-lg p-4 shadow-sm",
+                  message.role === "assistant" 
+                    ? "bg-card text-card-foreground" 
                     : "bg-primary text-primary-foreground"
-                }`}
+                )}
               >
-                <div className="text-sm opacity-70 mb-1">
+                <div className="text-xs opacity-70 mb-2">
                   {new Date(message.timestamp).toLocaleTimeString()}
                 </div>
-                {message.content}
+                <div className="whitespace-pre-wrap">{message.content}</div>
               </div>
+              {message.role === "user" && (
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                  <User className="w-4 h-4 text-primary-foreground" />
+                </div>
+              )}
             </div>
           ))}
+          <div ref={scrollRef} />
         </div>
       </ScrollArea>
 
-      <form onSubmit={handleSubmit} className="p-4 border-t">
+      <form onSubmit={handleSubmit} className="p-4 border-t bg-card/50">
         <div className="flex gap-2">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1"
+            className="flex-1 min-h-[60px] max-h-[120px] resize-none"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
           />
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Sending..." : "Send"}
+          <Button 
+            type="submit" 
+            size="icon"
+            disabled={isLoading || !input.trim()}
+            className="h-[60px] w-[60px]"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </form>
