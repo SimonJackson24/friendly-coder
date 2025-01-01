@@ -107,48 +107,54 @@ export type Database = {
         Row: {
           anthropic_model: string | null
           api_key: string | null
+          build_preferences: Json | null
           created_at: string | null
           default_deployment_platform: string | null
           default_package_registry: string | null
           github_token: string | null
-          huggingface_model: string | null
           id: string
+          language: string | null
           max_tokens: number | null
-          model_parameters: Json | null
+          notifications: Json | null
           platform_settings: Json | null
           temperature: number | null
+          theme: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           anthropic_model?: string | null
           api_key?: string | null
+          build_preferences?: Json | null
           created_at?: string | null
           default_deployment_platform?: string | null
           default_package_registry?: string | null
           github_token?: string | null
-          huggingface_model?: string | null
           id?: string
+          language?: string | null
           max_tokens?: number | null
-          model_parameters?: Json | null
+          notifications?: Json | null
           platform_settings?: Json | null
           temperature?: number | null
+          theme?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           anthropic_model?: string | null
           api_key?: string | null
+          build_preferences?: Json | null
           created_at?: string | null
           default_deployment_platform?: string | null
           default_package_registry?: string | null
           github_token?: string | null
-          huggingface_model?: string | null
           id?: string
+          language?: string | null
           max_tokens?: number | null
-          model_parameters?: Json | null
+          notifications?: Json | null
           platform_settings?: Json | null
           temperature?: number | null
+          theme?: string | null
           updated_at?: string | null
           user_id?: string
         }
