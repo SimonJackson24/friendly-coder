@@ -41,7 +41,6 @@ export async function generateResponse(prompt: string): Promise<string> {
         },
         body: JSON.stringify({
           inputs: prompt,
-          // FLUX.1-schnell doesn't support max_new_tokens, using simpler request format
           parameters: {
             temperature: settings.temperature || 0.7
           },
@@ -55,15 +54,18 @@ export async function generateResponse(prompt: string): Promise<string> {
       throw new Error(`API request failed: ${errorText}`);
     }
 
-    // Clone the response before reading it
-    const responseClone = response.clone();
-    const result = await responseClone.json();
+    // Read the response only once
+    const result = await response.json();
     console.log("Generated response:", result);
     
     // Handle different response formats from different models
-    if (Array.isArray(result)) {
-      return result[0].generated_text;
-    } else if (result.generated_text) {
+    if (Array.isArray(result) && result.length > 0) {
+      if (result[0].generated_text) {
+        return result[0].generated_text;
+      } else {
+        return result[0];
+      }
+    } else if (typeof result === 'object' && result.generated_text) {
       return result.generated_text;
     } else {
       return JSON.stringify(result);
