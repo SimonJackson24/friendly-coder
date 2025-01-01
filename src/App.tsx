@@ -1,13 +1,13 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createClient } from "@supabase/supabase-js";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { Navigation } from "@/components/Navigation";
-import Index from "@/pages/Index";
-import Login from "@/pages/Login";
-import Settings from "@/pages/Settings";
-import Assistant from "@/pages/Assistant";
+import { Navigation } from "./components/Navigation";
+import { Toaster } from "./components/ui/toaster";
+import Index from "./pages/Index";
+import Login from "./pages/Login";
+import Settings from "./pages/Settings";
+import Assistant from "./pages/Assistant";
 import { supabase } from "./integrations/supabase/client";
 
 const queryClient = new QueryClient();
