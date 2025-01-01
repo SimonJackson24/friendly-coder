@@ -20,12 +20,24 @@ export default function Index() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   useEffect(() => {
+    console.log("Session state:", session);
     if (!session) {
+      console.log("No session found, redirecting to login");
       navigate("/login");
     }
   }, [session, navigate]);
 
-  if (!session) return null;
+  if (!session) {
+    console.log("Rendering null due to no session");
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-white text-center">
+          <h2 className="text-2xl font-bold mb-4">Loading...</h2>
+          <p>Please wait while we initialize your session</p>
+        </div>
+      </div>
+    );
+  }
 
   console.log("Rendering Index page with session:", session?.user?.id);
 
@@ -39,7 +51,7 @@ export default function Index() {
               <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
                 My Projects
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-white/80 mt-1">
                 Manage and organize your AI-powered projects
               </p>
             </div>
@@ -84,7 +96,7 @@ export default function Index() {
 
           <TabsContent value="projects">
             <Card className="p-6 bg-black/75 backdrop-blur-md border-white/10">
-              <ProjectList userId={session.user.id} />
+              {session.user && <ProjectList userId={session.user.id} />}
             </Card>
           </TabsContent>
 
@@ -109,7 +121,7 @@ export default function Index() {
           <TabsContent value="database">
             <Card className="p-6 bg-black/75 backdrop-blur-md border-white/10">
               <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Database Management</h2>
+                <h2 className="text-2xl font-bold text-white">Database Management</h2>
                 <DatabaseDownload />
               </div>
             </Card>

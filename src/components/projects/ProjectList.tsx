@@ -18,13 +18,16 @@ export const ProjectList = ({ userId }: ProjectListProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: projects = [], isLoading } = useQuery({
+  console.log("ProjectList component rendering with userId:", userId);
+
+  const { data: projects = [], isLoading, error } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
-      console.log("Fetching projects...");
+      console.log("Fetching projects for user:", userId);
       const { data, error } = await supabase
         .from("projects")
         .select("*")
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -32,7 +35,7 @@ export const ProjectList = ({ userId }: ProjectListProps) => {
         throw error;
       }
 
-      console.log("Projects fetched:", data);
+      console.log("Projects fetched successfully:", data);
       return data as Project[];
     },
     enabled: !!userId,
@@ -68,8 +71,29 @@ export const ProjectList = ({ userId }: ProjectListProps) => {
     },
   });
 
+  if (error) {
+    console.error("Error in ProjectList:", error);
+    return (
+      <div className="text-center text-white p-4">
+        <p>Error loading projects. Please try again later.</p>
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <div className="text-center">Loading projects...</div>;
+    return (
+      <div className="text-center text-white p-4">
+        <p>Loading projects...</p>
+      </div>
+    );
+  }
+
+  if (projects.length === 0) {
+    return (
+      <div className="text-center text-white p-4">
+        <p>No projects found. Create your first project to get started!</p>
+      </div>
+    );
   }
 
   return (
