@@ -55,7 +55,9 @@ export async function generateResponse(prompt: string): Promise<string> {
       throw new Error(`API request failed: ${errorText}`);
     }
 
-    const result = await response.json();
+    // Clone the response before reading it
+    const responseClone = response.clone();
+    const result = await responseClone.json();
     console.log("Generated response:", result);
     
     // Handle different response formats from different models
