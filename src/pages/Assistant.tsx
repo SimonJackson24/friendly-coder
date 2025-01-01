@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { FileEditor } from "@/components/FileEditor";
 import { ProjectSettings } from "@/components/ProjectSettings";
 import { Console } from "@/components/Console";
-import { GitHubIcon } from "lucide-react";
+import { Github } from "lucide-react";
 
 interface FileNode {
   name: string;
@@ -178,7 +178,7 @@ const Assistant = () => {
               onClick={handleGitHubConnect}
               className="flex items-center gap-2"
             >
-              <GitHubIcon className="h-4 w-4" />
+              <Github className="h-4 w-4" />
               Connect to GitHub
             </Button>
           </div>
