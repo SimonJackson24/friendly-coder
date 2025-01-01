@@ -14,18 +14,23 @@ export function SupabaseOAuthSection() {
 
   // Query to check if user has an existing Supabase connection
   const { data: connection, isLoading } = useQuery({
-    queryKey: ['supabase-connection'],
+    queryKey: ['supabase-connection', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return null;
+      console.log("Fetching Supabase connection for user:", session.user.id);
+      
       const { data, error } = await supabase
         .from('supabase_connections')
         .select('*')
-        .single();
+        .eq('user_id', session.user.id)
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching Supabase connection:', error);
         return null;
       }
+      
+      console.log("Supabase connection data:", data);
       return data;
     },
     enabled: !!session?.user?.id,
@@ -60,6 +65,7 @@ export function SupabaseOAuthSection() {
     }) => {
       if (!session?.user?.id) throw new Error('User not authenticated');
 
+      console.log("Saving Supabase connection for user:", session.user.id);
       const { error } = await supabase
         .from('supabase_connections')
         .upsert({
