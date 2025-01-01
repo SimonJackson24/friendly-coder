@@ -33,18 +33,8 @@ export async function generateResponse(prompt: string): Promise<string> {
   console.log("Generating response from Hugging Face...");
   const settings = await getHuggingFaceSettings();
   
-  const modelParameters = settings.model_parameters as {
-    compute_type: string;
-    instance_tier: string;
-    auto_scaling: {
-      enabled: boolean;
-      idle_timeout: number;
-      min_replicas: number;
-      max_replicas: number;
-    };
-  };
-
   try {
+    console.log("Using model:", settings.huggingface_model);
     const response = await fetch(
       `https://api-inference.huggingface.co/models/${settings.huggingface_model}`,
       {
@@ -56,11 +46,9 @@ export async function generateResponse(prompt: string): Promise<string> {
         body: JSON.stringify({
           inputs: prompt,
           parameters: {
-            temperature: settings.temperature,
-            max_tokens: settings.max_tokens,
-            compute_type: modelParameters.compute_type,
-            instance_tier: modelParameters.instance_tier,
-            auto_scaling: modelParameters.auto_scaling,
+            temperature: settings.temperature || 0.7,
+            max_tokens: settings.max_tokens || 1000,
+            return_full_text: false,
           },
         }),
       }
@@ -72,8 +60,17 @@ export async function generateResponse(prompt: string): Promise<string> {
       throw new Error(error.error || "Failed to generate response");
     }
 
-    const result: HuggingFaceResponse = await response.json();
-    return result.generated_text;
+    const result = await response.json();
+    console.log("Generated response:", result);
+    
+    // Handle different response formats from different models
+    if (Array.isArray(result)) {
+      return result[0].generated_text;
+    } else if (result.generated_text) {
+      return result.generated_text;
+    } else {
+      return result;
+    }
   } catch (error) {
     console.error("Error generating response:", error);
     throw error;
