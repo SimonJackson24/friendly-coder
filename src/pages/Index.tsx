@@ -59,7 +59,7 @@ export default function Index() {
 
         <TabsContent value="projects">
           <Card className="p-4">
-            <ProjectList />
+            <ProjectList userId={session.user.id} />
           </Card>
         </TabsContent>
 
@@ -89,8 +89,9 @@ export default function Index() {
       </Tabs>
 
       <CreateProjectDialog 
-        open={isCreateOpen} 
+        isOpen={isCreateOpen} 
         onOpenChange={setIsCreateOpen}
+        userId={session.user.id}
       />
     </div>
   );
