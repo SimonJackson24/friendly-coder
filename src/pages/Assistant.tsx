@@ -11,6 +11,8 @@ import { Card } from "@/components/ui/card";
 import { ProjectSettings } from "@/components/ProjectSettings";
 import { Console } from "@/components/Console";
 import { Github } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Assistant = () => {
   const [searchParams] = useSearchParams();
@@ -19,6 +21,29 @@ const Assistant = () => {
   const [selectedFile, setSelectedFile] = useState<FileNode | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [buildErrors, setBuildErrors] = useState<string[]>([]);
+
+  const { data: project } = useQuery({
+    queryKey: ["project", projectId],
+    queryFn: async () => {
+      if (!projectId) return null;
+      
+      console.log("Fetching project details:", projectId);
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("id", projectId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching project:", error);
+        throw error;
+      }
+
+      console.log("Project details fetched:", data);
+      return data;
+    },
+    enabled: !!projectId,
+  });
 
   const {
     files,
@@ -49,7 +74,7 @@ const Assistant = () => {
   };
 
   const handleGitHubConnect = () => {
-    if (!projectId) {
+    if (!project?.github_url) {
       toast({
         title: "GitHub Connection",
         description: "Please add a GitHub URL in project settings first",
@@ -58,7 +83,7 @@ const Assistant = () => {
       return;
     }
     
-    window.open(projectId, '_blank');
+    window.open(project.github_url, '_blank');
   };
 
   return (
@@ -100,7 +125,7 @@ const Assistant = () => {
               </TabsContent>
               
               <TabsContent value="settings" className="mt-4">
-                <ProjectSettings />
+                <ProjectSettings project={project} />
               </TabsContent>
             </Tabs>
           </div>
