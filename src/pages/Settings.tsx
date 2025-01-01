@@ -3,7 +3,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ModelParametersSettings } from "@/components/settings/ModelParametersSettings";
-import { AutoScalingSettings } from "@/components/settings/AutoScalingSettings";
 import { DatabaseStatistics } from "@/components/settings/DatabaseStatistics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralSettings } from "@/components/settings/GeneralSettings";
@@ -94,11 +93,12 @@ const Settings = () => {
       setMaxTokens(settings.max_tokens || 1000);
       setTheme(settings.theme || "system");
       setLanguage(settings.language || "en");
-      setNotifications(settings.notifications || { email: true, push: false });
-      setBuildPreferences(settings.build_preferences || {
-        autoSave: true,
-        lintOnSave: true
-      });
+      // Parse JSON fields with type checking
+      const notificationSettings = settings.notifications || { email: true, push: false };
+      setNotifications(typeof notificationSettings === 'object' ? notificationSettings : { email: true, push: false });
+      
+      const buildPrefs = settings.build_preferences || { autoSave: true, lintOnSave: true };
+      setBuildPreferences(typeof buildPrefs === 'object' ? buildPrefs : { autoSave: true, lintOnSave: true });
     }
   }, [settings]);
 
@@ -154,7 +154,6 @@ const Settings = () => {
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="model">Model</TabsTrigger>
           <TabsTrigger value="database">Database</TabsTrigger>
-          <TabsTrigger value="integrations">Integrations</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -185,10 +184,6 @@ const Settings = () => {
 
         <TabsContent value="database">
           <DatabaseStatistics />
-        </TabsContent>
-
-        <TabsContent value="integrations" className="space-y-6">
-          <AutoScalingSettings />
         </TabsContent>
       </Tabs>
     </div>
