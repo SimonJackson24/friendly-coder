@@ -10,7 +10,11 @@ interface Message {
   content: string;
 }
 
-export function ChatInterface() {
+interface ChatInterfaceProps {
+  projectId?: string | null;
+}
+
+export function ChatInterface({ projectId }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +30,7 @@ export function ChatInterface() {
     setIsLoading(true);
 
     try {
+      console.log("Generating response for project:", projectId);
       const response = await generateResponse(userMessage);
       setMessages((prev) => [...prev, { role: "assistant", content: response }]);
     } catch (error) {

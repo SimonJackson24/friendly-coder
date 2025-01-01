@@ -77,6 +77,7 @@ export const ProjectList = ({ userId }: ProjectListProps) => {
       {projects.map((project) => (
         <ProjectCard
           key={project.id}
+          id={project.id}
           title={project.title}
           description={project.description || ""}
           status={project.status}

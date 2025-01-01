@@ -2,8 +2,10 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ProjectCardProps {
+  id: string;
   title: string;
   description: string;
   status: "active" | "archived";
@@ -11,7 +13,14 @@ interface ProjectCardProps {
   onDelete: () => void;
 }
 
-export const ProjectCard = ({ title, description, status, onEdit, onDelete }: ProjectCardProps) => {
+export const ProjectCard = ({ id, title, description, status, onEdit, onDelete }: ProjectCardProps) => {
+  const navigate = useNavigate();
+
+  const handleOpenProject = () => {
+    console.log("Opening project:", id);
+    navigate(`/assistant?projectId=${id}`);
+  };
+
   return (
     <Card className="w-full bg-card hover:bg-card/90 transition-colors">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -32,7 +41,7 @@ export const ProjectCard = ({ title, description, status, onEdit, onDelete }: Pr
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2" onClick={handleOpenProject}>
           <ExternalLink className="h-4 w-4" />
           Open Project
         </Button>
