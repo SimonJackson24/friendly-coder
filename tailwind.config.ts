@@ -22,7 +22,7 @@ export default {
         border: "rgba(255, 255, 255, 0.15)",
         input: "rgba(255, 255, 255, 0.15)",
         ring: "rgba(255, 255, 255, 0.15)",
-        background: "rgba(0, 0, 0, 0.9)",
+        background: "rgba(0, 0, 0, 0.95)",
         foreground: "#FFFFFF",
         primary: {
           DEFAULT: "#6366F1",
@@ -38,14 +38,14 @@ export default {
         },
         muted: {
           DEFAULT: "rgba(255, 255, 255, 0.08)",
-          foreground: "rgba(255, 255, 255, 0.8)",
+          foreground: "rgba(255, 255, 255, 0.9)",
         },
         accent: {
           DEFAULT: "#4F46E5",
           foreground: "#FFFFFF",
         },
         card: {
-          DEFAULT: "rgba(0, 0, 0, 0.75)",
+          DEFAULT: "rgba(0, 0, 0, 0.85)",
           foreground: "#FFFFFF",
         },
       },

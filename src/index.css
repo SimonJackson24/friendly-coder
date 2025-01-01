@@ -20,7 +20,7 @@
     --secondary-foreground: 0 0% 100%;
  
     --muted: 0 0% 100%;
-    --muted-foreground: 0 0% 80%;
+    --muted-foreground: 0 0% 90%;
  
     --accent: 217.2 91.2% 59.8%;
     --accent-foreground: 0 0% 100%;
@@ -41,14 +41,15 @@
     @apply border-border/10;
   }
   body {
-    @apply bg-gradient-to-br from-black to-black/90;
+    @apply bg-gradient-to-br from-black to-black/95;
     background-attachment: fixed;
     min-height: 100vh;
+    color: #FFFFFF;
   }
   
   /* Glass effect for cards and containers */
   .glass {
-    @apply bg-black/75 backdrop-blur-md border border-white/15 shadow-lg;
+    @apply bg-black/85 backdrop-blur-md border border-white/15 shadow-lg;
   }
   
   /* Custom scrollbar for webkit browsers */

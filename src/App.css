@@ -36,8 +36,9 @@
 .card {
   @apply glass;
   padding: 2em;
+  color: #FFFFFF;
 }
 
 .read-the-docs {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
 }
