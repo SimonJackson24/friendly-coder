@@ -76,7 +76,6 @@ const Assistant = () => {
 
   const handleCreateFile = (name: string, type: "file" | "folder") => {
     if (!projectId) return;
-    
     const path = name;
     createFile.mutate({ name, path, type });
   };
@@ -98,7 +97,6 @@ const Assistant = () => {
       });
       return;
     }
-    
     window.open(project.github_url, '_blank');
   };
 
@@ -112,11 +110,15 @@ const Assistant = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="p-4 md:p-8">
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-12 md:col-span-3">
-            <Collapsible open={isFileExplorerOpen} onOpenChange={setIsFileExplorerOpen}>
+    <div className="h-screen w-full bg-background overflow-hidden">
+      <div className="h-full p-2 md:p-4">
+        <div className="grid grid-cols-12 gap-4 h-full">
+          <div className="col-span-12 md:col-span-3 h-full overflow-hidden">
+            <Collapsible 
+              open={isFileExplorerOpen} 
+              onOpenChange={setIsFileExplorerOpen}
+              className="h-full flex flex-col"
+            >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-semibold">Files</h3>
                 <CollapsibleTrigger asChild>
@@ -129,7 +131,7 @@ const Assistant = () => {
                   </Button>
                 </CollapsibleTrigger>
               </div>
-              <CollapsibleContent>
+              <CollapsibleContent className="flex-grow overflow-hidden">
                 <FileExplorer
                   files={files}
                   onFileSelect={handleFileSelect}
@@ -141,8 +143,8 @@ const Assistant = () => {
             </Collapsible>
           </div>
           
-          <div className="col-span-12 md:col-span-5">
-            <Tabs defaultValue="chat" className="h-full space-y-6">
+          <div className="col-span-12 md:col-span-5 h-full overflow-hidden">
+            <Tabs defaultValue="chat" className="h-full flex flex-col">
               <TabsList className="w-full">
                 <TabsTrigger value="chat">Chat</TabsTrigger>
                 <TabsTrigger value="editor">Editor</TabsTrigger>
@@ -151,37 +153,39 @@ const Assistant = () => {
                 <TabsTrigger value="github">GitHub</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="chat">
-                <ChatInterface projectId={projectId} />
-              </TabsContent>
-              
-              <TabsContent value="editor">
-                <FileEditor
-                  file={selectedFile}
-                  onSave={handleSaveFile}
-                  projectId={projectId}
-                />
-              </TabsContent>
-              
-              <TabsContent value="console">
-                <Console 
-                  logs={consoleOutput} 
-                  errors={buildErrors}
-                  onClear={handleClearConsole} 
-                />
-              </TabsContent>
-              
-              <TabsContent value="settings">
-                <ProjectSettings project={project} />
-              </TabsContent>
+              <div className="flex-grow overflow-hidden">
+                <TabsContent value="chat" className="h-full m-0">
+                  <ChatInterface projectId={projectId} />
+                </TabsContent>
+                
+                <TabsContent value="editor" className="h-full m-0">
+                  <FileEditor
+                    file={selectedFile}
+                    onSave={handleSaveFile}
+                    projectId={projectId}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="console" className="h-full m-0">
+                  <Console 
+                    logs={consoleOutput} 
+                    errors={buildErrors}
+                    onClear={handleClearConsole} 
+                  />
+                </TabsContent>
+                
+                <TabsContent value="settings" className="h-full m-0">
+                  <ProjectSettings project={project} />
+                </TabsContent>
 
-              <TabsContent value="github">
-                <GitHubActions />
-              </TabsContent>
+                <TabsContent value="github" className="h-full m-0">
+                  <GitHubActions />
+                </TabsContent>
+              </div>
             </Tabs>
           </div>
           
-          <div className="col-span-12 md:col-span-4">
+          <div className="col-span-12 md:col-span-4 h-full overflow-hidden">
             <Preview
               files={files}
               onConsoleMessage={(message) => setConsoleOutput(prev => [...prev, message])}

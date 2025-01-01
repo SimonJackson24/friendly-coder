@@ -76,7 +76,7 @@ export function Preview({ files, onConsoleMessage, onConsoleError }: PreviewProp
   }, [onConsoleMessage, onConsoleError]);
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <div className="p-4 border-b">
         <h2 className="text-lg font-semibold">Preview</h2>
         <div className="text-sm text-muted-foreground">
@@ -84,12 +84,14 @@ export function Preview({ files, onConsoleMessage, onConsoleError }: PreviewProp
           {buildState === 'error' && lastSuccessfulState && ' (reverted to last working state)'}
         </div>
       </div>
-      <iframe
-        ref={iframeRef}
-        title="Live Preview"
-        className="w-full h-[600px] rounded-b-lg"
-        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-      />
+      <div className="flex-grow relative">
+        <iframe
+          ref={iframeRef}
+          title="Live Preview"
+          className="w-full h-full absolute inset-0 rounded-b-lg"
+          sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+        />
+      </div>
     </Card>
   );
 }

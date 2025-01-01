@@ -38,7 +38,7 @@ export function FileExplorer({
   }
 
   return (
-    <div className="bg-background/50 backdrop-blur-sm rounded-lg">
+    <div className="h-full flex flex-col bg-background/50 backdrop-blur-sm rounded-lg">
       <div className="flex justify-end p-2">
         {onCreateFile && (
           <Button size="sm" variant="ghost" onClick={() => setIsDialogOpen(true)}>
@@ -47,7 +47,7 @@ export function FileExplorer({
           </Button>
         )}
       </div>
-      <ScrollArea className="h-[500px]">
+      <ScrollArea className="flex-grow">
         <div className="p-2">
           {files.map((file, index) => (
             <FileTreeNode
