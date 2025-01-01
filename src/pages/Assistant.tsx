@@ -9,6 +9,7 @@ const Assistant = () => {
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get("projectId");
   const { toast } = useToast();
+  const [previewUrl, setPreviewUrl] = useState<string>("");
 
   const { data: project } = useQuery({
     queryKey: ["project", projectId],
@@ -33,6 +34,10 @@ const Assistant = () => {
       }
 
       console.log("Project details loaded:", data);
+      // Set the preview URL if available
+      if (data.supabase_url) {
+        setPreviewUrl(data.supabase_url);
+      }
       return data;
     },
     enabled: !!projectId,
@@ -57,7 +62,8 @@ const Assistant = () => {
             <iframe
               title="Live Preview"
               className="w-full h-[600px] rounded-lg"
-              src="about:blank"
+              src={previewUrl || "about:blank"}
+              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
             />
           </div>
         </div>
