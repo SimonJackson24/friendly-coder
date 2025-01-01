@@ -2,13 +2,29 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { Github, GitBranch, GitFork, Loader2 } from "lucide-react";
+import { 
+  Github, 
+  GitBranch, 
+  GitFork, 
+  Loader2, 
+  Lock,
+  Globe,
+  GitMerge,
+  Settings
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 export function GitHubExport() {
   const [repoName, setRepoName] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
+  const [defaultBranch, setDefaultBranch] = useState("main");
+  const [includeWorkflows, setIncludeWorkflows] = useState(true);
+  const [licenseType, setLicenseType] = useState("mit");
   const [isExporting, setIsExporting] = useState(false);
   const [recentExports, setRecentExports] = useState<any[]>([]);
   const { toast } = useToast();
@@ -30,7 +46,10 @@ export function GitHubExport() {
           operation: 'github-export',
           data: { 
             repoName,
-            isPrivate
+            isPrivate,
+            defaultBranch,
+            includeWorkflows,
+            licenseType
           }
         }
       });
@@ -42,11 +61,11 @@ export function GitHubExport() {
         description: "Project exported to GitHub successfully",
       });
 
-      // Add to recent exports
       setRecentExports(prev => [{
         name: repoName,
         url: response.data.repository.html_url,
-        date: new Date().toISOString()
+        date: new Date().toISOString(),
+        visibility: isPrivate ? "private" : "public"
       }, ...prev].slice(0, 5));
 
     } catch (error) {
@@ -70,34 +89,88 @@ export function GitHubExport() {
 
       <Alert>
         <AlertDescription>
-          Export your project to a new GitHub repository. This will create a new repository and push your current code to it.
+          Export your project to a new GitHub repository with advanced configuration options.
         </AlertDescription>
       </Alert>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Repository Name</label>
+          <Label htmlFor="repo-name">Repository Name</Label>
           <Input
+            id="repo-name"
             value={repoName}
             onChange={(e) => setRepoName(e.target.value)}
             placeholder="my-awesome-project"
           />
         </div>
 
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            id="private"
-            checked={isPrivate}
-            onChange={(e) => setIsPrivate(e.target.checked)}
-            className="rounded border-gray-300"
-          />
-          <label htmlFor="private" className="text-sm font-medium">
-            Private Repository
-          </label>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Repository Visibility</Label>
+              <div className="text-sm text-muted-foreground">
+                {isPrivate ? 
+                  <span className="flex items-center gap-1"><Lock className="w-4 h-4" /> Private</span> : 
+                  <span className="flex items-center gap-1"><Globe className="w-4 h-4" /> Public</span>
+                }
+              </div>
+            </div>
+            <Switch
+              checked={isPrivate}
+              onCheckedChange={setIsPrivate}
+            />
+          </div>
+
+          <Separator />
+
+          <div className="space-y-2">
+            <Label htmlFor="default-branch">Default Branch</Label>
+            <Select value={defaultBranch} onValueChange={setDefaultBranch}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select default branch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="main">main</SelectItem>
+                <SelectItem value="master">master</SelectItem>
+                <SelectItem value="development">development</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="license">License Type</Label>
+            <Select value={licenseType} onValueChange={setLicenseType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select license type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mit">MIT License</SelectItem>
+                <SelectItem value="apache">Apache License 2.0</SelectItem>
+                <SelectItem value="gpl">GNU GPL v3</SelectItem>
+                <SelectItem value="none">No License</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>GitHub Actions</Label>
+              <div className="text-sm text-muted-foreground">
+                Include workflow files for CI/CD
+              </div>
+            </div>
+            <Switch
+              checked={includeWorkflows}
+              onCheckedChange={setIncludeWorkflows}
+            />
+          </div>
         </div>
 
-        <Button onClick={handleExport} disabled={isExporting} className="w-full">
+        <Button 
+          onClick={handleExport} 
+          disabled={isExporting} 
+          className="w-full"
+        >
           {isExporting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -120,18 +193,52 @@ export function GitHubExport() {
         {recentExports.length > 0 ? (
           <div className="space-y-2">
             {recentExports.map((export_, index) => (
-              <div key={index} className="text-sm">
-                <a
-                  href={export_.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline"
-                >
-                  {export_.name}
-                </a>
-                <span className="text-muted-foreground ml-2">
-                  {new Date(export_.date).toLocaleDateString()}
-                </span>
+              <div key={index} className="flex items-center justify-between p-2 rounded-lg border">
+                <div className="space-y-1">
+                  <a
+                    href={export_.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline font-medium"
+                  >
+                    {export_.name}
+                  </a>
+                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    {export_.visibility === 'private' ? 
+                      <Lock className="w-3 h-3" /> : 
+                      <Globe className="w-3 h-3" />
+                    }
+                    {new Date(export_.date).toLocaleDateString()}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                  >
+                    <a 
+                      href={`${export_.url}/settings`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                  >
+                    <a 
+                      href={`${export_.url}/pulls`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <GitMerge className="w-4 h-4" />
+                    </a>
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
