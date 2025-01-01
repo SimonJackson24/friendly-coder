@@ -111,14 +111,14 @@ const Settings = () => {
       setLanguage(settings.language || "en");
       
       // Parse notifications with type safety
-      const notificationSettings = settings.notifications as NotificationSettings;
+      const notificationSettings = settings.notifications as unknown as NotificationSettings;
       setNotifications({
         email: notificationSettings?.email ?? true,
         push: notificationSettings?.push ?? false
       });
       
       // Parse build preferences with type safety
-      const buildPrefs = settings.build_preferences as BuildPreferences;
+      const buildPrefs = settings.build_preferences as unknown as BuildPreferences;
       setBuildPreferences({
         autoSave: buildPrefs?.autoSave ?? true,
         lintOnSave: buildPrefs?.lintOnSave ?? true
