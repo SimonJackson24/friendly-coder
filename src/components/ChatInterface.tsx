@@ -57,6 +57,10 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
       const response = await generateResponse(contextEnhancedPrompt);
       Logger.log('info', 'Received response from Claude', { response });
       
+      if (!response) {
+        throw new Error("No response received from AI");
+      }
+
       setMessages((prev) => [...prev, { 
         role: "assistant", 
         content: response,
@@ -64,9 +68,10 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
       }]);
     } catch (error) {
       Logger.log('error', 'Failed to generate response', { error });
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate response";
       toast({
         title: "Error",
-        description: "Failed to generate response. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

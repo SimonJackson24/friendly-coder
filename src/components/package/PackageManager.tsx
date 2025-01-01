@@ -23,7 +23,7 @@ export function PackageManager({ projectId }: PackageManagerProps) {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const { data: projectData, isLoading } = useQuery({
+  const { data: projectData, isLoading, error } = useQuery({
     queryKey: ["project-packages", projectId],
     queryFn: async () => {
       console.log("Fetching project packages:", projectId);
@@ -32,7 +32,7 @@ export function PackageManager({ projectId }: PackageManagerProps) {
         .select("*")
         .eq("project_id", projectId)
         .eq("name", "package.json")
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching package.json:", error);
@@ -40,10 +40,22 @@ export function PackageManager({ projectId }: PackageManagerProps) {
       }
 
       if (!files?.content) {
-        return { dependencies: {}, devDependencies: {} };
+        console.log("No package.json found, creating default");
+        return {
+          dependencies: {},
+          devDependencies: {},
+        };
       }
 
-      return JSON.parse(files.content);
+      try {
+        return JSON.parse(files.content);
+      } catch (e) {
+        console.error("Error parsing package.json:", e);
+        return {
+          dependencies: {},
+          devDependencies: {},
+        };
+      }
     },
   });
 
@@ -124,6 +136,17 @@ export function PackageManager({ projectId }: PackageManagerProps) {
     return <div>Loading project packages...</div>;
   }
 
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Failed to load package information. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -164,23 +187,29 @@ export function PackageManager({ projectId }: PackageManagerProps) {
           <h3 className="font-semibold mb-2">Installed Packages</h3>
           <ScrollArea className="h-[400px]">
             <div className="space-y-2">
-              {installedPackages.map((pkg) => (
-                <div key={pkg.name} className="flex items-center justify-between p-2 rounded hover:bg-accent">
-                  <div>
-                    <div className="font-medium">{pkg.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {pkg.version} ({pkg.type})
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleUninstall(pkg.name)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+              {installedPackages.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No packages installed yet
                 </div>
-              ))}
+              ) : (
+                installedPackages.map((pkg) => (
+                  <div key={pkg.name} className="flex items-center justify-between p-2 rounded hover:bg-accent">
+                    <div>
+                      <div className="font-medium">{pkg.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {pkg.version} ({pkg.type})
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleUninstall(pkg.name)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))
+              )}
             </div>
           </ScrollArea>
         </div>
