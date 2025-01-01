@@ -21,28 +21,28 @@ const Settings = () => {
     updateSettings({
       theme: newSettings.theme,
       language: newSettings.language,
-      notifications: newSettings.notifications as unknown as Json,
-      build_preferences: newSettings.buildPreferences as unknown as Json,
+      notifications: newSettings.notifications,
+      buildPreferences: newSettings.buildPreferences,
     });
   };
 
   const handleModelSettingsUpdate = () => {
     updateSettings({
-      api_key: settings.api_key,
+      apiKey: settings.apiKey,
       temperature: settings.temperature,
-      max_tokens: settings.max_tokens,
+      maxTokens: settings.maxTokens,
     });
   };
 
   const handleEditorPreferencesUpdate = (preferences: any) => {
     updateSettings({
-      editor_preferences: preferences as unknown as Json,
+      editorPreferences: preferences,
     });
   };
 
   const handleSecurityPreferencesUpdate = (preferences: any) => {
     updateSettings({
-      security_preferences: preferences as unknown as Json,
+      securityPreferences: preferences,
     });
   };
 
@@ -63,33 +63,31 @@ const Settings = () => {
           <GeneralSettings
             theme={settings.theme}
             language={settings.language}
-            notifications={settings.notifications as unknown as any}
-            buildPreferences={settings.build_preferences as unknown as any}
+            notifications={settings.notifications}
+            buildPreferences={settings.buildPreferences}
             onThemeChange={(theme) => updateSettings({ theme })}
             onLanguageChange={(language) => updateSettings({ language })}
-            onNotificationsChange={(notifications) => 
-              updateSettings({ notifications: notifications as unknown as Json })}
-            onBuildPreferencesChange={(preferences) => 
-              updateSettings({ build_preferences: preferences as unknown as Json })}
+            onNotificationsChange={(notifications) => updateSettings({ notifications })}
+            onBuildPreferencesChange={(preferences) => updateSettings({ buildPreferences: preferences })}
             onSave={handleGeneralSettingsUpdate}
           />
         </TabsContent>
 
         <TabsContent value="model">
           <ModelParametersSettings
-            apiKey={settings.api_key || ""}
-            temperature={settings.temperature || 0.7}
-            maxTokens={settings.max_tokens || 1000}
-            onApiKeyChange={(apiKey) => updateSettings({ api_key: apiKey })}
+            apiKey={settings.apiKey}
+            temperature={settings.temperature}
+            maxTokens={settings.maxTokens}
+            onApiKeyChange={(apiKey) => updateSettings({ apiKey })}
             onTemperatureChange={(temperature) => updateSettings({ temperature })}
-            onMaxTokensChange={(maxTokens) => updateSettings({ max_tokens: maxTokens })}
+            onMaxTokensChange={(maxTokens) => updateSettings({ maxTokens })}
             onSave={handleModelSettingsUpdate}
           />
         </TabsContent>
 
         <TabsContent value="editor">
           <EditorPreferencesSection
-            preferences={settings.editor_preferences as unknown as any}
+            preferences={settings.editorPreferences}
             onUpdate={handleEditorPreferencesUpdate}
             isUpdating={isUpdating}
           />
@@ -97,7 +95,7 @@ const Settings = () => {
 
         <TabsContent value="security">
           <SecurityPreferencesSection
-            preferences={settings.security_preferences as unknown as any}
+            preferences={settings.securityPreferences}
             onUpdate={handleSecurityPreferencesUpdate}
             isUpdating={isUpdating}
           />
