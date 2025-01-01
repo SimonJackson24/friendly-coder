@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,16 +20,18 @@ serve(async (req) => {
     if (!anthropicApiKey) {
       console.error("Missing Anthropic API key");
       return new Response(
-        JSON.stringify({ error: "Server configuration error" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Missing API configuration" }),
+        { 
+          status: 500, 
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json" 
+          } 
+        }
       );
     }
 
-    console.log("Processing request with context:", prompt);
-    
-    // Extract build context if present
-    const hasBuildContext = prompt.includes('[Context:');
-    console.log("Request includes build context:", hasBuildContext);
+    console.log("Processing request with prompt:", prompt);
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -46,15 +47,23 @@ serve(async (req) => {
           role: "user", 
           content: prompt 
         }],
-        system: hasBuildContext ? 
-          "You are a helpful AI assistant that helps fix build errors and improve code quality. When provided with build context, analyze it carefully to provide accurate solutions." :
-          "You are a helpful AI assistant that helps with code-related tasks."
+        system: "You are a helpful AI assistant that helps with code-related tasks."
       }),
     });
 
     if (!response.ok) {
-      console.error("Anthropic API error:", await response.text());
-      throw new Error("Failed to generate response");
+      const errorText = await response.text();
+      console.error("Anthropic API error:", errorText);
+      return new Response(
+        JSON.stringify({ error: "Failed to generate response from Claude" }),
+        { 
+          status: 500, 
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json" 
+          } 
+        }
+      );
     }
 
     const data = await response.json();
@@ -62,14 +71,25 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ response: data.content[0].text }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          "Content-Type": "application/json" 
+        } 
+      }
     );
 
   } catch (error) {
-    console.error("Error:", error.message);
+    console.error("Error in Edge Function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { 
+        status: 500, 
+        headers: { 
+          ...corsHeaders, 
+          "Content-Type": "application/json" 
+        } 
+      }
     );
   }
 });
