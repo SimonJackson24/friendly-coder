@@ -41,6 +41,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gradient-to-br from-background to-muted text-foreground;
+    background-attachment: fixed;
   }
 }

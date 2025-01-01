@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { generateResponse } from "@/utils/huggingface";
 import Logger from "@/utils/logger";
-import { Loader2, Send, Bot, User } from "lucide-react";
+import { Loader2, Send, Bot, User, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -82,7 +82,7 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
   };
 
   return (
-    <div className="h-full flex flex-col bg-background/50 backdrop-blur-sm rounded-lg">
+    <div className="h-full flex flex-col bg-background/30 backdrop-blur-md rounded-lg border border-muted/20">
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-6">
           {messages.map((message, index) => (
@@ -94,17 +94,22 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
               )}
             >
               {message.role === "assistant" && (
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-primary" />
+                <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center backdrop-blur-sm border border-accent/20">
+                  <Sparkles className="w-4 h-4 text-accent" />
                 </div>
               )}
               <div
                 className={cn(
-                  "max-w-[85%] md:max-w-[75%] rounded-lg p-4",
+                  "max-w-[85%] md:max-w-[75%] rounded-lg p-4 backdrop-blur-sm",
                   message.role === "assistant" 
-                    ? "bg-card/50 text-card-foreground" 
-                    : "bg-primary/90 text-primary-foreground"
+                    ? "bg-card/30 text-card-foreground border border-muted/20" 
+                    : "bg-accent text-accent-foreground"
                 )}
+                style={{
+                  boxShadow: message.role === "assistant" 
+                    ? "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
+                    : "none"
+                }}
               >
                 <div className="text-xs opacity-70 mb-2">
                   {new Date(message.timestamp).toLocaleTimeString()}
@@ -112,8 +117,8 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
                 <div className="whitespace-pre-wrap">{message.content}</div>
               </div>
               {message.role === "user" && (
-                <div className="w-8 h-8 rounded-full bg-primary/90 flex items-center justify-center">
-                  <User className="w-4 h-4 text-primary-foreground" />
+                <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
+                  <User className="w-4 h-4 text-accent-foreground" />
                 </div>
               )}
             </div>
@@ -122,13 +127,13 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
         </div>
       </ScrollArea>
 
-      <form onSubmit={handleSubmit} className="p-4 border-t bg-card/30">
+      <form onSubmit={handleSubmit} className="p-4 border-t border-muted/20 bg-card/10 backdrop-blur-sm">
         <div className="flex gap-2">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 min-h-[60px] max-h-[120px] resize-none bg-background/50"
+            className="flex-1 min-h-[60px] max-h-[120px] resize-none bg-background/50 border-muted/20"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -140,7 +145,7 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
             type="submit" 
             size="icon"
             disabled={isLoading || !input.trim()}
-            className="h-[60px] w-[60px]"
+            className="h-[60px] w-[60px] bg-accent hover:bg-accent/90"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
