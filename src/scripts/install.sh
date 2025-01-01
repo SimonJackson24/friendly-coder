@@ -17,7 +17,7 @@ check_status() {
     fi
 }
 
-echo -e "${GREEN}Starting installation...${NC}"
+echo -e "${GREEN}Starting installation for Raspberry Pi...${NC}"
 
 # Check if running on Raspberry Pi OS
 if ! grep -q "Raspberry Pi" /proc/cpuinfo; then
@@ -26,6 +26,16 @@ fi
 
 # Check system requirements
 echo -e "\n${GREEN}Checking system requirements...${NC}"
+
+# Update system packages
+echo -e "\n${GREEN}Updating system packages...${NC}"
+sudo apt-get update && sudo apt-get upgrade -y
+check_status "Failed to update system packages"
+
+# Install required system dependencies
+echo -e "\n${GREEN}Installing system dependencies...${NC}"
+sudo apt-get install -y curl git build-essential
+check_status "Failed to install system dependencies"
 
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
@@ -43,30 +53,33 @@ fi
 # Check if Docker Compose is installed
 if ! command -v docker-compose &> /dev/null; then
     echo -e "${RED}Docker Compose is not installed. Installing Docker Compose...${NC}"
-    sudo apt-get update
     sudo apt-get install -y docker-compose
     check_status "Failed to install Docker Compose"
 else
     echo -e "${GREEN}✓ Docker Compose is already installed${NC}"
 fi
 
-# Install Node.js 20.x if not present or if version is different
-if ! command -v node &> /dev/null || [ "$(node -v | cut -d. -f1)" != "v20" ]; then
-    echo -e "${RED}Node.js 20.x is not installed. Installing Node.js 20.x...${NC}"
-    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-    sudo apt-get install -y nodejs
-    check_status "Failed to install Node.js"
+# Install Node.js 20.x using nvm for better ARM compatibility
+if ! command -v nvm &> /dev/null; then
+    echo -e "${RED}Installing nvm...${NC}"
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    check_status "Failed to install nvm"
 else
-    echo -e "${GREEN}✓ Node.js 20.x is already installed${NC}"
+    echo -e "${GREEN}✓ nvm is already installed${NC}"
 fi
 
-# Install Supabase CLI
+# Install Node.js 20.x
+echo -e "\n${GREEN}Installing Node.js 20.x...${NC}"
+nvm install 20
+nvm use 20
+check_status "Failed to install Node.js"
+
+# Install Supabase CLI using npm (more reliable on ARM)
 echo -e "\n${GREEN}Installing Supabase CLI...${NC}"
 if ! command -v supabase &> /dev/null; then
-    echo -e "${GREEN}Downloading and installing Supabase CLI...${NC}"
-    wget https://github.com/supabase/cli/releases/download/v1.127.0/supabase_1.127.0_linux_arm64.deb
-    sudo dpkg -i supabase_1.127.0_linux_arm64.deb
-    rm supabase_1.127.0_linux_arm64.deb
+    npm install -g supabase
     check_status "Failed to install Supabase CLI"
 else
     echo -e "${GREEN}✓ Supabase CLI is already installed${NC}"
@@ -77,6 +90,23 @@ if ! command -v supabase &> /dev/null; then
     echo -e "${RED}Failed to install Supabase CLI. Please try installing it manually.${NC}"
     exit 1
 fi
+
+# Create project directory
+echo -e "\n${GREEN}Setting up project directory...${NC}"
+PROJECT_DIR="friendly-coder"
+mkdir -p $PROJECT_DIR
+cd $PROJECT_DIR
+
+# Clone the repository (if URL is provided)
+if [ -n "$REPO_URL" ]; then
+    git clone $REPO_URL .
+    check_status "Failed to clone repository"
+fi
+
+# Install project dependencies
+echo -e "\n${GREEN}Installing project dependencies...${NC}"
+npm install
+check_status "Failed to install project dependencies"
 
 # Initialize Supabase project
 echo -e "\n${GREEN}Initializing Supabase project...${NC}"
@@ -98,13 +128,20 @@ echo -e "\n${GREEN}Updating Supabase client configuration...${NC}"
 sed -i "s|const SUPABASE_URL.*|const SUPABASE_URL = \"$SUPABASE_URL\";|" src/integrations/supabase/client.ts
 sed -i "s|const SUPABASE_ANON_KEY.*|const SUPABASE_ANON_KEY = \"$SUPABASE_ANON_KEY\";|" src/integrations/supabase/client.ts
 
-# Install project dependencies
-echo -e "\n${GREEN}Installing project dependencies...${NC}"
-npm install
-check_status "Failed to install project dependencies"
-
-# Get hostname
+# Get hostname for URLs
 HOSTNAME=$(hostname)
+
+# Check if ports are available
+echo -e "\n${GREEN}Checking port availability...${NC}"
+if lsof -Pi :8080 -sTCP:LISTEN -t >/dev/null ; then
+    echo -e "${RED}Port 8080 is already in use. Please free this port first.${NC}"
+    exit 1
+fi
+
+if lsof -Pi :54323 -sTCP:LISTEN -t >/dev/null ; then
+    echo -e "${RED}Port 54323 is already in use. Please free this port first.${NC}"
+    exit 1
+fi
 
 echo -e "\n${GREEN}Installation complete!${NC}"
 echo -e "\nYou can now access:"
@@ -117,3 +154,15 @@ echo -e "3. To start the development server, run: ${YELLOW}npm run dev${NC}"
 echo -e "4. The Supabase Studio credentials are:"
 echo -e "   Email: ${YELLOW}admin@admin.com${NC}"
 echo -e "   Password: ${YELLOW}admin${NC}"
+
+# Check system resources
+echo -e "\n${GREEN}System Resource Check:${NC}"
+echo -e "Available Memory:"
+free -h
+echo -e "\nAvailable Disk Space:"
+df -h .
+
+echo -e "\n${YELLOW}Note: For optimal performance on Raspberry Pi, ensure you have at least:${NC}"
+echo -e "- 4GB RAM"
+echo -e "- 10GB free disk space"
+echo -e "- Active cooling or proper heat management"

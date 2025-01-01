@@ -1,18 +1,27 @@
-# Installation Guide
+# Installation Guide for Raspberry Pi
 
-This guide will help you set up the complete application with Supabase locally.
+This guide will help you set up the complete application with Supabase on your Raspberry Pi.
 
 ## Prerequisites
 
-- Linux/macOS/WSL environment
-- Internet connection
-- Sudo privileges
-- At least 4GB of RAM recommended
+- Raspberry Pi (recommended: Pi 4 or Pi 5)
+- Raspberry Pi OS (64-bit recommended)
+- At least 4GB RAM
 - At least 10GB of free disk space
+- Active internet connection
+- Sudo privileges
+
+## Hardware Recommendations
+
+For optimal performance:
+- Raspberry Pi 4 (4GB or 8GB RAM) or Raspberry Pi 5
+- Active cooling or proper heat sink
+- Class 10 SD card or USB 3.0 SSD
+- Stable power supply (3A recommended)
 
 ## Step-by-Step Installation
 
-1. **Prepare your system**
+1. **Prepare your Raspberry Pi**
    ```bash
    # Update your system
    sudo apt-get update
@@ -30,9 +39,8 @@ This guide will help you set up the complete application with Supabase locally.
    ```
 
    The script will:
-   - Install Docker if not present
-   - Install Docker Compose if not present
-   - Install Node.js 20.x if not present
+   - Install Docker and Docker Compose
+   - Install Node.js 20.x via nvm
    - Install Supabase CLI
    - Initialize and start Supabase locally
    - Install project dependencies
@@ -68,7 +76,13 @@ After installation:
    free -h
    ```
 
-4. **Supabase Services**
+4. **Temperature Monitoring**
+   ```bash
+   # Monitor CPU temperature
+   vcgencmd measure_temp
+   ```
+
+5. **Supabase Services**
    ```bash
    # Check Supabase status
    supabase status
@@ -76,6 +90,34 @@ After installation:
    supabase stop
    supabase start
    ```
+
+## Performance Tips
+
+1. **Use an SSD**
+   - Consider using a USB 3.0 SSD instead of an SD card for better performance
+
+2. **Enable Memory Swap**
+   ```bash
+   # Add or increase swap space
+   sudo dphys-swapsize=2048
+   sudo /etc/init.d/dphys-swapsize restart
+   ```
+
+3. **Monitor Resources**
+   ```bash
+   # Install htop for resource monitoring
+   sudo apt-get install htop
+   htop
+   ```
+
+## System Requirements
+
+- CPU: ARM64 (aarch64)
+- RAM: Minimum 4GB (8GB recommended)
+- Storage: At least 10GB free space
+- OS: Raspberry Pi OS (64-bit recommended)
+- Docker: Version 20.10 or newer
+- Node.js: Version 20.x
 
 ## Starting the Application
 
@@ -100,12 +142,3 @@ After installation:
    ```bash
    supabase stop
    ```
-
-## System Requirements
-
-- CPU: Any modern processor (x86_64 or ARM)
-- RAM: Minimum 4GB (8GB recommended)
-- Storage: At least 10GB free space
-- OS: Linux/macOS/WSL
-- Docker: Version 20.10 or newer
-- Node.js: Version 20.x
