@@ -1,3 +1,6 @@
+import { FilesTable, ProjectsTable, SettingsTable, SupabaseConnectionsTable, VersionHistoryTable } from './tables';
+import { DatabaseFunctions } from './functions';
+
 export type Json =
   | string
   | number
