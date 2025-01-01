@@ -63,23 +63,18 @@ fi
 # Install Supabase CLI
 echo -e "\n${GREEN}Installing Supabase CLI...${NC}"
 if ! command -v supabase &> /dev/null; then
-    # First, try the official installation method
-    if ! curl -fsSL https://cli.supabase.com/install.sh | sh; then
-        echo -e "${YELLOW}Official installation failed, trying alternative method...${NC}"
-        
-        # Alternative installation using npm
-        echo -e "${GREEN}Installing Supabase CLI via npm...${NC}"
-        sudo npm install -g supabase
-        check_status "Failed to install Supabase CLI via npm"
-    fi
+    echo -e "${GREEN}Downloading and installing Supabase CLI...${NC}"
+    wget https://github.com/supabase/cli/releases/download/v1.127.0/supabase_1.127.0_linux_arm64.deb
+    sudo dpkg -i supabase_1.127.0_linux_arm64.deb
+    rm supabase_1.127.0_linux_arm64.deb
+    check_status "Failed to install Supabase CLI"
 else
     echo -e "${GREEN}✓ Supabase CLI is already installed${NC}"
 fi
 
 # Verify Supabase CLI installation
 if ! command -v supabase &> /dev/null; then
-    echo -e "${RED}Failed to install Supabase CLI. Please try installing it manually:${NC}"
-    echo -e "Run: sudo npm install -g supabase"
+    echo -e "${RED}Failed to install Supabase CLI. Please try installing it manually.${NC}"
     exit 1
 fi
 
