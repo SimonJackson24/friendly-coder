@@ -19,34 +19,34 @@ export default {
     },
     extend: {
       colors: {
-        border: "rgba(255, 255, 255, 0.1)",
-        input: "rgba(255, 255, 255, 0.1)",
-        ring: "rgba(255, 255, 255, 0.1)",
-        background: "rgba(0, 0, 0, 0.8)",
-        foreground: "#ffffff",
+        border: "rgba(255, 255, 255, 0.15)",
+        input: "rgba(255, 255, 255, 0.15)",
+        ring: "rgba(255, 255, 255, 0.15)",
+        background: "rgba(0, 0, 0, 0.9)",
+        foreground: "#FFFFFF",
         primary: {
           DEFAULT: "#6366F1",
-          foreground: "#ffffff",
+          foreground: "#FFFFFF",
         },
         secondary: {
-          DEFAULT: "rgba(255, 255, 255, 0.1)",
-          foreground: "#ffffff",
+          DEFAULT: "rgba(255, 255, 255, 0.15)",
+          foreground: "#FFFFFF",
         },
         destructive: {
           DEFAULT: "#ef4444",
-          foreground: "#ffffff",
+          foreground: "#FFFFFF",
         },
         muted: {
-          DEFAULT: "rgba(255, 255, 255, 0.05)",
-          foreground: "rgba(255, 255, 255, 0.6)",
+          DEFAULT: "rgba(255, 255, 255, 0.08)",
+          foreground: "rgba(255, 255, 255, 0.8)",
         },
         accent: {
           DEFAULT: "#4F46E5",
-          foreground: "#ffffff",
+          foreground: "#FFFFFF",
         },
         card: {
-          DEFAULT: "rgba(0, 0, 0, 0.5)",
-          foreground: "#ffffff",
+          DEFAULT: "rgba(0, 0, 0, 0.75)",
+          foreground: "#FFFFFF",
         },
       },
       borderRadius: {

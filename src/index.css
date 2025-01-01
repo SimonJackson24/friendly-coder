@@ -20,7 +20,7 @@
     --secondary-foreground: 0 0% 100%;
  
     --muted: 0 0% 100%;
-    --muted-foreground: 0 0% 60%;
+    --muted-foreground: 0 0% 80%;
  
     --accent: 217.2 91.2% 59.8%;
     --accent-foreground: 0 0% 100%;
@@ -41,14 +41,14 @@
     @apply border-border/10;
   }
   body {
-    @apply bg-gradient-to-br from-black/90 to-black/80;
+    @apply bg-gradient-to-br from-black to-black/90;
     background-attachment: fixed;
     min-height: 100vh;
   }
   
   /* Glass effect for cards and containers */
   .glass {
-    @apply bg-black/20 backdrop-blur-md border border-white/10 shadow-lg;
+    @apply bg-black/75 backdrop-blur-md border border-white/15 shadow-lg;
   }
   
   /* Custom scrollbar for webkit browsers */
@@ -58,10 +58,10 @@
   }
   
   ::-webkit-scrollbar-track {
-    @apply bg-black/20;
+    @apply bg-black/40;
   }
   
   ::-webkit-scrollbar-thumb {
-    @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+    @apply bg-white/20 rounded-full hover:bg-white/30 transition-colors;
   }
 }
