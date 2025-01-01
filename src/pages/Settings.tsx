@@ -16,7 +16,7 @@ const Settings = () => {
       const { data: settings, error } = await supabase
         .from("settings")
         .select("*")
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching settings:", error);
@@ -30,12 +30,19 @@ const Settings = () => {
 
   useEffect(() => {
     const createInitialSettings = async () => {
+      console.log("Creating initial settings...");
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        console.log("No user found, skipping settings creation");
+        return;
+      }
 
       const { data, error } = await supabase
         .from("settings")
-        .insert([{ user_id: user.id }])
+        .insert([{ 
+          user_id: user.id,
+          huggingface_model: 'black-forest-labs/FLUX.1-schnell' // Default model
+        }])
         .select()
         .single();
 
@@ -46,6 +53,8 @@ const Settings = () => {
           description: "Failed to create initial settings",
           variant: "destructive",
         });
+      } else {
+        console.log("Initial settings created:", data);
       }
     };
 
