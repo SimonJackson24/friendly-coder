@@ -169,6 +169,33 @@ export type Database = {
         }
         Relationships: []
       }
+      settings_history: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          operation_type: string
+          settings_data: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          operation_type: string
+          settings_data: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          operation_type?: string
+          settings_data?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       supabase_connections: {
         Row: {
           access_token: string

@@ -4,31 +4,30 @@ import { GeneralSettings } from "@/components/settings/GeneralSettings";
 import { DatabaseStatistics } from "@/components/settings/DatabaseStatistics";
 import { EditorPreferencesSection } from "@/components/settings/EditorPreferencesSection";
 import { SecurityPreferencesSection } from "@/components/settings/SecurityPreferencesSection";
+import { SettingsHeader } from "@/components/settings/SettingsHeader";
+import { SettingsExport } from "@/components/settings/SettingsExport";
+import { SettingsImport } from "@/components/settings/SettingsImport";
 import { useSettings } from "@/hooks/useSettings";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Settings = () => {
   const { settings, isLoading, updateSettings, isUpdating } = useSettings();
 
-  if (isLoading) {
-    return <div>Loading settings...</div>;
-  }
-
-  if (!settings) {
+  if (!settings && !isLoading) {
     return <div>No settings found</div>;
   }
 
-  const handleEditorPreferencesUpdate = (editorPreferences: any) => {
-    updateSettings({ editorPreferences });
-  };
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
+      );
+    }
 
-  const handleSecurityPreferencesUpdate = (securityPreferences: any) => {
-    updateSettings({ securityPreferences });
-  };
-
-  return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Settings</h1>
-      
+    return (
       <Tabs defaultValue="general" className="space-y-6">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
@@ -36,6 +35,7 @@ const Settings = () => {
           <TabsTrigger value="editor">Editor</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="database">Database</TabsTrigger>
+          <TabsTrigger value="backup">Backup</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -80,7 +80,7 @@ const Settings = () => {
         <TabsContent value="editor">
           <EditorPreferencesSection
             preferences={settings.editorPreferences}
-            onUpdate={handleEditorPreferencesUpdate}
+            onUpdate={(editorPreferences) => updateSettings({ editorPreferences })}
             isUpdating={isUpdating}
           />
         </TabsContent>
@@ -88,7 +88,7 @@ const Settings = () => {
         <TabsContent value="security">
           <SecurityPreferencesSection
             preferences={settings.securityPreferences}
-            onUpdate={handleSecurityPreferencesUpdate}
+            onUpdate={(securityPreferences) => updateSettings({ securityPreferences })}
             isUpdating={isUpdating}
           />
         </TabsContent>
@@ -96,7 +96,19 @@ const Settings = () => {
         <TabsContent value="database">
           <DatabaseStatistics />
         </TabsContent>
+
+        <TabsContent value="backup" className="space-y-4">
+          <SettingsExport />
+          <SettingsImport />
+        </TabsContent>
       </Tabs>
+    );
+  };
+
+  return (
+    <div className="container py-8">
+      <SettingsHeader isLoading={isLoading} />
+      {renderContent()}
     </div>
   );
 };
