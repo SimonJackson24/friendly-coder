@@ -7,12 +7,10 @@ import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
 import { PackageManager } from "@/components/package/PackageManager";
 import { DeploymentPanel } from "@/components/deployment/DeploymentPanel";
 import { AIDebugger } from "@/components/ai/AIDebugger";
-import { GitHubExport } from "@/components/github/GitHubExport";
 import { ProjectSelector } from "@/components/projects/ProjectSelector";
 import { DatabaseDownload } from "@/components/database/DatabaseDownload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
-import { Plus, Package, Bug, Github, Rocket, Database } from "lucide-react";
+import { Plus, Package, Bug, Rocket, Database } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ProjectProvider } from "@/contexts/ProjectContext";
 
@@ -57,10 +55,6 @@ export default function Index() {
               <Rocket className="w-4 h-4 mr-2" />
               Deployment
             </TabsTrigger>
-            <TabsTrigger value="github">
-              <Github className="w-4 h-4 mr-2" />
-              GitHub Export
-            </TabsTrigger>
             <TabsTrigger value="database">
               <Database className="w-4 h-4 mr-2" />
               Database
@@ -92,12 +86,6 @@ export default function Index() {
           <TabsContent value="deployment">
             <Card className="p-4">
               <DeploymentPanel />
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="github">
-            <Card className="p-4">
-              <GitHubExport />
             </Card>
           </TabsContent>
 
