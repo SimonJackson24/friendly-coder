@@ -33,7 +33,12 @@ export function GitHubSection({ githubUrl, onChange }: GitHubSectionProps) {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      window.location.href = `https://github.com/settings/tokens/new?description=Lovable%20App&scopes=repo,read:user,user:email`;
+      // Redirect to GitHub OAuth
+      const clientId = "YOUR_GITHUB_CLIENT_ID"; // This should be stored in Supabase Edge Function
+      const redirectUri = `${window.location.origin}/settings/github/callback`;
+      const scope = "repo,read:user,user:email";
+      
+      window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
     } catch (error) {
       console.error('GitHub connection error:', error);
       toast({
