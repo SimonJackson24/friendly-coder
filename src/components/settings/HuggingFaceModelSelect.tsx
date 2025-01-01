@@ -17,7 +17,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-const models = [
+const defaultModels = [
   {
     value: "black-forest-labs/FLUX.1-schnell",
     label: "FLUX.1 Schnell",
@@ -38,8 +38,7 @@ interface HuggingFaceModelSelectProps {
 
 export function HuggingFaceModelSelect({ currentModel }: HuggingFaceModelSelectProps) {
   const [open, setOpen] = useState(false);
-  // Initialize with currentModel if provided, otherwise use the first model
-  const [value, setValue] = useState(currentModel || models[0].value);
+  const [value, setValue] = useState(currentModel || defaultModels[0].value);
   const { toast } = useToast();
 
   const handleSelect = async (currentValue: string) => {
@@ -78,10 +77,7 @@ export function HuggingFaceModelSelect({ currentModel }: HuggingFaceModelSelectP
     });
   };
 
-  // If no models are available, don't render the component
-  if (!models || models.length === 0) {
-    return null;
-  }
+  const selectedModel = defaultModels.find((model) => model.value === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -92,9 +88,7 @@ export function HuggingFaceModelSelect({ currentModel }: HuggingFaceModelSelectP
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {value
-            ? models.find((model) => model.value === value)?.label || "Select model..."
-            : "Select model..."}
+          {selectedModel?.label || "Select model..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -103,7 +97,7 @@ export function HuggingFaceModelSelect({ currentModel }: HuggingFaceModelSelectP
           <CommandInput placeholder="Search models..." />
           <CommandEmpty>No model found.</CommandEmpty>
           <CommandGroup>
-            {models.map((model) => (
+            {defaultModels.map((model) => (
               <CommandItem
                 key={model.value}
                 value={model.value}
