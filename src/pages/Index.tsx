@@ -7,11 +7,10 @@ import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
 import { PackageManager } from "@/components/package/PackageManager";
 import { DeploymentPanel } from "@/components/deployment/DeploymentPanel";
 import { AIDebugger } from "@/components/ai/AIDebugger";
-import { GitHubExport } from "@/components/github/GitHubExport";
+import { GitHubManager } from "@/components/github/GitHubManager";
 import { ProjectSelector } from "@/components/projects/ProjectSelector";
 import { DatabaseDownload } from "@/components/database/DatabaseDownload";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
 import { Plus, Package, Bug, Github, Rocket, Database } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ProjectProvider } from "@/contexts/ProjectContext";
@@ -20,20 +19,12 @@ export default function Index() {
   const session = useSession();
   const navigate = useNavigate();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (!session) {
       navigate("/login");
     }
   }, [session, navigate]);
-
-  const handleExportSuccess = (repoUrl: string) => {
-    toast({
-      title: "Success",
-      description: `Repository created successfully at ${repoUrl}`,
-    });
-  };
 
   if (!session) return null;
 
@@ -67,7 +58,7 @@ export default function Index() {
             </TabsTrigger>
             <TabsTrigger value="github">
               <Github className="w-4 h-4 mr-2" />
-              GitHub Export
+              GitHub
             </TabsTrigger>
             <TabsTrigger value="database">
               <Database className="w-4 h-4 mr-2" />
@@ -104,9 +95,7 @@ export default function Index() {
           </TabsContent>
 
           <TabsContent value="github">
-            <Card className="p-4">
-              <GitHubExport onExportSuccess={handleExportSuccess} />
-            </Card>
+            <GitHubManager />
           </TabsContent>
 
           <TabsContent value="database">
