@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { GitFork, Loader2, Github } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProject } from "@/contexts/ProjectContext";
@@ -127,11 +127,20 @@ export function GitHubImport() {
         Import from GitHub
       </h2>
 
-      <Alert>
-        <AlertDescription>
-          Import a public GitHub repository by entering its URL below. Private repositories require authentication through Settings.
-        </AlertDescription>
-      </Alert>
+      {!selectedProject ? (
+        <Alert variant="destructive">
+          <AlertTitle>No Project Selected</AlertTitle>
+          <AlertDescription>
+            Please select a project from the dropdown above before importing a repository.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <Alert>
+          <AlertDescription>
+            Import a public GitHub repository by entering its URL below. Private repositories require authentication through Settings.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="space-y-4">
         <div className="space-y-2">
@@ -139,6 +148,7 @@ export function GitHubImport() {
             value={repoUrl}
             onChange={(e) => setRepoUrl(e.target.value)}
             placeholder="https://github.com/username/repo"
+            disabled={!selectedProject}
           />
         </div>
 
