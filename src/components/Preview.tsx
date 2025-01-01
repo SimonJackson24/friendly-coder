@@ -29,17 +29,45 @@ export function Preview({ files, onConsoleMessage, onConsoleError }: PreviewProp
       }
 
       try {
-        const blob = new Blob([htmlFile.content], { type: "text/html" });
+        // Inject session handling script
+        const sessionScript = `
+          <script>
+            window.addEventListener('message', function(event) {
+              if (event.data.type === 'session') {
+                window.sessionData = event.data.session;
+              }
+            });
+          </script>
+        `;
+
+        // Insert the script right after the opening body tag
+        const modifiedContent = htmlFile.content.replace(
+          '<body>',
+          '<body>' + sessionScript
+        );
+
+        const blob = new Blob([modifiedContent], { type: "text/html" });
         const url = URL.createObjectURL(blob);
 
         // Store successful state before updating
         if (buildState === 'success') {
-          setLastSuccessfulState(htmlFile.content);
+          setLastSuccessfulState(modifiedContent);
         }
 
         iframeRef.current.src = url;
         setBuildState('success');
         Logger.log('build', 'Preview build successful');
+
+        // Send session data to iframe after it loads
+        iframeRef.current.onload = () => {
+          const session = localStorage.getItem('supabase.auth.token');
+          if (session) {
+            iframeRef.current?.contentWindow?.postMessage({
+              type: 'session',
+              session: JSON.parse(session)
+            }, '*');
+          }
+        };
 
         return () => URL.revokeObjectURL(url);
       } catch (error) {
