@@ -14,8 +14,8 @@ import { GitHubActions } from "@/components/github/GitHubActions";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
-
-// ... keep existing code (imports and component setup)
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronRight, ChevronDown } from "lucide-react";
 
 const Assistant = () => {
   const [searchParams] = useSearchParams();
@@ -26,6 +26,7 @@ const Assistant = () => {
   const [selectedFile, setSelectedFile] = useState<FileNode | null>(null);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [buildErrors, setBuildErrors] = useState<string[]>([]);
+  const [isFileExplorerOpen, setIsFileExplorerOpen] = useState(true);
 
   // Check authentication status
   useEffect(() => {
@@ -106,28 +107,43 @@ const Assistant = () => {
     setBuildErrors([]);
   };
 
-  // If not authenticated, don't render anything
   if (!session) {
     return null;
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container py-8">
-        <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-3">
-            <FileExplorer
-              files={files}
-              onFileSelect={handleFileSelect}
-              onCreateFile={handleCreateFile}
-              onDeleteFile={handleDeleteFile}
-              isLoading={isLoading}
-            />
+      <div className="p-4 md:p-8">
+        <div className="grid grid-cols-12 gap-6">
+          <div className="col-span-12 md:col-span-3">
+            <Collapsible open={isFileExplorerOpen} onOpenChange={setIsFileExplorerOpen}>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold">Files</h3>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    {isFileExplorerOpen ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+              <CollapsibleContent>
+                <FileExplorer
+                  files={files}
+                  onFileSelect={handleFileSelect}
+                  onCreateFile={handleCreateFile}
+                  onDeleteFile={handleDeleteFile}
+                  isLoading={isLoading}
+                />
+              </CollapsibleContent>
+            </Collapsible>
           </div>
           
-          <div className="col-span-5">
-            <Tabs defaultValue="editor" className="h-full">
-              <TabsList>
+          <div className="col-span-12 md:col-span-5">
+            <Tabs defaultValue="chat" className="h-full space-y-6">
+              <TabsList className="w-full">
                 <TabsTrigger value="chat">Chat</TabsTrigger>
                 <TabsTrigger value="editor">Editor</TabsTrigger>
                 <TabsTrigger value="console">Console</TabsTrigger>
@@ -135,11 +151,11 @@ const Assistant = () => {
                 <TabsTrigger value="github">GitHub</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="chat" className="mt-4">
+              <TabsContent value="chat">
                 <ChatInterface projectId={projectId} />
               </TabsContent>
               
-              <TabsContent value="editor" className="mt-4">
+              <TabsContent value="editor">
                 <FileEditor
                   file={selectedFile}
                   onSave={handleSaveFile}
@@ -147,7 +163,7 @@ const Assistant = () => {
                 />
               </TabsContent>
               
-              <TabsContent value="console" className="mt-4">
+              <TabsContent value="console">
                 <Console 
                   logs={consoleOutput} 
                   errors={buildErrors}
@@ -155,17 +171,17 @@ const Assistant = () => {
                 />
               </TabsContent>
               
-              <TabsContent value="settings" className="mt-4">
+              <TabsContent value="settings">
                 <ProjectSettings project={project} />
               </TabsContent>
 
-              <TabsContent value="github" className="mt-4">
+              <TabsContent value="github">
                 <GitHubActions />
               </TabsContent>
             </Tabs>
           </div>
           
-          <div className="col-span-4">
+          <div className="col-span-12 md:col-span-4">
             <Preview
               files={files}
               onConsoleMessage={(message) => setConsoleOutput(prev => [...prev, message])}

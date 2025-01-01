@@ -34,29 +34,32 @@ export function FileExplorer({
   };
 
   if (isLoading) {
-    return <div className="p-4 text-center">Loading files...</div>;
+    return <div className="text-center py-4">Loading files...</div>;
   }
 
   return (
-    <ScrollArea className="h-[600px] w-full border rounded-lg bg-background p-2">
-      <div className="flex justify-between items-center mb-4 px-2">
-        <h3 className="font-semibold">Files</h3>
+    <div className="bg-background/50 backdrop-blur-sm rounded-lg">
+      <div className="flex justify-end p-2">
         {onCreateFile && (
-          <Button size="sm" className="flex items-center gap-2" onClick={() => setIsDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
+          <Button size="sm" variant="ghost" onClick={() => setIsDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
             New
           </Button>
         )}
       </div>
-      {files.map((file, index) => (
-        <FileTreeNode
-          key={`${file.id}-${index}`}
-          node={file}
-          onFileSelect={onFileSelect}
-          onDeleteFile={onDeleteFile}
-          onDrop={handleDrop}
-        />
-      ))}
+      <ScrollArea className="h-[500px]">
+        <div className="p-2">
+          {files.map((file, index) => (
+            <FileTreeNode
+              key={`${file.id}-${index}`}
+              node={file}
+              onFileSelect={onFileSelect}
+              onDeleteFile={onDeleteFile}
+              onDrop={handleDrop}
+            />
+          ))}
+        </div>
+      </ScrollArea>
       {onCreateFile && (
         <CreateFileDialog
           isOpen={isDialogOpen}
@@ -64,6 +67,6 @@ export function FileExplorer({
           onCreateFile={onCreateFile}
         />
       )}
-    </ScrollArea>
+    </div>
   );
 }
