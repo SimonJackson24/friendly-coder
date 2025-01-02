@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { GitFork, Loader2, Github } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ProjectSelector } from "@/components/projects/ProjectSelector";
 import { useProject } from "@/contexts/ProjectContext";
 
 export function GitHubImport() {
@@ -13,7 +14,7 @@ export function GitHubImport() {
   const [isImporting, setIsImporting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { selectedProject } = useProject();
+  const { selectedProject, setSelectedProject } = useProject();
 
   const handleImport = async () => {
     if (!repoUrl) {
@@ -127,48 +128,56 @@ export function GitHubImport() {
         Import from GitHub
       </h2>
 
-      {!selectedProject ? (
-        <Alert variant="destructive">
-          <AlertTitle>No Project Selected</AlertTitle>
-          <AlertDescription>
-            Please select a project from the dropdown above before importing a repository.
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <Alert>
-          <AlertDescription>
-            Import a public GitHub repository by entering its URL below. Private repositories require authentication through Settings.
-          </AlertDescription>
-        </Alert>
-      )}
-
       <div className="space-y-4">
         <div className="space-y-2">
-          <Input
-            value={repoUrl}
-            onChange={(e) => setRepoUrl(e.target.value)}
-            placeholder="https://github.com/username/repo"
-            disabled={!selectedProject}
-          />
+          <label className="text-sm font-medium">Select Project</label>
+          <ProjectSelector />
         </div>
 
-        <Button 
-          onClick={handleImport} 
-          disabled={isImporting || !selectedProject} 
-          className="w-full"
-        >
-          {isImporting ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Importing...
-            </>
-          ) : (
-            <>
-              <GitFork className="w-4 h-4 mr-2" />
-              Import Repository
-            </>
-          )}
-        </Button>
+        {!selectedProject ? (
+          <Alert variant="destructive">
+            <AlertTitle>No Project Selected</AlertTitle>
+            <AlertDescription>
+              Please select a project from the dropdown above before importing a repository.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert>
+            <AlertDescription>
+              Import a public GitHub repository by entering its URL below. Private repositories require authentication through Settings.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Repository URL</label>
+            <Input
+              value={repoUrl}
+              onChange={(e) => setRepoUrl(e.target.value)}
+              placeholder="https://github.com/username/repo"
+              disabled={!selectedProject}
+            />
+          </div>
+
+          <Button 
+            onClick={handleImport} 
+            disabled={isImporting || !selectedProject || !repoUrl} 
+            className="w-full"
+          >
+            {isImporting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Importing...
+              </>
+            ) : (
+              <>
+                <GitFork className="w-4 h-4 mr-2" />
+                Import Repository
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
