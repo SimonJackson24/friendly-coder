@@ -35,8 +35,6 @@ const Login = () => {
           title: "Signed out",
           description: "You have been logged out",
         });
-      } else if (event === 'USER_UPDATED') {
-        console.log("User updated:", session);
       } else if (event === 'PASSWORD_RECOVERY') {
         toast({
           title: "Password Recovery",
@@ -49,15 +47,6 @@ const Login = () => {
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
-
-  const handleError = (error: Error) => {
-    console.error("Auth error:", error);
-    toast({
-      title: "Authentication Error",
-      description: error.message,
-      variant: "destructive",
-    });
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -84,7 +73,6 @@ const Login = () => {
             }}
             providers={[]}
             redirectTo={window.location.origin}
-            onError={handleError}
           />
         </div>
       </div>
