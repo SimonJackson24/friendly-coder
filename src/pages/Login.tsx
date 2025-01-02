@@ -45,11 +45,14 @@ const Login = () => {
           title: "Profile Updated",
           description: "Your profile has been updated successfully",
         });
-      } else if (event === 'SIGNED_UP') {
-        toast({
-          title: "Welcome!",
-          description: "Your account has been created successfully. Please check your email for verification.",
-        });
+      } else if (event === 'INITIAL_SESSION') {
+        if (session) {
+          toast({
+            title: "Welcome!",
+            description: "Successfully signed in",
+          });
+          navigate("/");
+        }
       }
     });
 
