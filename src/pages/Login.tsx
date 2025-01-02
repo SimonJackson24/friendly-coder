@@ -73,6 +73,8 @@ const Login = () => {
             }}
             providers={[]}
             redirectTo={window.location.origin}
+            showLinks={true}
+            view="sign_in"
           />
         </div>
       </div>
