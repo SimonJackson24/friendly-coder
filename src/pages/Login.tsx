@@ -84,7 +84,7 @@ const Login = () => {
             }}
             providers={[]}
             redirectTo={window.location.origin}
-            onAuthError={handleError}
+            onError={handleError}
           />
         </div>
       </div>
