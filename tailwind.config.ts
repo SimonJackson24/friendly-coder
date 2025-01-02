@@ -22,7 +22,7 @@ export default {
         border: "rgba(255, 255, 255, 0.15)",
         input: "rgba(255, 255, 255, 0.15)",
         ring: "rgba(255, 255, 255, 0.15)",
-        background: "rgba(0, 0, 0, 0.95)",
+        background: "#0A0A0B",
         foreground: "#FFFFFF",
         primary: {
           DEFAULT: "#6366F1",
@@ -45,7 +45,7 @@ export default {
           foreground: "#FFFFFF",
         },
         card: {
-          DEFAULT: "rgba(0, 0, 0, 0.85)",
+          DEFAULT: "#111113",
           foreground: "#FFFFFF",
         },
       },
