@@ -42,11 +42,6 @@ const Login = () => {
           title: "Password Recovery",
           description: "Check your email for password reset instructions",
         });
-      } else if (event === 'USER_DELETED') {
-        toast({
-          title: "Account Deleted",
-          description: "Your account has been deleted",
-        });
       }
     });
 
@@ -54,6 +49,15 @@ const Login = () => {
       subscription.unsubscribe();
     };
   }, [navigate, toast]);
+
+  const handleError = (error: Error) => {
+    console.error("Auth error:", error);
+    toast({
+      title: "Authentication Error",
+      description: error.message,
+      variant: "destructive",
+    });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -80,14 +84,7 @@ const Login = () => {
             }}
             providers={[]}
             redirectTo={window.location.origin}
-            onError={(error) => {
-              console.error("Auth error:", error);
-              toast({
-                title: "Authentication Error",
-                description: error.message,
-                variant: "destructive",
-              });
-            }}
+            onAuthError={handleError}
           />
         </div>
       </div>
