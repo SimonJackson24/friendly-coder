@@ -40,6 +40,16 @@ const Login = () => {
           title: "Password Recovery",
           description: "Check your email for password reset instructions",
         });
+      } else if (event === 'USER_UPDATED') {
+        toast({
+          title: "Profile Updated",
+          description: "Your profile has been updated successfully",
+        });
+      } else if (event === 'SIGNED_UP') {
+        toast({
+          title: "Welcome!",
+          description: "Your account has been created successfully. Please check your email for verification.",
+        });
       }
     });
 
