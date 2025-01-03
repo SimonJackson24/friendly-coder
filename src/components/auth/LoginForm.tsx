@@ -1,8 +1,11 @@
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const LoginForm = () => {
+  const { toast } = useToast();
+
   return (
     <div className="w-full max-w-md mx-auto bg-card rounded-xl shadow-lg p-8 space-y-6">
       <div className="text-center space-y-2">
@@ -49,10 +52,24 @@ export const LoginForm = () => {
           },
         }}
         providers={[]}
-        redirectTo={window.location.origin}
+        redirectTo={`${window.location.origin}/`}
+        onError={(error) => {
+          console.error('Auth error:', error);
+          toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: error.message || "Failed to authenticate. Please try again.",
+          });
+        }}
         showLinks={true}
         view="sign_in"
       />
+
+      <div className="text-center text-sm text-muted-foreground">
+        <p>For testing, create a new account or use these credentials:</p>
+        <p className="font-mono mt-1">Email: test@example.com</p>
+        <p className="font-mono">Password: test123456</p>
+      </div>
     </div>
   );
 };
