@@ -4,8 +4,8 @@ import { AuthStateListener } from "@/components/auth/AuthStateListener";
 
 const Login = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="container max-w-md mx-auto p-4">
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-4 bg-background/50">
+      <div className="w-full">
         <LoginForm />
         <AuthRedirect />
         <AuthStateListener />
