@@ -53,6 +53,14 @@ export const LoginForm = () => {
         }}
         providers={[]}
         redirectTo={`${window.location.origin}/`}
+        onError={(error) => {
+          console.error('Auth error:', error);
+          toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: error.message || "Failed to authenticate. Please try again.",
+          });
+        }}
         localization={{
           variables: {
             sign_in: {
@@ -70,7 +78,7 @@ export const LoginForm = () => {
       />
 
       <div className="text-center text-sm text-muted-foreground">
-        <p>For testing, create a new account or use these credentials:</p>
+        <p>For testing, first create a new account with these credentials:</p>
         <p className="font-mono mt-1">Email: test@example.com</p>
         <p className="font-mono">Password: test123456</p>
       </div>
