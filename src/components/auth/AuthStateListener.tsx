@@ -11,35 +11,41 @@ export const AuthStateListener = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session);
       
-      if (event === 'SIGNED_IN') {
-        toast({
-          title: "Welcome back!",
-          description: "Successfully logged in",
-        });
-        navigate("/");
-      } else if (event === 'SIGNED_OUT') {
-        toast({
-          title: "Signed out",
-          description: "You have been logged out",
-        });
-      } else if (event === 'PASSWORD_RECOVERY') {
-        toast({
-          title: "Password Recovery",
-          description: "Check your email for password reset instructions",
-        });
-      } else if (event === 'USER_UPDATED') {
-        toast({
-          title: "Profile Updated",
-          description: "Your profile has been updated successfully",
-        });
-      } else if (event === 'INITIAL_SESSION') {
-        if (session) {
+      switch (event) {
+        case 'SIGNED_IN':
           toast({
-            title: "Welcome!",
-            description: "Successfully signed in",
+            title: "Welcome back!",
+            description: "Successfully logged in",
           });
           navigate("/");
-        }
+          break;
+        case 'SIGNED_OUT':
+          toast({
+            title: "Signed out",
+            description: "You have been logged out",
+          });
+          break;
+        case 'PASSWORD_RECOVERY':
+          toast({
+            title: "Password Recovery",
+            description: "Check your email for password reset instructions",
+          });
+          break;
+        case 'USER_UPDATED':
+          toast({
+            title: "Profile Updated",
+            description: "Your profile has been updated successfully",
+          });
+          break;
+        case 'INITIAL_SESSION':
+          if (session) {
+            toast({
+              title: "Welcome!",
+              description: "Successfully signed in",
+            });
+            navigate("/");
+          }
+          break;
       }
     });
 

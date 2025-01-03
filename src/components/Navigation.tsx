@@ -3,15 +3,25 @@ import { Button } from "@/components/ui/button";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useNavigate } from "react-router-dom";
 import { BrainCog, Settings, LogOut } from "lucide-react";
+import { handleSignOut } from "@/services/auth";
+import { useToast } from "@/hooks/use-toast";
 
 export const Navigation = () => {
   const session = useSession();
-  const supabase = useSupabaseClient();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
+    const { success, error } = await handleSignOut();
+    if (success) {
+      navigate("/login");
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleLogin = () => {
