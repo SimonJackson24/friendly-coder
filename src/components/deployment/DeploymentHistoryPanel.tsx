@@ -6,6 +6,7 @@ import { History, RotateCcw, CheckCircle, XCircle, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { DeploymentHistoryRecord } from "@/types/deployment";
+import { PostgrestResponse } from "@supabase/supabase-js";
 
 interface DeploymentHistoryPanelProps {
   projectId: string;
@@ -15,14 +16,14 @@ export function DeploymentHistoryPanel({ projectId }: DeploymentHistoryPanelProp
   const { data: deployments } = useQuery({
     queryKey: ["deployments", projectId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error }: PostgrestResponse<DeploymentHistoryRecord> = await supabase
         .from("deployment_history")
         .select("*")
         .eq("project_id", projectId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as DeploymentHistoryRecord[];
+      return data;
     },
   });
 
