@@ -1,4 +1,5 @@
 import { PackageVersion } from "../types";
+import { supabase } from "@/integrations/supabase/client";
 
 export const generateChangelog = async (
   currentVersion: PackageVersion,
@@ -9,8 +10,9 @@ export const generateChangelog = async (
   }
 
   const changes: string[] = [];
+  const breakingChanges: string[] = [];
 
-  // Compare package data
+  // Compare package data to detect changes
   const oldData = previousVersion.package_data;
   const newData = currentVersion.package_data;
 
@@ -39,10 +41,28 @@ export const generateChangelog = async (
     }
   }
 
+  // Save changelog to database
+  const { error } = await supabase
+    .from("release_notes")
+    .insert({
+      package_id: currentVersion.package_id,
+      version: currentVersion.version,
+      title: `Release ${currentVersion.version}`,
+      changes,
+      breaking_changes: breakingChanges,
+    });
+
+  if (error) {
+    console.error("Error saving changelog:", error);
+  }
+
+  // Format the changelog
   return [
     `# Version ${currentVersion.version}`,
     "",
     changes.length ? "## Changes\n\n" + changes.map(c => `- ${c}`).join("\n") : "",
+    breakingChanges.length ? "\n## Breaking Changes\n\n" + 
+      breakingChanges.map(c => `- ${c}`).join("\n") : "",
   ].filter(Boolean).join("\n");
 };
 
