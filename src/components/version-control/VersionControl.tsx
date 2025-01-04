@@ -13,6 +13,7 @@ import { RepositorySection } from "./features/RepositorySection";
 import { BranchSection } from "./features/BranchSection";
 import { CommitSection } from "./features/CommitSection";
 import { PullRequestSection } from "./features/PullRequestSection";
+import { KanbanBoard } from "./kanban/KanbanBoard";
 
 export function VersionControl({ projectId }: { projectId: string | null }) {
   const [selectedRepositoryId, setSelectedRepositoryId] = useState<string | null>(null);
@@ -92,6 +93,7 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
           <TabsTrigger value="branches">Branches</TabsTrigger>
           <TabsTrigger value="commits">Commits</TabsTrigger>
           <TabsTrigger value="pull-requests">Pull Requests</TabsTrigger>
+          <TabsTrigger value="board">Project Board</TabsTrigger>
           <TabsTrigger value="protection">Branch Protection</TabsTrigger>
           <TabsTrigger value="rebase">Rebase</TabsTrigger>
           <TabsTrigger value="cherry-pick">Cherry Pick</TabsTrigger>
@@ -123,6 +125,18 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
             activeBranchId={activeBranchId}
             targetBranchId={targetBranchId}
           />
+        </TabsContent>
+
+        <TabsContent value="board">
+          {selectedRepositoryId ? (
+            <KanbanBoard repositoryId={selectedRepositoryId} />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                Select a repository to view its project board
+              </p>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="protection">
