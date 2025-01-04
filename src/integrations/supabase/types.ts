@@ -327,6 +327,60 @@ export type Database = {
           },
         ]
       }
+      branch_protection_rules: {
+        Row: {
+          branch_id: string
+          created_at: string | null
+          created_by: string
+          dismiss_stale_reviews: boolean | null
+          enforce_admins: boolean | null
+          id: string
+          repository_id: string
+          require_up_to_date: boolean | null
+          required_approvals: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id: string
+          created_at?: string | null
+          created_by: string
+          dismiss_stale_reviews?: boolean | null
+          enforce_admins?: boolean | null
+          id?: string
+          repository_id: string
+          require_up_to_date?: boolean | null
+          required_approvals?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string
+          created_at?: string | null
+          created_by?: string
+          dismiss_stale_reviews?: boolean | null
+          enforce_admins?: boolean | null
+          id?: string
+          repository_id?: string
+          require_up_to_date?: boolean | null
+          required_approvals?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_protection_rules_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_protection_rules_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branches: {
         Row: {
           created_at: string | null
@@ -813,6 +867,54 @@ export type Database = {
           },
           {
             foreignKeyName: "pull_requests_target_branch_id_fkey"
+            columns: ["target_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rebase_operations: {
+        Row: {
+          conflicts: Json | null
+          created_at: string | null
+          created_by: string
+          id: string
+          source_branch_id: string
+          status: string
+          target_branch_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          conflicts?: Json | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          source_branch_id: string
+          status?: string
+          target_branch_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          conflicts?: Json | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          source_branch_id?: string
+          status?: string
+          target_branch_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rebase_operations_source_branch_id_fkey"
+            columns: ["source_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rebase_operations_target_branch_id_fkey"
             columns: ["target_branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
