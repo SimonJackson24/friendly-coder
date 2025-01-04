@@ -33,3 +33,14 @@ export interface AccessRequestsProps {
   accessRequests: AccessRequest[];
   onHandleRequest: (requestId: string, approve: boolean) => void;
 }
+
+export interface PermissionVisualizationProps {
+  packageId: string;
+  accessList?: PackageAccess[];
+  teamAccess?: TeamAccess[];
+}
+
+export interface RoleTemplateProps {
+  onTemplateSelect: (templateId: string) => void;
+  selectedTemplate?: string;
+}

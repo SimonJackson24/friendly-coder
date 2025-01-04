@@ -57,8 +57,8 @@ export interface ReleaseNote {
   description: string;
   changes: string[];
   breaking_changes: string[];
-  changelog_type: string;
-  impact_level: string;
+  changelog_type: 'feature' | 'bugfix' | 'breaking' | 'maintenance';
+  impact_level: 'minor' | 'major' | 'patch';
   affected_components: string[];
   migration_steps: Record<string, any>;
   created_at: string;
@@ -108,8 +108,22 @@ export interface PermissionTemplate {
   id: string;
   name: string;
   description: string;
-  permissions: Record<string, any>;
+  permissions: Record<string, AccessLevel>;
   created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RollbackAnalysis {
+  id: string;
+  package_id: string;
+  version_from: string;
+  version_to: string;
+  impact_analysis: {
+    breaking_changes: string[];
+    affected_dependencies: string[];
+    risk_level: 'low' | 'medium' | 'high';
+  };
   created_at: string;
   updated_at: string;
 }
