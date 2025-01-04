@@ -327,6 +327,61 @@ export type Database = {
           },
         ]
       }
+      branch_comparisons: {
+        Row: {
+          comparison_data: Json | null
+          created_at: string | null
+          created_by: string
+          id: string
+          repository_id: string
+          source_branch_id: string
+          target_branch_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          comparison_data?: Json | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          repository_id: string
+          source_branch_id: string
+          target_branch_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          comparison_data?: Json | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          repository_id?: string
+          source_branch_id?: string
+          target_branch_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_comparisons_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_comparisons_source_branch_id_fkey"
+            columns: ["source_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branch_comparisons_target_branch_id_fkey"
+            columns: ["target_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branch_protection_rules: {
         Row: {
           branch_id: string

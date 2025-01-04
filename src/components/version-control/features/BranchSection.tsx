@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 import { BranchList } from "../BranchList";
+import { BranchComparisonSection } from "./BranchComparisonSection";
 
 interface BranchSectionProps {
   repositoryId: string | null;
@@ -27,20 +28,27 @@ export function BranchSection({
   }
 
   return (
-    <Card className="space-y-4">
-      <div className="flex justify-end">
-        {activeBranchId && (
-          <Button onClick={onCreateCommit}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Commit
-          </Button>
-        )}
-      </div>
-      <BranchList 
+    <div className="space-y-4">
+      <Card className="space-y-4">
+        <div className="flex justify-end">
+          {activeBranchId && (
+            <Button onClick={onCreateCommit}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Commit
+            </Button>
+          )}
+        </div>
+        <BranchList 
+          repositoryId={repositoryId}
+          onSelectBranch={onSelectBranch}
+          activeBranchId={activeBranchId}
+        />
+      </Card>
+      
+      <BranchComparisonSection 
         repositoryId={repositoryId}
-        onSelectBranch={onSelectBranch}
         activeBranchId={activeBranchId}
       />
-    </Card>
+    </div>
   );
 }
