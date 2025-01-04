@@ -42,6 +42,11 @@ export default function Assistant() {
     setBuildErrors([]);
   };
 
+  const handleSaveFile = (id: string, content: string) => {
+    if (!selectedFile) return;
+    saveFile(selectedFile, content);
+  };
+
   useEffect(() => {
     console.log("Assistant page mounted with projectId:", projectId);
   }, [projectId]);
@@ -58,7 +63,7 @@ export default function Assistant() {
       onFileSelect={selectFile}
       onCreateFile={createFile}
       onDeleteFile={deleteFile}
-      onSaveFile={saveFile}
+      onSaveFile={handleSaveFile}
       onClearConsole={handleClearConsole}
     />
   );
