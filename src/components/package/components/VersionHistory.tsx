@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PackageVersion, ReleaseNote } from "../types";
 import { supabase } from "@/integrations/supabase/client";
-import { History, ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
+import { History, ArrowLeft, ArrowRight, RotateCcw, GitCompare } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { VersionDiffViewer } from "./version/VersionDiffViewer";
+import { ChangelogEditor } from "./changelog/ChangelogEditor";
 
 interface VersionHistoryProps {
   packageId: string;
@@ -15,6 +17,8 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
   const [versions, setVersions] = useState<PackageVersion[]>([]);
   const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
   const [compareMode, setCompareMode] = useState(false);
+  const [showDiffViewer, setShowDiffViewer] = useState(false);
+  const [showChangelogEditor, setShowChangelogEditor] = useState(false);
   const [releaseNotes, setReleaseNotes] = useState<ReleaseNote | null>(null);
   const [showReleaseNotes, setShowReleaseNotes] = useState(false);
   const { toast } = useToast();
@@ -82,23 +86,37 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
     }
   };
 
-  const viewReleaseNotes = async (version: PackageVersion) => {
+  const handleSaveChangelog = async (changelog: string) => {
+    if (!selectedVersions[0]) return;
+    
+    const version = versions.find(v => v.id === selectedVersions[0]);
+    if (!version) return;
+
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("release_notes")
-        .select("*")
-        .eq("version", version.version)
-        .eq("package_id", packageId)
-        .single();
+        .upsert({
+          package_id: packageId,
+          version: version.version,
+          title: `Release ${version.version}`,
+          description: changelog,
+          changes: [],
+          breaking_changes: []
+        });
 
       if (error) throw error;
-      setReleaseNotes(data);
-      setShowReleaseNotes(true);
+
+      toast({
+        title: "Success",
+        description: "Changelog saved successfully",
+      });
+      
+      setShowChangelogEditor(false);
     } catch (error) {
-      console.error('Error fetching release notes:', error);
+      console.error('Error saving changelog:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch release notes",
+        description: "Failed to save changelog",
         variant: "destructive"
       });
     }
@@ -111,13 +129,24 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
           <History className="w-5 h-5" />
           Version History
         </h3>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setCompareMode(!compareMode)}
-        >
-          {compareMode ? "Exit Compare" : "Compare Versions"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCompareMode(!compareMode)}
+          >
+            {compareMode ? "Exit Compare" : "Compare Versions"}
+          </Button>
+          {selectedVersions.length === 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowChangelogEditor(true)}
+            >
+              Edit Changelog
+            </Button>
+          )}
+        </div>
       </div>
       
       <ScrollArea className="h-[200px]">
@@ -142,7 +171,8 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    viewReleaseNotes(version);
+                    setSelectedVersions([version.id]);
+                    setShowReleaseNotes(true);
                   }}
                 >
                   Notes
@@ -171,10 +201,46 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
               <ArrowRight className="inline mx-2" />
               v{versions.find(v => v.id === selectedVersions[1])?.version}
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDiffViewer(true)}
+            >
+              <GitCompare className="w-4 h-4 mr-2" />
+              View Diff
+            </Button>
           </div>
-          {/* Add diff viewer here if needed */}
         </div>
       )}
+
+      <Dialog open={showDiffViewer} onOpenChange={setShowDiffViewer}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Version Comparison</DialogTitle>
+          </DialogHeader>
+          {selectedVersions.length === 2 && (
+            <VersionDiffViewer
+              oldVersion={versions.find(v => v.id === selectedVersions[0])!}
+              newVersion={versions.find(v => v.id === selectedVersions[1])!}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showChangelogEditor} onOpenChange={setShowChangelogEditor}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Changelog</DialogTitle>
+          </DialogHeader>
+          {selectedVersions.length === 1 && (
+            <ChangelogEditor
+              version={versions.find(v => v.id === selectedVersions[0])!}
+              previousVersion={versions[versions.findIndex(v => v.id === selectedVersions[0]) + 1]}
+              onSave={handleSaveChangelog}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showReleaseNotes} onOpenChange={setShowReleaseNotes}>
         <DialogContent>
