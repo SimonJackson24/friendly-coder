@@ -22,7 +22,12 @@ export function DeploymentHistoryPanel({ projectId }: DeploymentHistoryPanelProp
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as DeploymentHistoryRecord[];
+      
+      // Transform the raw data to ensure deployment_config is properly typed
+      return (data || []).map(record => ({
+        ...record,
+        deployment_config: record.deployment_config as unknown as DeploymentConfig
+      })) as DeploymentHistoryRecord[];
     },
   });
 

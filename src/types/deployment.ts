@@ -1,3 +1,5 @@
+import { Json } from "@/integrations/supabase/types/database";
+
 export interface DeploymentConfig {
   platform: string;
   domain?: string;
@@ -12,7 +14,7 @@ export interface DeploymentHistoryRecord {
   status: string;
   started_at: string;
   completed_at?: string;
-  logs: any[];
+  logs: Json[];
   error_message?: string;
   created_by: string;
   created_at: string;
