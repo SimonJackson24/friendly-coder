@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CodeReviewPanel } from "../code-review/CodeReviewPanel";
 import { MergeConflictResolver } from "./MergeConflictResolver";
 import { detectMergeConflicts, type MergeConflict } from "@/utils/mergeConflictUtils";
+import { FileNode } from "@/hooks/useFileSystem";
 
 interface BranchMergeDialogProps {
   isOpen: boolean;
@@ -57,8 +58,28 @@ export function BranchMergeDialog({
 
       if (sourceError || targetError) throw sourceError || targetError;
 
-      const detectedConflicts = detectMergeConflicts(sourceFiles || [], targetFiles || []);
-      setConflicts(detectedConflicts);
+      // Transform files into MergeConflict objects
+      const mergeConflicts: MergeConflict[] = [];
+      
+      sourceFiles?.forEach((sourceFile) => {
+        const targetFile = targetFiles?.find(tf => tf.path === sourceFile.path);
+        if (targetFile) {
+          const baseContent = ""; // You might want to fetch the common ancestor content
+          const markers = detectMergeConflicts(baseContent, sourceFile.content || "", targetFile.content || "");
+          
+          if (markers.length > 0) {
+            mergeConflicts.push({
+              filePath: sourceFile.path,
+              conflicts: markers,
+              baseContent: baseContent,
+              currentContent: targetFile.content || "",
+              incomingContent: sourceFile.content || ""
+            });
+          }
+        }
+      });
+
+      setConflicts(mergeConflicts);
     } catch (error) {
       console.error("Error fetching conflicts:", error);
       toast({
@@ -176,7 +197,7 @@ export function BranchMergeDialog({
                 </div>
               ) : conflicts.length > 0 ? (
                 <MergeConflictResolver
-                  file={conflicts[currentConflictIndex].filePath}
+                  file={conflicts[currentConflictIndex] as unknown as FileNode}
                   conflict={conflicts[currentConflictIndex]}
                   onResolved={handleConflictResolved}
                 />

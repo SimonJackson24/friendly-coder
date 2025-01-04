@@ -1,4 +1,4 @@
-import { FileNode } from "@/hooks/useFileSystem";
+import { FileNode } from '@/hooks/useFileSystem';
 import * as Diff from 'diff';
 
 export interface ConflictMarker {
@@ -57,32 +57,24 @@ export function resolveConflict(
 ): string {
   console.log('Resolving conflict with strategy:', resolution);
   
-  let resolvedContent = conflict.baseContent;
-  
   switch (resolution) {
     case 'current':
-      resolvedContent = conflict.currentContent;
-      break;
+      return conflict.currentContent;
     case 'incoming':
-      resolvedContent = conflict.incomingContent;
-      break;
+      return conflict.incomingContent;
     case 'both':
       // Attempt to combine both changes
       const combinedDiff = Diff.diffLines(conflict.baseContent, conflict.currentContent);
-      resolvedContent = combinedDiff.reduce((acc, part) => {
+      return combinedDiff.reduce((acc, part) => {
         if (!part.removed) {
           return acc + part.value;
         }
         return acc;
       }, '');
-      break;
   }
-
-  console.log('Conflict resolved');
-  return resolvedContent;
 }
 
-export function applyResolution(
+export async function applyResolution(
   file: FileNode,
   resolvedContent: string
 ): Promise<void> {
