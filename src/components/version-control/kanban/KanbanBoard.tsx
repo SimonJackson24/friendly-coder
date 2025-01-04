@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { KanbanColumn } from "./KanbanColumn";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ interface KanbanBoardProps {
 export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
   const [isCreateColumnOpen, setIsCreateColumnOpen] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: board } = useQuery<ProjectBoard>({
     queryKey: ["project-board", repositoryId],
@@ -80,7 +81,12 @@ export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
         .order("position");
 
       if (error) throw error;
-      return data as BoardColumn[];
+
+      // Transform the data to match the BoardColumn interface
+      return data.map((column: any) => ({
+        ...column,
+        board_cards: column.board_cards || []
+      })) as BoardColumn[];
     },
     enabled: !!board?.id
   });
@@ -132,7 +138,10 @@ export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
           {columns.map((column) => (
             <KanbanColumn
               key={column.id}
-              column={column}
+              column={{
+                ...column,
+                cards: column.board_cards
+              }}
               onCardMove={handleCardMove}
             />
           ))}

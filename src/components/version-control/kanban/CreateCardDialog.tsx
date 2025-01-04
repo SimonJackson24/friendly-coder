@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface CreateCardDialogProps {
   columnId: string;
@@ -21,10 +22,11 @@ export function CreateCardDialog({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const session = useSession();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() || !session?.user?.id) return;
 
     setIsLoading(true);
     try {
@@ -45,7 +47,8 @@ export function CreateCardDialog({
         .insert({
           column_id: columnId,
           content: content.trim(),
-          position: nextPosition + 1
+          position: nextPosition + 1,
+          created_by: session.user.id
         });
 
       if (error) throw error;
