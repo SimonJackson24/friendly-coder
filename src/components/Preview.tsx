@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Card } from "./ui/card";
 import { FileNode } from "@/hooks/useFileSystem";
 import Logger from "@/utils/logger";
-import { Alert, AlertDescription } from "./ui/alert";
-import { Loader2, Smartphone } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { PreviewHeader } from "./preview/PreviewHeader";
+import { PreviewError } from "./preview/PreviewError";
+import { AndroidPreview } from "./preview/AndroidPreview";
+import { WebPreview } from "./preview/WebPreview";
 
 interface PreviewProps {
   files: FileNode[];
@@ -20,7 +22,6 @@ export function Preview({ files, onConsoleMessage, onConsoleError, projectId }: 
   const [lastSuccessfulState, setLastSuccessfulState] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Fetch project type
   const { data: project } = useQuery({
     queryKey: ["project", projectId],
     queryFn: async () => {
@@ -41,7 +42,6 @@ export function Preview({ files, onConsoleMessage, onConsoleError, projectId }: 
 
   const getEntryFile = (files: FileNode[]) => {
     if (isAndroidProject) {
-      // For Android projects, look for activity_main.xml or MainActivity.kt
       const androidEntryPoints = [
         { name: "activity_main.xml", type: "layout" },
         { name: "MainActivity.kt", type: "activity" }
@@ -54,7 +54,6 @@ export function Preview({ files, onConsoleMessage, onConsoleError, projectId }: 
         }
       }
     } else {
-      // Web project entry points
       const webEntryPoints = [
         { name: "index.html", type: "web" },
         { name: "App.tsx", type: "react" },
@@ -92,75 +91,12 @@ export function Preview({ files, onConsoleMessage, onConsoleError, projectId }: 
 
       try {
         if (isAndroidProject) {
-          // Handle Android layout preview
           const layoutContent = entry.file.content;
           if (!layoutContent) {
             throw new Error('Empty layout file');
           }
 
-          // Create a simplified Android-like preview
-          const previewContent = `
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <style>
-                  body { 
-                    margin: 0; 
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    min-height: 100vh;
-                    background: #f5f5f5;
-                  }
-                  .android-frame {
-                    width: 360px;
-                    height: 640px;
-                    background: white;
-                    border-radius: 20px;
-                    position: relative;
-                    border: 12px solid #1a1a1a;
-                    overflow: hidden;
-                  }
-                  .android-content {
-                    padding: 16px;
-                    height: 100%;
-                    overflow: auto;
-                  }
-                  .status-bar {
-                    height: 24px;
-                    background: #2196F3;
-                    width: 100%;
-                  }
-                </style>
-              </head>
-              <body>
-                <div class="android-frame">
-                  <div class="status-bar"></div>
-                  <div class="android-content">
-                    <pre>${layoutContent}</pre>
-                  </div>
-                </div>
-                <script>
-                  // Console interceptor
-                  const originalConsole = { ...console };
-                  Object.keys(console).forEach(key => {
-                    console[key] = (...args) => {
-                      originalConsole[key](...args);
-                      if (key === 'error' || key === 'warn' || key === 'log') {
-                        window.parent.postMessage({
-                          type: 'console',
-                          message: args.map(arg => 
-                            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-                          ).join(' ')
-                        }, '*');
-                      }
-                    };
-                  });
-                </script>
-              </body>
-            </html>
-          `;
-
+          const previewContent = AndroidPreview({ layoutContent });
           const blob = new Blob([previewContent], { type: "text/html" });
           const url = URL.createObjectURL(blob);
 
@@ -172,76 +108,34 @@ export function Preview({ files, onConsoleMessage, onConsoleError, projectId }: 
 
           return () => URL.revokeObjectURL(url);
         } else {
-        // Inject session and error handling scripts
-        const previewScript = `
-          <script>
-            // Session handling
-            window.addEventListener('message', function(event) {
-              if (event.data.type === 'session') {
-                window.sessionData = event.data.session;
-              }
-            });
+          const modifiedContent = WebPreview({ content: entry.file.content || '' });
 
-            // Error handling
-            window.onerror = function(msg, url, line, col, error) {
-              window.parent.postMessage({
-                type: 'error',
-                message: \`\${msg} (Line: \${line}, Col: \${col})\`
-              }, '*');
-              return false;
-            };
-
-            // Console interceptor
-            const originalConsole = { ...console };
-            Object.keys(console).forEach(key => {
-              console[key] = (...args) => {
-                originalConsole[key](...args);
-                if (key === 'error' || key === 'warn' || key === 'log') {
-                  window.parent.postMessage({
-                    type: 'console',
-                    message: args.map(arg => 
-                      typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-                    ).join(' ')
-                  }, '*');
-                }
-              };
-            });
-          </script>
-        `;
-
-        // Insert the script right after the opening body tag
-        const modifiedContent = entry.file.content?.replace(
-          '<body>',
-          '<body>' + previewScript
-        );
-
-        if (!modifiedContent) {
-          throw new Error('Failed to modify preview content');
-        }
-
-        // Store successful state before updating
-        if (buildState === 'success') {
-          setLastSuccessfulState(modifiedContent);
-        }
-
-        const blob = new Blob([modifiedContent], { type: "text/html" });
-        const url = URL.createObjectURL(blob);
-
-        iframeRef.current.src = url;
-        setBuildState('success');
-        Logger.log('build', 'Preview build successful', { type: entry.type });
-
-        // Send session data to iframe after it loads
-        iframeRef.current.onload = () => {
-          const session = localStorage.getItem('supabase.auth.token');
-          if (session) {
-            iframeRef.current?.contentWindow?.postMessage({
-              type: 'session',
-              session: JSON.parse(session)
-            }, '*');
+          if (!modifiedContent) {
+            throw new Error('Failed to modify preview content');
           }
-        };
 
+          if (buildState === 'success') {
+            setLastSuccessfulState(modifiedContent);
+          }
+
+          const blob = new Blob([modifiedContent], { type: "text/html" });
+          const url = URL.createObjectURL(blob);
+
+          if (iframeRef.current) {
+            iframeRef.current.src = url;
+          }
+          setBuildState('success');
+          Logger.log('build', 'Preview build successful', { type: entry.type });
+
+          iframeRef.current.onload = () => {
+            const session = localStorage.getItem('supabase.auth.token');
+            if (session) {
+              iframeRef.current?.contentWindow?.postMessage({
+                type: 'session',
+                session: JSON.parse(session)
+              }, '*');
+            }
+          };
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -280,29 +174,13 @@ export function Preview({ files, onConsoleMessage, onConsoleError, projectId }: 
 
   return (
     <Card className="h-full flex flex-col">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold">Preview</h2>
-        <div className="text-sm text-muted-foreground flex items-center gap-2">
-          {isAndroidProject && <Smartphone className="h-4 w-4" />}
-          {buildState === 'building' && (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Building preview...
-            </>
-          )}
-          {buildState === 'success' && (
-            isAndroidProject ? 'Android layout preview ready' : 'Preview ready'
-          )}
-          {buildState === 'error' && 'Build failed'}
-          {buildState === 'error' && lastSuccessfulState && ' (showing last working state)'}
-        </div>
-      </div>
+      <PreviewHeader 
+        buildState={buildState}
+        isAndroidProject={isAndroidProject}
+        lastSuccessfulState={lastSuccessfulState}
+      />
       <div className="flex-grow relative">
-        {errorMessage && (
-          <Alert variant="destructive" className="m-4">
-            <AlertDescription>{errorMessage}</AlertDescription>
-          </Alert>
-        )}
+        {errorMessage && <PreviewError message={errorMessage} />}
         <iframe
           ref={iframeRef}
           title="Live Preview"
