@@ -1,6 +1,8 @@
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Upload } from "lucide-react";
 
 interface PublishFormProps {
@@ -31,36 +33,50 @@ export function PublishForm({
   onPublish,
 }: PublishFormProps) {
   return (
-    <div className="space-y-3">
-      <Input
-        placeholder="Package name"
-        value={name}
-        onChange={(e) => onNameChange(e.target.value)}
-      />
-      
-      <Input
-        placeholder="Version (e.g. 1.0.0)"
-        value={version}
-        onChange={(e) => onVersionChange(e.target.value)}
-      />
-      
-      <Textarea
-        placeholder="Description"
-        value={description}
-        onChange={(e) => onDescriptionChange(e.target.value)}
-      />
-      
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="name">Package Name</Label>
+        <Input
+          id="name"
+          placeholder="e.g., my-awesome-package"
+          value={name}
+          onChange={(e) => onNameChange(e.target.value)}
+          className="w-full"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="version">Version</Label>
+        <Input
+          id="version"
+          placeholder="e.g., 1.0.0"
+          value={version}
+          onChange={(e) => onVersionChange(e.target.value)}
+          className="w-full"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          placeholder="Package description..."
+          value={description}
+          onChange={(e) => onDescriptionChange(e.target.value)}
+          className="w-full min-h-[100px]"
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
           id="private"
           checked={isPrivate}
-          onChange={(e) => onPrivateChange(e.target.checked)}
+          onCheckedChange={onPrivateChange}
         />
-        <label htmlFor="private">Private package</label>
+        <Label htmlFor="private">Private package</Label>
       </div>
-      
-      <Button 
+
+      <Button
         onClick={onPublish}
         disabled={!name || !version || isValidating || isPublishing}
         className="w-full"

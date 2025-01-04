@@ -19,6 +19,7 @@ export function PublishSteps({ steps, onComplete, onCancel }: PublishStepsProps)
         <Alert
           key={step.id}
           variant={step.status === 'error' ? 'destructive' : 'default'}
+          className="flex items-center"
         >
           <div className="flex items-center gap-2">
             {step.status === 'pending' && (
@@ -30,7 +31,9 @@ export function PublishSteps({ steps, onComplete, onCancel }: PublishStepsProps)
             {step.status === 'completed' && (
               <Check className="w-4 h-4 text-green-500" />
             )}
-            {step.status === 'error' && <X className="w-4 h-4 text-red-500" />}
+            {step.status === 'error' && (
+              <X className="w-4 h-4 text-red-500" />
+            )}
             <AlertTitle>{step.title}</AlertTitle>
           </div>
           <AlertDescription>
