@@ -1,17 +1,11 @@
 export interface Package {
+  id: string;
   name: string;
   version: string;
-  description?: string;
-}
-
-export type AccessLevel = "read" | "write" | "admin";
-
-export interface PackageVersion {
-  id: string;
-  version: string;
-  changes?: string;
+  description: string;
+  is_private: boolean;
+  author_id: string;
   package_data: any;
-  created_at: string;
 }
 
 export interface PackageValidation {
@@ -26,48 +20,20 @@ export interface DependencyCheck {
   version: string;
   isCompatible: boolean;
   conflicts: string[];
+  requiredBy: string[];
+  suggestedVersion?: string;
 }
 
-export interface PackageAccess {
+export interface PublishStep {
   id: string;
-  package_id: string;
-  user_id: string;
-  access_level: AccessLevel;
-}
-
-export interface TeamAccess {
-  id: string;
-  team_id: string;
-  package_id: string;
-  access_level: AccessLevel;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface AccessRequest {
-  id: string;
-  user_id: string;
-  package_id: string;
-  requested_level: AccessLevel;
-  status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
-}
-
-export interface ReleaseNote {
-  version: string;
   title: string;
   description: string;
-  changes: string[];
-  breaking_changes: string[];
-  created_at: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'error';
+  error?: string;
 }
 
-export interface SearchHistoryItem {
-  id: string;
-  query: string;
-  filters: {
-    category?: string;
-    tags?: string[];
-  };
-  created_at: string;
+export interface PublishValidation extends PackageValidation {
+  dependencyChecks: DependencyCheck[];
+  breakingChanges: string[];
+  publishSteps: PublishStep[];
 }

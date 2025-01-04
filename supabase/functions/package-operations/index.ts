@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import semver from 'https://esm.sh/semver@7.5.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,10 +25,13 @@ serve(async (req) => {
     let result;
     switch (operation) {
       case 'validate-package':
-        result = await validatePackage(data);
+        result = await validatePackage(data, supabase);
         break;
-      case 'rollback-version':
-        result = await rollbackVersion(data, supabase);
+      case 'resolve-dependencies':
+        result = await resolveDependencies(data, supabase);
+        break;
+      case 'check-conflicts':
+        result = await checkConflicts(data, supabase);
         break;
       default:
         throw new Error(`Unknown operation: ${operation}`);
@@ -45,12 +49,16 @@ serve(async (req) => {
   }
 });
 
-async function validatePackage(data: { name: string; version: string; description?: string }) {
+async function validatePackage(data: { name: string; version: string; description?: string }, supabase: any) {
+  console.log('Validating package:', data);
+  
   const validation = {
     isValid: true,
     errors: [] as string[],
     warnings: [] as string[],
     dependencies: [] as any[],
+    dependencyChecks: [] as any[],
+    breakingChanges: [] as string[],
   };
 
   // Validate package name
@@ -60,10 +68,28 @@ async function validatePackage(data: { name: string; version: string; descriptio
   }
 
   // Validate version format (semver)
-  if (!/^\d+\.\d+\.\d+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$/.test(data.version)) {
+  if (!semver.valid(data.version)) {
     validation.errors.push("Version must follow semantic versioning format (e.g., 1.0.0)");
     validation.isValid = false;
-  
+  }
+
+  // Check for existing package
+  const { data: existingPackage } = await supabase
+    .from('packages')
+    .select('version')
+    .eq('name', data.name)
+    .single();
+
+  if (existingPackage) {
+    if (semver.lte(data.version, existingPackage.version)) {
+      validation.errors.push(`Version must be greater than existing version ${existingPackage.version}`);
+      validation.isValid = false;
+    }
+    
+    // Check for breaking changes
+    if (semver.major(data.version) > semver.major(existingPackage.version)) {
+      validation.warnings.push("This is a major version bump. Please ensure all breaking changes are documented.");
+    }
   }
 
   // Add warnings for best practices
@@ -71,44 +97,55 @@ async function validatePackage(data: { name: string; version: string; descriptio
     validation.warnings.push("Adding a description is recommended for better discoverability");
   }
 
-  // Mock dependency check (replace with actual dependency resolution)
-  validation.dependencies = [
-    {
-      name: "example-dep",
-      version: "1.0.0",
-      isCompatible: true,
-      conflicts: [],
-    }
-  ];
-
   return validation;
 }
 
-async function rollbackVersion(data: { packageId: string; versionId: string }, supabase: any) {
-  const { packageId, versionId } = data;
+async function resolveDependencies(data: { name: string; version: string }, supabase: any) {
+  console.log('Resolving dependencies for:', data);
+  
+  const { data: packages } = await supabase
+    .from('packages')
+    .select('name, version, package_data')
+    .eq('name', data.name);
 
-  // Get the version to rollback to
-  const { data: versionData, error: versionError } = await supabase
-    .from('package_versions')
-    .select('*')
-    .eq('id', versionId)
-    .single();
+  const dependencies = new Map();
+  
+  // Mock dependency resolution for now
+  // In a real implementation, this would traverse the dependency tree
+  dependencies.set('example-dep', '^1.0.0');
 
-  if (versionError) throw versionError;
+  return {
+    dependencies: Object.fromEntries(dependencies),
+    resolved: true
+  };
+}
 
-  // Create a new version with the rolled back data
-  const { data: newVersion, error: createError } = await supabase
-    .from('package_versions')
-    .insert({
-      package_id: packageId,
-      version: `${versionData.version}-rollback`,
-      package_data: versionData.package_data,
-      changes: `Rollback to version ${versionData.version}`,
-    })
-    .select()
-    .single();
+async function checkConflicts(data: { name: string; version: string; dependencies: Record<string, string> }, supabase: any) {
+  console.log('Checking conflicts for:', data);
+  
+  const conflicts = [];
+  
+  // Check each dependency for version conflicts
+  for (const [name, version] of Object.entries(data.dependencies)) {
+    const { data: existingVersions } = await supabase
+      .from('packages')
+      .select('version')
+      .eq('name', name);
 
-  if (createError) throw createError;
+    if (existingVersions?.length) {
+      const latestVersion = existingVersions[0].version;
+      if (!semver.satisfies(latestVersion, version)) {
+        conflicts.push({
+          package: name,
+          required: version,
+          available: latestVersion
+        });
+      }
+    }
+  }
 
-  return newVersion;
+  return {
+    conflicts,
+    hasConflicts: conflicts.length > 0
+  };
 }
