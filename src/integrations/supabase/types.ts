@@ -279,6 +279,44 @@ export type Database = {
           },
         ]
       }
+      code_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          pull_request_id: string
+          reviewer_id: string
+          status: Database["public"]["Enums"]["review_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          pull_request_id: string
+          reviewer_id: string
+          status?: Database["public"]["Enums"]["review_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          pull_request_id?: string
+          reviewer_id?: string
+          status?: Database["public"]["Enums"]["review_status"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_reviews_pull_request_id_fkey"
+            columns: ["pull_request_id"]
+            isOneToOne: false
+            referencedRelation: "pull_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commit_changes: {
         Row: {
           change_type: string
@@ -512,6 +550,70 @@ export type Database = {
           },
         ]
       }
+      pull_requests: {
+        Row: {
+          author_id: string
+          created_at: string | null
+          description: string | null
+          has_conflicts: boolean | null
+          id: string
+          repository_id: string
+          source_branch_id: string
+          status: Database["public"]["Enums"]["pr_status"]
+          target_branch_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          author_id: string
+          created_at?: string | null
+          description?: string | null
+          has_conflicts?: boolean | null
+          id?: string
+          repository_id: string
+          source_branch_id: string
+          status?: Database["public"]["Enums"]["pr_status"]
+          target_branch_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string
+          created_at?: string | null
+          description?: string | null
+          has_conflicts?: boolean | null
+          id?: string
+          repository_id?: string
+          source_branch_id?: string
+          status?: Database["public"]["Enums"]["pr_status"]
+          target_branch_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pull_requests_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pull_requests_source_branch_id_fkey"
+            columns: ["source_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pull_requests_target_branch_id_fkey"
+            columns: ["target_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       repositories: {
         Row: {
           created_at: string | null
@@ -546,6 +648,44 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          file_path: string
+          id: string
+          line_number: number
+          review_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          file_path: string
+          id?: string
+          line_number: number
+          review_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          file_path?: string
+          id?: string
+          line_number?: number
+          review_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_comments_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "code_reviews"
             referencedColumns: ["id"]
           },
         ]
@@ -878,7 +1018,8 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      pr_status: "open" | "closed" | "merged" | "draft"
+      review_status: "pending" | "approved" | "changes_requested" | "commented"
     }
     CompositeTypes: {
       [_ in never]: never
