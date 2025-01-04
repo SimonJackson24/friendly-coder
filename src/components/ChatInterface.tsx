@@ -6,6 +6,8 @@ import Logger from "@/utils/logger";
 import { ChatMessage } from "@/components/assistant/ChatMessage";
 import { ChatInput } from "@/components/assistant/ChatInput";
 import { ContextAlerts } from "@/components/assistant/ContextAlerts";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   role: "user" | "assistant";
@@ -24,18 +26,59 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const { data: project } = useQuery({
+    queryKey: ["project", projectId],
+    queryFn: async () => {
+      if (!projectId) return null;
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("id", projectId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!projectId
+  });
+
   useEffect(() => {
     const logs = Logger.getLogs();
     if (logs.length > 0) {
       Logger.log('info', 'Loaded previous logs into AI context', { count: logs.length });
     }
-  }, []);
+
+    // Add initial message based on project type
+    if (project?.project_type && messages.length === 0) {
+      const initialMessage = getInitialMessage(project.project_type);
+      if (initialMessage) {
+        setMessages([{
+          role: "assistant",
+          content: initialMessage,
+          timestamp: new Date().toISOString()
+        }]);
+      }
+    }
+  }, [project]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  const getInitialMessage = (projectType: string) => {
+    switch (projectType) {
+      case 'android':
+        return "I'll help you create your Android app! Let's start by defining the basic structure. What kind of Android app would you like to build?";
+      case 'web-to-android':
+        return "I'll help you convert your web app to an Android app. First, let's review your web app's structure and plan the Android conversion. What are the main features of your web app?";
+      case 'fullstack':
+        return "Let's build your full-stack application! We'll set up both the frontend and backend. What kind of application would you like to create?";
+      default:
+        return "How can I help you with your project today?";
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,8 +99,12 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
 
     try {
       const context = Logger.getContextSummary();
+      const projectTypeContext = project?.project_type ? 
+        `Project Type: ${project.project_type}\n` : '';
+      
       const contextEnhancedPrompt = `
 [System Context:
+${projectTypeContext}
 Build Status: ${context.buildErrorCount} recent errors
 Schema Changes: ${context.schemaChangeCount} recent changes
 Package Operations: ${context.packageOperationCount} recent operations
