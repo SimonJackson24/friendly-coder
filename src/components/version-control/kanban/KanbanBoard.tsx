@@ -6,29 +6,18 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { CreateColumnDialog } from "./CreateColumnDialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { BoardColumn, ProjectBoard } from "@/types/kanban";
+import { useToast } from "@/components/ui/use-toast";
 
 interface KanbanBoardProps {
   repositoryId: string;
 }
 
-interface BoardColumn {
-  id: string;
-  name: string;
-  position: number;
-  cards: BoardCard[];
-}
-
-interface BoardCard {
-  id: string;
-  content: string;
-  position: number;
-  issue_id?: string;
-}
-
 export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
   const [isCreateColumnOpen, setIsCreateColumnOpen] = useState(false);
+  const { toast } = useToast();
 
-  const { data: board } = useQuery({
+  const { data: board } = useQuery<ProjectBoard>({
     queryKey: ["project-board", repositoryId],
     queryFn: async () => {
       console.log("Fetching project board for repository:", repositoryId);
@@ -37,9 +26,9 @@ export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
         .from("project_boards")
         .select("*")
         .eq("repository_id", repositoryId)
-        .single();
+        .maybeSingle();
 
-      if (boardError && boardError.code !== "PGRST116") {
+      if (boardError) {
         console.error("Error fetching board:", boardError);
         throw boardError;
       }
@@ -51,7 +40,8 @@ export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
           .insert({
             repository_id: repositoryId,
             name: "Default Board",
-            description: "Default project board"
+            description: "Default project board",
+            created_by: (await supabase.auth.getUser()).data.user?.id
           })
           .select()
           .single();
@@ -65,7 +55,7 @@ export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
     enabled: !!repositoryId
   });
 
-  const { data: columns = [] } = useQuery({
+  const { data: columns = [] } = useQuery<BoardColumn[]>({
     queryKey: ["board-columns", board?.id],
     queryFn: async () => {
       console.log("Fetching columns for board:", board?.id);
@@ -80,7 +70,10 @@ export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
             id,
             content,
             position,
-            issue_id
+            issue_id,
+            created_by,
+            created_at,
+            updated_at
           )
         `)
         .eq("board_id", board?.id)
@@ -91,6 +84,30 @@ export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
     },
     enabled: !!board?.id
   });
+
+  const handleCardMove = async (cardId: string, newPosition: number, newColumnId: string) => {
+    try {
+      const { error } = await supabase
+        .from("board_cards")
+        .update({ 
+          position: newPosition,
+          column_id: newColumnId 
+        })
+        .eq("id", cardId);
+
+      if (error) throw error;
+
+      // Invalidate the columns query to refresh the cards
+      queryClient.invalidateQueries({ queryKey: ["board-columns", board?.id] });
+    } catch (error) {
+      console.error("Error moving card:", error);
+      toast({
+        title: "Error",
+        description: "Failed to move card. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   if (!board) {
     return (
@@ -116,10 +133,7 @@ export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
             <KanbanColumn
               key={column.id}
               column={column}
-              onCardMove={(cardId, newPosition) => {
-                console.log("Moving card", cardId, "to position", newPosition);
-                // TODO: Implement card reordering
-              }}
+              onCardMove={handleCardMove}
             />
           ))}
         </div>
