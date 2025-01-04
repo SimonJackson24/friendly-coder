@@ -36,7 +36,25 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setVersions(data || []);
+
+      // Parse JSON fields before setting state
+      const parsedVersions: PackageVersion[] = (data || []).map(version => ({
+        ...version,
+        dependency_tree: typeof version.dependency_tree === 'string' 
+          ? JSON.parse(version.dependency_tree) 
+          : version.dependency_tree || {},
+        resolved_dependencies: typeof version.resolved_dependencies === 'string'
+          ? JSON.parse(version.resolved_dependencies)
+          : version.resolved_dependencies || {},
+        conflict_status: typeof version.conflict_status === 'string'
+          ? JSON.parse(version.conflict_status)
+          : version.conflict_status || {},
+        package_data: typeof version.package_data === 'string'
+          ? JSON.parse(version.package_data)
+          : version.package_data || {}
+      }));
+
+      setVersions(parsedVersions);
     } catch (error) {
       console.error('Error fetching versions:', error);
       toast({
