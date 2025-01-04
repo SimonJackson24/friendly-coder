@@ -48,7 +48,10 @@ export function AdCreatorForm({ onSubmit, isLoading, onPlatformChange, initialPl
           .select('platform')
           .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching platforms:', error);
+          throw error;
+        }
 
         const platforms = connections?.map(c => c.platform) || [];
         setConnectedPlatforms(platforms);
@@ -60,9 +63,19 @@ export function AdCreatorForm({ onSubmit, isLoading, onPlatformChange, initialPl
         }
       } catch (error) {
         console.error('Error fetching connected platforms:', error);
+        let errorMessage = "Failed to load connected platforms.";
+        
+        if (error instanceof Error) {
+          if (error.message.includes("auth")) {
+            errorMessage = "Authentication error. Please sign in again.";
+          } else if (error.message.includes("network")) {
+            errorMessage = "Network error. Please check your connection.";
+          }
+        }
+        
         toast({
-          title: "Error",
-          description: "Failed to load connected platforms. Please try again.",
+          title: "Connection Error",
+          description: errorMessage,
           variant: "destructive",
         });
       } finally {
@@ -75,14 +88,25 @@ export function AdCreatorForm({ onSubmit, isLoading, onPlatformChange, initialPl
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.businessName || !formData.productDescription || !formData.targetAudience) {
+    
+    // Validate required fields with specific messages
+    const requiredFields: Array<{ field: keyof AdFormData, label: string }> = [
+      { field: 'businessName', label: 'Business Name' },
+      { field: 'productDescription', label: 'Product Description' },
+      { field: 'targetAudience', label: 'Target Audience' }
+    ];
+
+    const missingFields = requiredFields.filter(({ field }) => !formData[field]);
+    
+    if (missingFields.length > 0) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields",
+        description: `Please fill in the following required fields: ${missingFields.map(f => f.label).join(', ')}`,
         variant: "destructive",
       });
       return;
     }
+
     await onSubmit(formData);
   };
 

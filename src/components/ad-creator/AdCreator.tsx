@@ -7,7 +7,7 @@ import { generateAdContent } from "@/utils/ad-generator";
 import { ProjectSelector } from "@/components/projects/ProjectSelector";
 import { useProject } from "@/contexts/ProjectContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export function AdCreator() {
   const [generatedContent, setGeneratedContent] = useState("");
@@ -36,11 +36,29 @@ export function AdCreator() {
       setGeneratedContent(content);
       setSelectedPlatform(data.platform);
       setAdType(data.adType || "image");
+      
+      toast({
+        title: "Ad Generated Successfully",
+        description: "Your AI-optimized ad content has been created.",
+      });
     } catch (error) {
       console.error("Error generating ad content:", error);
+      
+      // More specific error messages based on error type
+      let errorMessage = "Failed to generate ad content. Please try again.";
+      if (error instanceof Error) {
+        if (error.message.includes("platform")) {
+          errorMessage = "Platform connection error. Please check your platform settings.";
+        } else if (error.message.includes("token") || error.message.includes("auth")) {
+          errorMessage = "Authentication error. Please reconnect your platform.";
+        } else if (error.message.includes("rate")) {
+          errorMessage = "Rate limit exceeded. Please try again in a few minutes.";
+        }
+      }
+      
       toast({
         title: "Generation Failed",
-        description: "Failed to generate ad content. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
