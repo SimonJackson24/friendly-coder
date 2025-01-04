@@ -4,6 +4,7 @@ export interface ConflictResolutionStrategy {
   description: string;
   risk: 'low' | 'medium' | 'high';
   action: 'upgrade' | 'downgrade' | 'remove' | 'keep';
+  suggestedVersion?: string;
 }
 
 export interface DependencyConflict {

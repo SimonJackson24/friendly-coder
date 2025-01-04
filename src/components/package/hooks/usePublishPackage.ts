@@ -35,7 +35,14 @@ export function usePublishPackage() {
     };
 
     try {
-      const validationResult = await validatePackage(pkg);
+      // Pass all required arguments to validatePackage
+      const validationResult = await validatePackage(
+        pkg,
+        version,
+        isPrivate,
+        description
+      );
+      
       setValidation({
         ...validationResult,
         dependencyChecks: [],
