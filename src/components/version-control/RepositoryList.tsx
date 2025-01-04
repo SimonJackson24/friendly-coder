@@ -6,14 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { CreateRepositoryDialog } from "./CreateRepositoryDialog";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-
-interface Repository {
-  id: string;
-  name: string;
-  description: string | null;
-  is_private: boolean;
-  created_at: string;
-}
+import { RepositoryStarButton } from "./features/RepositoryStarButton";
 
 interface RepositoryListProps {
   projectId: string;
@@ -38,7 +31,7 @@ export function RepositoryList({ projectId, onSelectRepository }: RepositoryList
         throw error;
       }
 
-      return data as Repository[];
+      return data;
     },
   });
 
@@ -64,16 +57,21 @@ export function RepositoryList({ projectId, onSelectRepository }: RepositoryList
               className="p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
               onClick={() => onSelectRepository(repo.id)}
             >
-              <h3 className="font-semibold">{repo.name}</h3>
-              {repo.description && (
-                <p className="text-sm text-muted-foreground">{repo.description}</p>
-              )}
-              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                <span>{repo.is_private ? "Private" : "Public"}</span>
-                <span>•</span>
-                <span>
-                  Created {new Date(repo.created_at).toLocaleDateString()}
-                </span>
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-semibold">{repo.name}</h3>
+                  {repo.description && (
+                    <p className="text-sm text-muted-foreground">{repo.description}</p>
+                  )}
+                  <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                    <span>{repo.is_private ? "Private" : "Public"}</span>
+                    <span>•</span>
+                    <span>
+                      Created {new Date(repo.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                <RepositoryStarButton repositoryId={repo.id} />
               </div>
             </div>
           ))}
