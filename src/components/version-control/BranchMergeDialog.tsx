@@ -6,7 +6,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { mergeFiles } from "@/utils/mergeUtils";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, AlertTriangle, ArrowRight } from "lucide-react";
+import { Check, AlertTriangle, ArrowRight, GitMerge } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CodeReviewPanel } from "../code-review/CodeReviewPanel";
 
 interface BranchMergeDialogProps {
   isOpen: boolean;
@@ -34,6 +36,7 @@ export function BranchMergeDialog({
   const [conflicts, setConflicts] = useState<Conflict[]>([]);
   const [currentConflictIndex, setCurrentConflictIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("changes");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -45,6 +48,8 @@ export function BranchMergeDialog({
   const fetchConflicts = async () => {
     setIsLoading(true);
     try {
+      console.log("Fetching conflicts for merge:", { sourceBranchId, targetBranchId });
+      
       // Fetch the files from both branches
       const { data: sourceFiles, error: sourceError } = await supabase
         .from('files')
@@ -73,54 +78,44 @@ export function BranchMergeDialog({
     }
   };
 
-  const detectConflicts = (sourceFiles: any[], targetFiles: any[]) => {
-    // Simple conflict detection - can be enhanced
-    return sourceFiles
-      .filter(sourceFile => {
-        const targetFile = targetFiles.find(t => t.path === sourceFile.path);
-        return targetFile && targetFile.content !== sourceFile.content;
-      })
-      .map(sourceFile => ({
-        fileId: sourceFile.id,
-        fileName: sourceFile.name,
-        baseContent: sourceFile.content,
-        sourceContent: sourceFile.content,
-        targetContent: targetFiles.find(t => t.path === sourceFile.path)?.content || "",
-      }));
-  };
-
-  const handleResolveConflict = async (resolvedContent: string) => {
+  const handleMerge = async () => {
     try {
-      const currentConflict = conflicts[currentConflictIndex];
+      console.log("Initiating merge process");
       
-      // Update the file content in the database
-      const { error } = await supabase
-        .from('files')
-        .update({ content: resolvedContent })
-        .eq('id', currentConflict.fileId);
+      // Create a new merge commit
+      const { data: mergeCommit, error: commitError } = await supabase
+        .from('commits')
+        .insert({
+          branch_id: targetBranchId,
+          message: `Merge branch ${sourceBranchId} into ${targetBranchId}`,
+          parent_commit_id: null // You might want to set this to the latest commit of the target branch
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (commitError) throw commitError;
 
-      // Move to next conflict or complete merge
-      if (currentConflictIndex < conflicts.length - 1) {
-        setCurrentConflictIndex(currentConflictIndex + 1);
-        toast({
-          title: "Conflict Resolved",
-          description: `Resolved conflict in ${currentConflict.fileName}`,
-        });
-      } else {
-        toast({
-          title: "Merge Completed",
-          description: "All conflicts have been resolved",
-        });
-        onMergeComplete();
-        onOpenChange(false);
-      }
+      // Update the pull request status
+      const { error: prError } = await supabase
+        .from('pull_requests')
+        .update({ status: 'merged' })
+        .eq('source_branch_id', sourceBranchId)
+        .eq('target_branch_id', targetBranchId);
+
+      if (prError) throw prError;
+
+      toast({
+        title: "Success",
+        description: "Branches merged successfully",
+      });
+      
+      onMergeComplete();
+      onOpenChange(false);
     } catch (error) {
-      console.error("Error resolving conflict:", error);
+      console.error("Error during merge:", error);
       toast({
         title: "Error",
-        description: "Failed to resolve conflict",
+        description: "Failed to complete merge",
         variant: "destructive",
       });
     }
@@ -131,55 +126,80 @@ export function BranchMergeDialog({
       <DialogContent className="max-w-4xl h-[80vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {conflicts.length > 0 ? (
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
-            ) : (
-              <Check className="h-5 w-5 text-green-500" />
-            )}
-            Merge Conflicts
+            <GitMerge className="h-5 w-5" />
+            Merge Changes
           </DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="flex-grow">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : conflicts.length > 0 ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  Resolving conflict {currentConflictIndex + 1} of {conflicts.length}
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="font-medium">{conflicts[currentConflictIndex].fileName}</span>
-                  <ArrowRight className="h-4 w-4" />
-                </div>
-              </div>
-              
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow">
+          <TabsList>
+            <TabsTrigger value="changes">Changes</TabsTrigger>
+            <TabsTrigger value="conflicts">
+              Conflicts
+              {conflicts.length > 0 && (
+                <span className="ml-2 bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded-full text-xs">
+                  {conflicts.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="review">Review</TabsTrigger>
+          </TabsList>
+
+          <ScrollArea className="flex-grow mt-4">
+            <TabsContent value="changes" className="m-0">
               <FileDiffViewer
-                oldContent={conflicts[currentConflictIndex].baseContent}
-                newContent={conflicts[currentConflictIndex].sourceContent}
-                hasConflicts={true}
-                onResolveConflict={handleResolveConflict}
+                oldContent=""
+                newContent=""
+                className="h-[500px]"
               />
-            </div>
-          ) : (
-            <div className="text-center py-4 space-y-2">
-              <Check className="h-8 w-8 text-green-500 mx-auto" />
-              <div className="text-lg font-medium">No conflicts found</div>
-              <div className="text-sm text-muted-foreground">
-                The branches can be merged automatically
-              </div>
-              <Button onClick={() => {
-                onMergeComplete();
-                onOpenChange(false);
-              }}>
-                Complete Merge
-              </Button>
-            </div>
-          )}
-        </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="conflicts" className="m-0">
+              {isLoading ? (
+                <div className="flex items-center justify-center h-[500px]">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : conflicts.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      Resolving conflict {currentConflictIndex + 1} of {conflicts.length}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-medium">{conflicts[currentConflictIndex].fileName}</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
+                  </div>
+                  
+                  <FileDiffViewer
+                    oldContent={conflicts[currentConflictIndex].baseContent}
+                    newContent={conflicts[currentConflictIndex].sourceContent}
+                    hasConflicts={true}
+                    onResolveConflict={(resolvedContent) => {
+                      // Handle conflict resolution
+                      console.log("Resolved content:", resolvedContent);
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="text-center py-4 space-y-2">
+                  <Check className="h-8 w-8 text-green-500 mx-auto" />
+                  <div className="text-lg font-medium">No conflicts found</div>
+                  <div className="text-sm text-muted-foreground">
+                    The branches can be merged automatically
+                  </div>
+                  <Button onClick={handleMerge}>
+                    Complete Merge
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="review" className="m-0">
+              <CodeReviewPanel pullRequestId="placeholder-id" />
+            </TabsContent>
+          </ScrollArea>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
