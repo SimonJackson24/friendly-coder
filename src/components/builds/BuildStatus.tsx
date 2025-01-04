@@ -10,7 +10,7 @@ export function BuildStatus({ status }: BuildStatusProps) {
     switch (status) {
       case "completed":
         return {
-          variant: "success" as const,
+          variant: "default" as const,
           icon: Check,
           label: "Completed",
         };
@@ -46,7 +46,7 @@ export function BuildStatus({ status }: BuildStatusProps) {
 
   return (
     <Badge variant={config.variant} className="h-6">
-      <Icon className="h-4 w-4 mr-1 animate-spin" />
+      <Icon className={`h-4 w-4 mr-1 ${status === 'running' ? 'animate-spin' : ''}`} />
       {config.label}
     </Badge>
   );

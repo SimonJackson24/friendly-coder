@@ -35,7 +35,7 @@ export function BuildLogs({ buildId }: BuildLogsProps) {
   return (
     <ScrollArea className="h-[200px] mt-4 border rounded-md bg-black/10" ref={scrollRef}>
       <div className="p-4 font-mono text-sm">
-        {logs?.map((log: string, index: number) => (
+        {Array.isArray(logs) && logs.map((log: string, index: number) => (
           <div key={index} className="text-sm">
             {log}
           </div>
