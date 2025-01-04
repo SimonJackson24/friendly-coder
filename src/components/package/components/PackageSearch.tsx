@@ -21,13 +21,26 @@ export function PackageSearch({
 
   const handleSearch = async () => {
     try {
-      // Save search history
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        console.log('User not authenticated, skipping search history');
+        return;
+      }
+
+      // Save search history with user ID
       await supabase.from('search_history').insert({
         query: searchTerm,
-        filters: { type: 'package' }
+        filters: { type: 'package' },
+        user_id: user.id
       });
     } catch (error) {
       console.error('Error saving search history:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save search history",
+        variant: "destructive",
+      });
     }
   };
 
