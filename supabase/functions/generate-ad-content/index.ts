@@ -15,6 +15,14 @@ serve(async (req) => {
   try {
     const { businessName, productDescription, targetAudience, platform, goals, tone } = await req.json();
 
+    const platformGuidelines = {
+      facebook: "Create an engaging social media ad that's visually descriptive and includes a clear call-to-action.",
+      instagram: "Design a visually-focused ad that resonates with Instagram's aesthetic and includes relevant hashtags.",
+      twitter: "Write a concise, punchy ad that works well with Twitter's fast-paced environment.",
+      google: "Develop a keyword-rich ad that focuses on search intent and includes relevant call-to-actions.",
+      linkedin: "Create a professional, business-focused ad that emphasizes value proposition and industry expertise."
+    };
+
     const prompt = `Create a high-converting ${platform} ad for the following business:
     
 Business Name: ${businessName}
@@ -23,11 +31,14 @@ Target Audience: ${targetAudience}
 Campaign Goals: ${goals}
 Tone: ${tone}
 
-Please generate ad copy that follows ${platform}'s best practices and guidelines, including:
+Platform-Specific Guidelines: ${platformGuidelines[platform] || "Create a compelling ad that follows the platform's best practices."}
+
+Please generate ad copy that includes:
 1. Attention-grabbing headline
 2. Compelling main text
-3. Call-to-action
-4. Any platform-specific recommendations
+3. Clear call-to-action
+4. Relevant hashtags or keywords (if applicable)
+5. Platform-specific optimization recommendations
 
 Format the response in a clear, structured way.`;
 
