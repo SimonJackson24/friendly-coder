@@ -1,177 +1,171 @@
-import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { PublishValidation, PublishStep } from "../types";
-import { validatePackage } from "../validation/packageValidation";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Package, PublishValidation } from '../types';
+import { validatePackage } from '../validation/packageValidation';
+import { ConflictResolutionStrategy } from '../conflict-resolution/types';
+import { toast } from '@/components/ui/use-toast';
 
 export function usePublishPackage() {
-  const [name, setName] = useState("");
-  const [version, setVersion] = useState("");
-  const [description, setDescription] = useState("");
-  const [isPrivate, setIsPrivate] = useState(true);
-  const [validation, setValidation] = useState<PublishValidation | null>(null);
-  const [isValidating, setIsValidating] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [publishSteps, setPublishSteps] = useState<PublishStep[]>([]);
-  const { toast } = useToast();
+  const [validation, setValidation] = useState<PublishValidation | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
 
-  const updateStep = (id: string, status: PublishStep['status'], error?: string) => {
-    setPublishSteps(steps => 
-      steps.map(step => 
-        step.id === id 
-          ? { ...step, status, error }
-          : step
-      )
-    );
-  };
-
-  const validateForm = async () => {
-    setIsValidating(true);
+  const validateAndPublish = async (pkg: Package) => {
+    console.log('Starting package validation and publish process');
+    setIsPublishing(true);
+    
     try {
-      console.log('Validating package form...');
-      
-      const validationResult = await validatePackage(
-        name,
-        version,
-        description,
-        {} // Add dependencies when implementing dependency management
-      );
+      const validationResult = await validatePackage(pkg);
+      console.log('Validation result:', validationResult);
 
       setValidation({
         ...validationResult,
         publishSteps: [],
         breakingChanges: [],
-        dependencyChecks: [] // Add the missing property
+        dependencyChecks: []
       });
 
       if (!validationResult.isValid) {
+        console.log('Package validation failed');
         toast({
           title: "Validation Failed",
-          description: "Please fix the errors before publishing",
-          variant: "destructive",
+          description: "Please resolve all validation errors before publishing",
+          variant: "destructive"
         });
+        return;
       }
 
-      return validationResult.isValid;
-    } catch (error) {
-      console.error('Error validating package:', error);
-      toast({
-        title: "Error",
-        description: "Failed to validate package",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setIsValidating(false);
-    }
-  };
+      setCurrentStep(1);
+      const { data: existingPackage, error: fetchError } = await supabase
+        .from('packages')
+        .select('*')
+        .eq('name', pkg.name)
+        .single();
 
-  const handlePublish = async () => {
-    const isValid = await validateForm();
-    if (!isValid) return;
-
-    setIsPublishing(true);
-    try {
-      // Step 1: Dependency Resolution
-      updateStep('dependencies', 'in_progress');
-      const { data: depData, error: depError } = await supabase.functions.invoke('package-operations', {
-        body: { 
-          operation: 'resolve-dependencies',
-          data: { name, version }
-        }
-      });
-      
-      if (depError) throw { step: 'dependencies', error: depError };
-      updateStep('dependencies', 'completed');
-
-      // Step 2: Conflict Check
-      updateStep('conflicts', 'in_progress');
-      const { data: conflictData, error: conflictError } = await supabase.functions.invoke('package-operations', {
-        body: { 
-          operation: 'check-conflicts',
-          data: { name, version, dependencies: depData.dependencies }
-        }
-      });
-      
-      if (conflictError) throw { step: 'conflicts', error: conflictError };
-      updateStep('conflicts', 'completed');
-
-      // Step 3: Publish
-      updateStep('publish', 'in_progress');
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw { step: 'publish', error: "You must be logged in to publish packages" };
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
       }
 
-      const { error: publishError } = await supabase
-        .from("packages")
+      setCurrentStep(2);
+      if (existingPackage) {
+        const { error: updateError } = await supabase
+          .from('packages')
+          .update({
+            version: pkg.version,
+            description: pkg.description,
+            package_data: pkg.package_data,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingPackage.id);
+
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from('packages')
+          .insert({
+            ...pkg,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (insertError) throw insertError;
+      }
+
+      setCurrentStep(3);
+      const { error: versionError } = await supabase
+        .from('package_versions')
         .insert({
-          name,
-          version,
-          description,
-          is_private: isPrivate,
-          author_id: user.id,
-          package_data: {
-            dependencies: depData.dependencies,
-            conflicts: conflictData.conflicts
-          }
+          package_id: pkg.id,
+          version: pkg.version,
+          package_data: pkg.package_data,
+          published_by: pkg.author_id,
+          created_at: new Date().toISOString()
         });
 
-      if (publishError) throw { step: 'publish', error: publishError };
-      
-      updateStep('publish', 'completed');
+      if (versionError) throw versionError;
 
+      setCurrentStep(4);
       toast({
         title: "Success",
-        description: `Package ${name}@${version} published successfully`,
+        description: "Package published successfully",
       });
 
-      resetForm();
-
-    } catch (error: any) {
-      console.error('Error publishing package:', error);
-      if (error.step) {
-        updateStep(error.step, 'error', error.error.message || "An error occurred");
-      }
+    } catch (error) {
+      console.error('Error during publish:', error);
       toast({
         title: "Error",
-        description: "Failed to publish package",
-        variant: "destructive",
+        description: "An error occurred during the publish process",
+        variant: "destructive"
       });
     } finally {
       setIsPublishing(false);
     }
   };
 
-  const resetForm = () => {
-    setName("");
-    setVersion("");
-    setDescription("");
-    setIsPrivate(true);
-    setValidation(null);
-    setPublishSteps([]);
+  const handleConflictResolutions = async (
+    resolutions: Record<string, ConflictResolutionStrategy>
+  ) => {
+    console.log('Applying conflict resolutions:', resolutions);
+    
+    try {
+      setCurrentStep(currentStep + 1);
+      
+      for (const [packageName, strategy] of Object.entries(resolutions)) {
+        const { error } = await supabase
+          .from('dependency_resolutions')
+          .insert({
+            package_name: packageName,
+            resolution_strategy: strategy.action,
+            resolved_version: strategy.action === 'upgrade' ? strategy.id.split('-')[1] : null,
+            resolution_date: new Date().toISOString(),
+            risk_level: strategy.risk
+          });
+
+        if (error) throw error;
+      }
+
+      // Refresh validation after applying resolutions
+      if (validation?.package_id) {
+        const updatedValidation = await validatePackage({
+          id: validation.package_id,
+          name: '',
+          version: '',
+          description: '',
+          is_private: false,
+          author_id: '',
+          package_data: {}
+        });
+        setValidation(updatedValidation);
+      }
+
+      toast({
+        title: "Conflicts Resolved",
+        description: "All dependency conflicts have been resolved",
+      });
+
+    } catch (error) {
+      console.error('Error applying resolutions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to apply conflict resolutions",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCancel = () => {
-    setPublishSteps([]);
+    console.log('Cancelling publish process');
     setIsPublishing(false);
+    setValidation(null);
+    setCurrentStep(0);
   };
 
   return {
-    name,
-    version,
-    description,
-    isPrivate,
-    validation,
-    isValidating,
     isPublishing,
-    publishSteps,
-    setName,
-    setVersion,
-    setDescription,
-    setIsPrivate,
-    handlePublish,
+    validation,
+    currentStep,
+    validateAndPublish,
+    handleConflictResolutions,
     handleCancel,
   };
 }
