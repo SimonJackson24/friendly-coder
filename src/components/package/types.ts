@@ -117,7 +117,7 @@ export interface PermissionTemplate {
   id: string;
   name: string;
   description: string;
-  permissions: Record<string, AccessLevel>;
+  permissions: Record<string, any>;
   created_by: string;
   created_at: string;
   updated_at: string;
