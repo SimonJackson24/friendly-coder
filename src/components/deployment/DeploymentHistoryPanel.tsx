@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { History, RotateCcw, CheckCircle, XCircle, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { DeploymentHistoryRecord } from "@/types/deployment";
 
 interface DeploymentHistoryPanelProps {
   projectId: string;
@@ -21,7 +22,7 @@ export function DeploymentHistoryPanel({ projectId }: DeploymentHistoryPanelProp
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as DeploymentHistoryRecord[];
     },
   });
 
