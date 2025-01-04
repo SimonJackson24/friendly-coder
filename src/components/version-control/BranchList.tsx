@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, GitMerge } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CreateBranchDialog } from "./CreateBranchDialog";
+import { BranchMergeDialog } from "./BranchMergeDialog";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,8 @@ interface BranchListProps {
 
 export function BranchList({ repositoryId, onSelectBranch, activeBranchId }: BranchListProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isMergeDialogOpen, setIsMergeDialogOpen] = useState(false);
+  const [targetBranchId, setTargetBranchId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const { data: branches, isLoading } = useQuery({
@@ -45,6 +48,26 @@ export function BranchList({ repositoryId, onSelectBranch, activeBranchId }: Bra
     enabled: !!repositoryId,
   });
 
+  const handleMergeClick = (targetId: string) => {
+    if (!activeBranchId) {
+      toast({
+        title: "Error",
+        description: "Please select a source branch first",
+        variant: "destructive",
+      });
+      return;
+    }
+    setTargetBranchId(targetId);
+    setIsMergeDialogOpen(true);
+  };
+
+  const handleMergeComplete = () => {
+    toast({
+      title: "Success",
+      description: "Branches merged successfully",
+    });
+  };
+
   if (isLoading) {
     return <div>Loading branches...</div>;
   }
@@ -65,24 +88,38 @@ export function BranchList({ repositoryId, onSelectBranch, activeBranchId }: Bra
             <div
               key={branch.id}
               className={cn(
-                "p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer",
+                "p-4 border rounded-lg hover:bg-accent transition-colors",
                 activeBranchId === branch.id && "bg-accent"
               )}
-              onClick={() => onSelectBranch(branch.id)}
             >
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold">{branch.name}</h3>
-                  {branch.is_default && (
-                    <span className="text-sm text-muted-foreground">Default branch</span>
-                  )}
-                  {activeBranchId === branch.id && (
-                    <span className="text-sm text-green-500 ml-2">Current</span>
+                <div className="flex items-center gap-2">
+                  <div>
+                    <h3 className="font-semibold">{branch.name}</h3>
+                    {branch.is_default && (
+                      <span className="text-sm text-muted-foreground">Default branch</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSelectBranch(branch.id)}
+                  >
+                    Switch
+                  </Button>
+                  {activeBranchId && activeBranchId !== branch.id && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleMergeClick(branch.id)}
+                    >
+                      <GitMerge className="w-4 h-4 mr-2" />
+                      Merge into this
+                    </Button>
                   )}
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  Created {new Date(branch.created_at).toLocaleDateString()}
-                </span>
               </div>
             </div>
           ))}
@@ -94,6 +131,16 @@ export function BranchList({ repositoryId, onSelectBranch, activeBranchId }: Bra
         isOpen={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
       />
+
+      {targetBranchId && (
+        <BranchMergeDialog
+          isOpen={isMergeDialogOpen}
+          onOpenChange={setIsMergeDialogOpen}
+          sourceBranchId={activeBranchId!}
+          targetBranchId={targetBranchId}
+          onMergeComplete={handleMergeComplete}
+        />
+      )}
     </div>
   );
 }

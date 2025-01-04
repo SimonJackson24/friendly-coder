@@ -6,6 +6,7 @@ import { useToast } from "./ui/use-toast";
 import { FileNode } from "@/hooks/useFileSystem";
 import { FileTreeNode } from "./file-explorer/FileTreeNode";
 import { CreateFileDialog } from "./file-explorer/CreateFileDialog";
+import { buildFileTree, sortFileTree, validateFileName } from "@/utils/fileTreeUtils";
 
 interface FileExplorerProps {
   files: FileNode[];
@@ -24,6 +25,20 @@ export function FileExplorer({
 }: FileExplorerProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  const fileTree = sortFileTree(buildFileTree(files));
+
+  const handleCreateFile = (name: string, type: "file" | "folder") => {
+    if (!validateFileName(name)) {
+      toast({
+        title: "Invalid file name",
+        description: "File name contains invalid characters",
+        variant: "destructive",
+      });
+      return;
+    }
+    onCreateFile?.(name, type);
+  };
 
   const handleDrop = (draggedId: string, targetId: string) => {
     console.log("Moving file", draggedId, "to", targetId);
@@ -49,7 +64,7 @@ export function FileExplorer({
       </div>
       <ScrollArea className="flex-grow">
         <div className="p-2">
-          {files.map((file, index) => (
+          {fileTree.map((file, index) => (
             <FileTreeNode
               key={`${file.id}-${index}`}
               node={file}
@@ -64,7 +79,7 @@ export function FileExplorer({
         <CreateFileDialog
           isOpen={isDialogOpen}
           onOpenChange={setIsDialogOpen}
-          onCreateFile={onCreateFile}
+          onCreateFile={handleCreateFile}
         />
       )}
     </div>
