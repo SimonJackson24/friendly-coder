@@ -46,6 +46,11 @@ export function RebaseOperations({ sourceBranchId, targetBranchId }: RebaseOpera
   const startRebase = useMutation({
     mutationFn: async () => {
       console.log("Starting rebase operation");
+      
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const { data, error } = await supabase
         .from("rebase_operations")
         .insert([
@@ -53,6 +58,7 @@ export function RebaseOperations({ sourceBranchId, targetBranchId }: RebaseOpera
             source_branch_id: sourceBranchId,
             target_branch_id: targetBranchId,
             status: "in_progress",
+            created_by: user.id, // Add the created_by field
           },
         ])
         .select()

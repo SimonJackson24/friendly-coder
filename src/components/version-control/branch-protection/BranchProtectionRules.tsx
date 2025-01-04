@@ -45,12 +45,18 @@ export function BranchProtectionRules({ branchId, repositoryId }: BranchProtecti
   const createRule = useMutation({
     mutationFn: async (rule: Partial<BranchProtectionRule>) => {
       console.log("Creating branch protection rule:", rule);
+      
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const { data, error } = await supabase
         .from("branch_protection_rules")
         .insert([
           {
             branch_id: branchId,
             repository_id: repositoryId,
+            created_by: user.id, // Add the created_by field
             ...rule,
           },
         ])
