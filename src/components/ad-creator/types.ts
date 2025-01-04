@@ -3,4 +3,5 @@ export interface PlatformConnection {
   platform: string;
   access_token: string | null;
   expires_at: string | null;
+  created_at: string;
 }
