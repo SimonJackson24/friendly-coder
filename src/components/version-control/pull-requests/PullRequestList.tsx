@@ -2,16 +2,31 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GitPullRequest, GitMerge, XCircle } from "lucide-react";
+import { GitPullRequest, GitMerge, XCircle, MessageSquare } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+
+interface PullRequest {
+  id: string;
+  title: string;
+  description: string | null;
+  status: 'open' | 'closed' | 'merged' | 'draft';
+  created_at: string;
+  author: { email: string };
+  source_branch: { name: string };
+  target_branch: { name: string };
+}
 
 interface PullRequestListProps {
   repositoryId: string;
+  onSelectPullRequest?: (pr: PullRequest) => void;
 }
 
-export function PullRequestList({ repositoryId }: PullRequestListProps) {
+export function PullRequestList({ repositoryId, onSelectPullRequest }: PullRequestListProps) {
   const { data: pullRequests, isLoading } = useQuery({
     queryKey: ["pullRequests", repositoryId],
     queryFn: async () => {
+      console.log("Fetching pull requests for repository:", repositoryId);
       const { data, error } = await supabase
         .from("pull_requests")
         .select(`
@@ -23,8 +38,12 @@ export function PullRequestList({ repositoryId }: PullRequestListProps) {
         .eq("repository_id", repositoryId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching pull requests:", error);
+        throw error;
+      }
+
+      return data as PullRequest[];
     },
     enabled: !!repositoryId,
   });
@@ -47,6 +66,8 @@ export function PullRequestList({ repositoryId }: PullRequestListProps) {
         return <GitMerge className="h-4 w-4 text-green-500" />;
       case "closed":
         return <XCircle className="h-4 w-4 text-red-500" />;
+      case "draft":
+        return <GitPullRequest className="h-4 w-4 text-gray-500" />;
       default:
         return <GitPullRequest className="h-4 w-4 text-blue-500" />;
     }
@@ -66,34 +87,46 @@ export function PullRequestList({ repositoryId }: PullRequestListProps) {
   };
 
   return (
-    <div className="space-y-4">
-      {pullRequests.map((pr: any) => (
-        <Card key={pr.id} className="p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                {getStatusIcon(pr.status)}
-                <h3 className="font-medium">{pr.title}</h3>
+    <ScrollArea className="h-[400px]">
+      <div className="space-y-4">
+        {pullRequests.map((pr) => (
+          <Card 
+            key={pr.id} 
+            className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => onSelectPullRequest?.(pr)}
+          >
+            <div className="flex items-start justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(pr.status)}
+                  <h3 className="font-medium">{pr.title}</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {pr.source_branch?.name} → {pr.target_branch?.name}
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                {pr.source_branch?.name} → {pr.target_branch?.name}
-              </p>
+              <Badge className={getStatusColor(pr.status)}>
+                {pr.status}
+              </Badge>
             </div>
-            <Badge className={getStatusColor(pr.status)}>
-              {pr.status}
-            </Badge>
-          </div>
-          {pr.description && (
-            <p className="mt-2 text-sm text-muted-foreground">
-              {pr.description}
-            </p>
-          )}
-          <div className="mt-4 text-xs text-muted-foreground">
-            Created by {pr.author?.email} on{" "}
-            {new Date(pr.created_at).toLocaleDateString()}
-          </div>
-        </Card>
-      ))}
-    </div>
+            {pr.description && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {pr.description}
+              </p>
+            )}
+            <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+              <span>
+                Created by {pr.author?.email} on{" "}
+                {new Date(pr.created_at).toLocaleDateString()}
+              </span>
+              <Button variant="ghost" size="sm" className="gap-1">
+                <MessageSquare className="h-4 w-4" />
+                Review
+              </Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </ScrollArea>
   );
 }

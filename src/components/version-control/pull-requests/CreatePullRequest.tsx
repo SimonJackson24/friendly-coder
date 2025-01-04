@@ -34,6 +34,15 @@ export function CreatePullRequest({
 
     setIsLoading(true);
     try {
+      console.log("Creating pull request:", {
+        repositoryId,
+        title,
+        description,
+        sourceBranchId,
+        targetBranchId,
+        authorId: session.user.id
+      });
+
       const { error } = await supabase
         .from("pull_requests")
         .insert({

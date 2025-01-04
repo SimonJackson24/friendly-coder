@@ -12,7 +12,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { FileNode } from "@/hooks/useFileSystem";
-import { Plus, GitPullRequest } from "lucide-react";
+import { Plus } from "lucide-react";
 
 export function VersionControl({ projectId }: { projectId: string | null }) {
   const [selectedRepositoryId, setSelectedRepositoryId] = useState<string | null>(null);
@@ -43,6 +43,20 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
       
       setActiveBranchId(branchId);
       setSelectedBranchId(branchId);
+      
+      // If no target branch is set, set it to the default branch
+      if (!targetBranchId) {
+        const { data: defaultBranch } = await supabase
+          .from("branches")
+          .select("id")
+          .eq("repository_id", selectedRepositoryId)
+          .eq("is_default", true)
+          .single();
+
+        if (defaultBranch) {
+          setTargetBranchId(defaultBranch.id);
+        }
+      }
       
       toast({
         title: "Branch switched",
