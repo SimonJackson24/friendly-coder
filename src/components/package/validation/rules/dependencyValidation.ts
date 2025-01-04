@@ -47,9 +47,16 @@ export async function validateDependencies(
         check.isCompatible = false;
         check.conflicts.push(`Version ${version} not found`);
         check.suggestedVersion = versions[0].version;
-      } else if (matchingVersion.conflict_status?.conflicts?.length > 0) {
-        check.isCompatible = false;
-        check.conflicts.push(...matchingVersion.conflict_status.conflicts);
+      } else {
+        // Parse conflict_status as JSON if it's a string
+        const conflictStatus = typeof matchingVersion.conflict_status === 'string' 
+          ? JSON.parse(matchingVersion.conflict_status)
+          : matchingVersion.conflict_status;
+
+        if (conflictStatus?.conflicts?.length > 0) {
+          check.isCompatible = false;
+          check.conflicts.push(...conflictStatus.conflicts);
+        }
       }
 
       dependencyChecks.push(check);

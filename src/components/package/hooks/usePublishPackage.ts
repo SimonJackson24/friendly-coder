@@ -40,7 +40,8 @@ export function usePublishPackage() {
       setValidation({
         ...validationResult,
         publishSteps: [],
-        breakingChanges: []
+        breakingChanges: [],
+        dependencyChecks: [] // Add the missing property
       });
 
       if (!validationResult.isValid) {
