@@ -18,7 +18,7 @@ export function AndroidBuildSection({ projectId }: AndroidBuildSectionProps) {
   const { toast } = useToast();
 
   // Query to fetch latest build status
-  const { data: latestBuild, isLoading: isLoadingBuild } = useQuery({
+  const { data: buildData, isLoading: isLoadingBuild } = useQuery({
     queryKey: ['android-build', projectId],
     queryFn: async () => {
       console.log("Fetching latest Android build for project:", projectId);
@@ -110,22 +110,22 @@ export function AndroidBuildSection({ projectId }: AndroidBuildSectionProps) {
           />
         </div>
 
-        {latestBuild && (
-          <Alert className={latestBuild.status === 'completed' ? 'bg-green-50' : 'bg-blue-50'}>
+        {buildData && (
+          <Alert className={buildData.status === 'completed' ? 'bg-green-50' : 'bg-blue-50'}>
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Build Status: {latestBuild.status}</AlertTitle>
+            <AlertTitle>Build Status: {buildData.status}</AlertTitle>
             <AlertDescription className="space-y-2">
-              {latestBuild.status === 'completed' && latestBuild.apk_url && (
+              {buildData.status === 'completed' && buildData.apk_url && (
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => window.open(latestBuild.apk_url, '_blank')}
+                  onClick={() => window.open(buildData.apk_url, '_blank')}
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Download APK
                 </Button>
               )}
-              {latestBuild.status === 'failed' && (
+              {buildData.status === 'failed' && (
                 <p className="text-red-600">
                   Build failed. Please check the logs and try again.
                 </p>
