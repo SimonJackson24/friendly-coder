@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PackageVersion, ReleaseNote } from "../types";
 import { supabase } from "@/integrations/supabase/client";
-import { History, ArrowLeft, ArrowRight, RotateCcw, GitCompare } from "lucide-react";
+import { History } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { VersionDiffViewer } from "./version/VersionDiffViewer";
 import { ChangelogEditor } from "./changelog/ChangelogEditor";
+import { VersionList } from "./version/VersionList";
+import { CompareVersions } from "./version/CompareVersions";
 
 interface VersionHistoryProps {
   packageId: string;
@@ -37,7 +39,6 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
 
       if (error) throw error;
 
-      // Parse JSON fields before setting state
       const parsedVersions: PackageVersion[] = (data || []).map(version => ({
         ...version,
         dependency_tree: typeof version.dependency_tree === 'string' 
@@ -168,67 +169,24 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
       </div>
       
       <ScrollArea className="h-[200px]">
-        <div className="space-y-2">
-          {versions.map((version) => (
-            <div
-              key={version.id}
-              className={`p-2 rounded hover:bg-accent flex justify-between items-center ${
-                selectedVersions.includes(version.id) ? "bg-accent" : ""
-              }`}
-              onClick={() => handleVersionSelect(version.id)}
-            >
-              <div>
-                <div className="font-medium">v{version.version}</div>
-                <div className="text-sm text-muted-foreground">
-                  {new Date(version.created_at).toLocaleDateString()}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedVersions([version.id]);
-                    setShowReleaseNotes(true);
-                  }}
-                >
-                  Notes
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRollback(version.id);
-                  }}
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
+        <VersionList
+          versions={versions}
+          selectedVersions={selectedVersions}
+          onVersionSelect={handleVersionSelect}
+          onViewNotes={(version) => {
+            setSelectedVersions([version.id]);
+            setShowReleaseNotes(true);
+          }}
+          onRollback={handleRollback}
+        />
       </ScrollArea>
 
       {compareMode && selectedVersions.length === 2 && (
-        <div className="mt-4 p-4 border rounded">
-          <div className="flex justify-between items-center mb-2">
-            <div>
-              v{versions.find(v => v.id === selectedVersions[0])?.version}
-              <ArrowRight className="inline mx-2" />
-              v{versions.find(v => v.id === selectedVersions[1])?.version}
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowDiffViewer(true)}
-            >
-              <GitCompare className="w-4 h-4 mr-2" />
-              View Diff
-            </Button>
-          </div>
-        </div>
+        <CompareVersions
+          selectedVersions={selectedVersions}
+          versions={versions}
+          onShowDiff={() => setShowDiffViewer(true)}
+        />
       )}
 
       <Dialog open={showDiffViewer} onOpenChange={setShowDiffViewer}>
