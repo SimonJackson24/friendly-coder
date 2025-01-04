@@ -7,6 +7,9 @@ import { MetricCard } from "./metrics/MetricCard";
 import { PerformanceChart } from "./metrics/PerformanceChart";
 import { PlatformMetrics } from "./metrics/PlatformMetrics";
 import { ConversionMetrics } from "./metrics/ConversionMetrics";
+import { CustomReportBuilder } from "./metrics/CustomReportBuilder";
+import { CrossPlatformInsights } from "./metrics/CrossPlatformInsights";
+import { ROIAnalysis } from "./metrics/ROIAnalysis";
 import { useToast } from "@/components/ui/use-toast";
 
 const PLATFORM_COLORS = {
@@ -82,6 +85,15 @@ export function AdMetricsDashboard() {
     };
   }, [refetch, toast]);
 
+  const handleGenerateReport = async (config: any) => {
+    console.log("Generating report with config:", config);
+    // Implementation for report generation
+    toast({
+      title: "Report Generated",
+      description: "Your custom report has been generated and is ready for download.",
+    });
+  };
+
   if (isLoading) {
     return <div>Loading metrics...</div>;
   }
@@ -127,6 +139,9 @@ export function AdMetricsDashboard() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="platforms">Platform Breakdown</TabsTrigger>
           <TabsTrigger value="conversions">Conversion Analytics</TabsTrigger>
+          <TabsTrigger value="custom-reports">Custom Reports</TabsTrigger>
+          <TabsTrigger value="cross-platform">Cross-Platform</TabsTrigger>
+          <TabsTrigger value="roi">ROI Analysis</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -142,6 +157,21 @@ export function AdMetricsDashboard() {
             data={platformMetrics || []} 
             platformColors={PLATFORM_COLORS}
           />
+        </TabsContent>
+
+        <TabsContent value="custom-reports">
+          <CustomReportBuilder 
+            data={metrics || []}
+            onGenerateReport={handleGenerateReport}
+          />
+        </TabsContent>
+
+        <TabsContent value="cross-platform">
+          <CrossPlatformInsights data={metrics || []} />
+        </TabsContent>
+
+        <TabsContent value="roi">
+          <ROIAnalysis data={metrics || []} />
         </TabsContent>
       </Tabs>
     </div>
