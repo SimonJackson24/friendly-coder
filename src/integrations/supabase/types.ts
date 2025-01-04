@@ -244,6 +244,118 @@ export type Database = {
           },
         ]
       }
+      branches: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          repository_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          repository_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          repository_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branches_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commit_changes: {
+        Row: {
+          change_type: string
+          commit_id: string
+          content: string | null
+          created_at: string | null
+          file_path: string
+          id: string
+        }
+        Insert: {
+          change_type: string
+          commit_id: string
+          content?: string | null
+          created_at?: string | null
+          file_path: string
+          id?: string
+        }
+        Update: {
+          change_type?: string
+          commit_id?: string
+          content?: string | null
+          created_at?: string | null
+          file_path?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commit_changes_commit_id_fkey"
+            columns: ["commit_id"]
+            isOneToOne: false
+            referencedRelation: "commits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commits: {
+        Row: {
+          author_id: string
+          branch_id: string
+          created_at: string | null
+          id: string
+          message: string
+          parent_commit_id: string | null
+        }
+        Insert: {
+          author_id: string
+          branch_id: string
+          created_at?: string | null
+          id?: string
+          message: string
+          parent_commit_id?: string | null
+        }
+        Update: {
+          author_id?: string
+          branch_id?: string
+          created_at?: string | null
+          id?: string
+          message?: string
+          parent_commit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commits_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commits_parent_commit_id_fkey"
+            columns: ["parent_commit_id"]
+            isOneToOne: false
+            referencedRelation: "commits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       debug_logs: {
         Row: {
           context: Json | null
@@ -394,6 +506,44 @@ export type Database = {
           {
             foreignKeyName: "projects_forked_from_fkey"
             columns: ["forked_from"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repositories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_private: boolean | null
+          name: string
+          project_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_private?: boolean | null
+          name: string
+          project_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_private?: boolean | null
+          name?: string
+          project_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repositories_project_id_fkey"
+            columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
