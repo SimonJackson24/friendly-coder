@@ -22,6 +22,11 @@ export function PublishPackage() {
     handleCancel,
   } = usePublishPackage();
 
+  const steps = publishSteps.map(step => ({
+    ...step,
+    name: step.title.toLowerCase().replace(/\s+/g, '-')
+  }));
+
   return (
     <div className="space-y-4 p-4 border rounded-lg">
       <h3 className="font-semibold flex items-center gap-2">
@@ -29,7 +34,7 @@ export function PublishPackage() {
         Publish New Package
       </h3>
       
-      {!publishSteps.length ? (
+      {!steps.length ? (
         <>
           <PublishForm
             name={name}
@@ -49,7 +54,7 @@ export function PublishPackage() {
         </>
       ) : (
         <PublishSteps
-          steps={publishSteps}
+          steps={steps}
           onComplete={() => handleCancel()}
           onCancel={handleCancel}
         />
