@@ -8,6 +8,9 @@ import { PackageSearch } from "./components/PackageSearch";
 import { SecurityAlert } from "./components/SecurityAlert";
 import { AvailablePackages } from "./components/AvailablePackages";
 import { PackageList } from "./components/PackageList";
+import { PublishPackage } from "./components/PublishPackage";
+import { VersionHistory } from "./components/VersionHistory";
+import { AccessControl } from "./components/AccessControl";
 import { Package } from "./types";
 
 export function PackageManager() {
@@ -145,23 +148,37 @@ export function PackageManager() {
         issuesCount={analysisResults?.securityIssues?.length || 0} 
       />
       
-      <PackageSearch
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        selectedPackage={selectedPackage}
-        onInstall={handleInstall}
-      />
-
       <div className="grid grid-cols-2 gap-4">
-        <AvailablePackages
-          packages={availablePackages}
-          selectedPackage={selectedPackage}
-          onSelect={setSelectedPackage}
-        />
-        <PackageList
-          packages={installedPackages}
-          onUninstall={handleUninstall}
-        />
+        <div className="space-y-4">
+          <PackageSearch
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            selectedPackage={selectedPackage}
+            onInstall={handleInstall}
+          />
+
+          <AvailablePackages
+            packages={availablePackages}
+            selectedPackage={selectedPackage}
+            onSelect={setSelectedPackage}
+          />
+
+          <PublishPackage />
+        </div>
+
+        <div className="space-y-4">
+          <PackageList
+            packages={installedPackages}
+            onUninstall={handleUninstall}
+          />
+          
+          {selectedPackage && (
+            <>
+              <VersionHistory packageId={selectedPackage} />
+              <AccessControl packageId={selectedPackage} />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
