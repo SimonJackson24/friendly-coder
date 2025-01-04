@@ -1,4 +1,4 @@
-import { PackageVersion } from "../types";
+import { PackageVersion, RollbackAnalysis } from "../types";
 import { supabase } from "@/integrations/supabase/client";
 
 export const generateChangelog = async (
@@ -66,14 +66,12 @@ export const generateChangelog = async (
   ].filter(Boolean).join("\n");
 };
 
-export const generateAutomatedChangelog = generateChangelog;
-
 export const analyzeRollbackRisk = async (
   currentVersion: PackageVersion,
   previousVersion: PackageVersion
-): Promise<{ riskLevel: string; analysis: string[] }> => {
+): Promise<RollbackAnalysis> => {
   const analysis: string[] = [];
-  let riskLevel = "low";
+  let riskLevel: 'low' | 'medium' | 'high' = 'low';
 
   // Compare dependencies
   const oldDeps = previousVersion.package_data.dependencies || {};
@@ -84,20 +82,40 @@ export const analyzeRollbackRisk = async (
   const updatedDeps = Object.entries(newDeps)
     .filter(([dep, version]) => oldDeps[dep] && oldDeps[dep] !== version);
 
-  if (addedDeps.length) {
+  if (addedDeps.length > 5) {
+    riskLevel = 'high';
     analysis.push(`Rolling back will remove ${addedDeps.length} dependencies`);
-    riskLevel = addedDeps.length > 5 ? "high" : "medium";
+  } else if (addedDeps.length > 0) {
+    riskLevel = 'medium';
+    analysis.push(`Rolling back will remove ${addedDeps.length} dependencies`);
   }
 
-  if (removedDeps.length) {
+  if (removedDeps.length > 5) {
+    riskLevel = 'high';
     analysis.push(`Rolling back will reintroduce ${removedDeps.length} old dependencies`);
-    riskLevel = removedDeps.length > 5 ? "high" : "medium";
+  } else if (removedDeps.length > 0) {
+    riskLevel = Math.max(riskLevel === 'high' ? 2 : 1, 1) === 2 ? 'high' : 'medium';
+    analysis.push(`Rolling back will reintroduce ${removedDeps.length} old dependencies`);
   }
 
-  if (updatedDeps.length) {
-    analysis.push(`Rolling back will revert ${updatedDeps.length} dependency versions`);
-    riskLevel = updatedDeps.length > 5 ? "high" : "medium";
-  }
+  const rollbackAnalysis: RollbackAnalysis = {
+    id: crypto.randomUUID(),
+    package_id: currentVersion.package_id,
+    version_from: currentVersion.version,
+    version_to: previousVersion.version,
+    impact_analysis: {
+      breaking_changes: [],
+      affected_dependencies: [...addedDeps, ...removedDeps],
+      risk_level: riskLevel
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
 
-  return { riskLevel, analysis };
+  // Save analysis to database
+  await supabase
+    .from('rollback_analysis')
+    .insert(rollbackAnalysis);
+
+  return rollbackAnalysis;
 };

@@ -136,3 +136,35 @@ export interface RollbackAnalysis {
   created_at: string;
   updated_at: string;
 }
+
+export interface ChangeCategory {
+  id: string;
+  name: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+  requires_approval: boolean;
+}
+
+export interface PermissionHierarchy {
+  id: string;
+  name: string;
+  level: number;
+  parent_id?: string;
+  permissions: Record<string, AccessLevel>;
+  description: string;
+}
+
+export interface RollbackValidation {
+  valid: boolean;
+  breaking_changes: string[];
+  affected_services: string[];
+  required_actions: string[];
+  estimated_downtime: number;
+  risk_level: 'low' | 'medium' | 'high';
+  validation_steps: {
+    id: string;
+    name: string;
+    status: 'pending' | 'passed' | 'failed';
+    message?: string;
+  }[];
+}
