@@ -20,6 +20,17 @@ export function PublishPackage() {
   const [publishSteps, setPublishSteps] = useState<PublishStep[]>([]);
   const { toast } = useToast();
 
+  // Define updateStep function
+  const updateStep = (id: string, status: PublishStep['status'], error?: string) => {
+    setPublishSteps(steps => 
+      steps.map(step => 
+        step.id === id 
+          ? { ...step, status, error }
+          : step
+      )
+    );
+  };
+
   const validatePackage = async () => {
     setIsValidating(true);
     try {
@@ -87,17 +98,6 @@ export function PublishPackage() {
 
     setIsPublishing(true);
     try {
-      // Update steps as they progress
-      const updateStep = (id: string, status: PublishStep['status'], error?: string) => {
-        setPublishSteps(steps => 
-          steps.map(step => 
-            step.id === id 
-              ? { ...step, status, error }
-              : step
-          )
-        );
-      };
-
       // Step 1: Dependency Resolution
       updateStep('dependencies', 'in_progress');
       const { data: depData, error: depError } = await supabase.functions.invoke('package-operations', {
