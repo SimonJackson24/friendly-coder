@@ -12,6 +12,21 @@ const PLATFORM_COLORS = {
   google: "#DB4437"
 };
 
+// Custom formatter for cost per conversion
+const CostPerConversionTooltip = (props: any) => {
+  const { payload } = props;
+  if (!payload || !payload.length) return null;
+  
+  const data = payload[0].payload;
+  const costPerConversion = data.spend / data.conversions;
+  
+  return (
+    <div className="bg-white p-2 border rounded shadow">
+      <p className="text-sm">{`$${costPerConversion.toFixed(2)}`}</p>
+    </div>
+  );
+};
+
 export function AdMetricsDashboard() {
   const { data: metrics, isLoading } = useQuery({
     queryKey: ["ad-metrics"],
@@ -177,14 +192,11 @@ export function AdMetricsDashboard() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="platform" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip content={<CostPerConversionTooltip />} />
                     <Bar
                       dataKey="spend"
                       name="Cost per Conversion"
                       fill="#8884d8"
-                      formatter={(value, name, props) => 
-                        `$${(props.payload.spend / props.payload.conversions).toFixed(2)}`
-                      }
                     />
                   </BarChart>
                 </ResponsiveContainer>
