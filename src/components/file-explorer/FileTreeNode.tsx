@@ -3,21 +3,23 @@ import { ChevronRight, ChevronDown, File, Folder, FolderOpen, Trash2 } from "luc
 import { Button } from "@/components/ui/button";
 import { FileNode } from "@/hooks/useFileSystem";
 import { cn } from "@/lib/utils";
+import { Tooltip } from "@/components/ui/tooltip";
+import { TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface FileTreeNodeProps {
   node: FileNode;
   level?: number;
   onFileSelect: (file: FileNode) => void;
-  onDeleteFile?: (id: string) => void;
-  onDrop?: (draggedId: string, targetId: string) => void;
+  onDeleteFile: (id: string) => void;
+  onMoveFile?: (sourceId: string, targetId: string) => void;
 }
 
-export function FileTreeNode({ 
-  node, 
+export function FileTreeNode({
+  node,
   level = 0,
   onFileSelect,
   onDeleteFile,
-  onDrop,
+  onMoveFile,
 }: FileTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -32,8 +34,9 @@ export function FileTreeNode({
   };
 
   const handleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.setData("text/plain", node.id);
+    e.stopPropagation();
     setIsDragging(true);
+    e.dataTransfer.setData("text/plain", node.id);
   };
 
   const handleDragEnd = () => {
@@ -42,31 +45,39 @@ export function FileTreeNode({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (node.type === "folder") {
       setIsDragOver(true);
     }
   };
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsDragOver(false);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragOver(false);
-    const draggedId = e.dataTransfer.getData("text/plain");
-    if (draggedId !== node.id && onDrop) {
-      onDrop(draggedId, node.id);
+
+    if (node.type !== "folder") return;
+
+    const sourceId = e.dataTransfer.getData("text/plain");
+    if (sourceId !== node.id && onMoveFile) {
+      onMoveFile(sourceId, node.id);
     }
   };
 
   return (
-    <div className="select-none">
+    <div className="select-none" role="treeitem" aria-expanded={node.type === "folder" ? isExpanded : undefined}>
       <div 
         className={cn(
-          "flex items-center group rounded-md transition-colors",
-          isDragOver && "bg-accent/20",
-          isDragging && "opacity-50"
+          "flex items-center group rounded-md transition-all duration-200",
+          isDragOver && "bg-accent/20 scale-105",
+          isDragging && "opacity-50",
+          "hover:bg-accent/10"
         )}
         draggable
         onDragStart={handleDragStart}
@@ -79,7 +90,7 @@ export function FileTreeNode({
           variant="ghost"
           size="sm"
           className={cn(
-            "w-full justify-start gap-2 h-8 px-2 hover:bg-accent/20",
+            "w-full justify-start gap-2 h-8 px-2 hover:bg-accent/20 transition-colors",
             level > 0 && `ml-${level * 4}`
           )}
           onClick={handleClick}
@@ -87,11 +98,9 @@ export function FileTreeNode({
           <span className="flex items-center gap-2 text-sm">
             {node.type === "folder" ? (
               <>
-                {isExpanded ? (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                ) : (
+                <span className="transition-transform duration-200" style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>
                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                )}
+                </span>
                 {isExpanded ? (
                   <FolderOpen className="h-4 w-4 text-blue-400" />
                 ) : (
@@ -104,19 +113,35 @@ export function FileTreeNode({
             {node.name}
           </span>
         </Button>
+        
         {onDeleteFile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={() => onDeleteFile(node.id)}
-          >
-            <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteFile(node.id);
+                  }}
+                  aria-label={`Delete ${node.name}`}
+                >
+                  <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive transition-colors" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete {node.type}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
+      
       {node.type === "folder" && isExpanded && node.children && (
-        <div className="pl-4">
+        <div 
+          className="pl-4 overflow-hidden transition-all duration-200"
+          role="group"
+        >
           {node.children.map((child, index) => (
             <FileTreeNode
               key={`${child.id}-${index}`}
@@ -124,7 +149,7 @@ export function FileTreeNode({
               level={level + 1}
               onFileSelect={onFileSelect}
               onDeleteFile={onDeleteFile}
-              onDrop={onDrop}
+              onMoveFile={onMoveFile}
             />
           ))}
         </div>
