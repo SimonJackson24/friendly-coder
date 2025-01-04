@@ -6,15 +6,18 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { ProjectSelector } from "@/components/projects/ProjectSelector";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, Bug, Rocket, Database, LayoutDashboard } from "lucide-react";
+import { Package, Bug, Rocket, Database, LayoutDashboard, GitBranch } from "lucide-react";
 import { PackageManager } from "@/components/package/PackageManager";
 import { AIDebugger } from "@/components/ai/AIDebugger";
 import { DeploymentPanel } from "@/components/deployment/DeploymentPanel";
 import { DatabaseDownload } from "@/components/database/DatabaseDownload";
+import { WorkflowDashboard } from "@/components/workflow/WorkflowDashboard";
+import { useProject } from "@/contexts/ProjectContext";
 
 export function ProjectsLayout() {
   const session = useSession();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const { selectedProject } = useProject();
 
   if (!session?.user?.id) {
     return (
@@ -41,6 +44,10 @@ export function ProjectsLayout() {
             <LayoutDashboard className="w-4 h-4" />
             Projects
           </TabsTrigger>
+          <TabsTrigger value="workflow" className="gap-2">
+            <GitBranch className="w-4 h-4" />
+            Workflow
+          </TabsTrigger>
           <TabsTrigger value="packages" className="gap-2">
             <Package className="w-4 h-4" />
             Packages
@@ -62,6 +69,20 @@ export function ProjectsLayout() {
         <TabsContent value="projects">
           <Card className="p-6 bg-black/75 backdrop-blur-md border-white/10">
             <ProjectList userId={session.user.id} />
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="workflow">
+          <Card className="p-6 bg-black/75 backdrop-blur-md border-white/10">
+            {selectedProject ? (
+              <WorkflowDashboard projectId={selectedProject.id} />
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-lg text-gray-400">
+                  Please select a project to view workflow management
+                </p>
+              </div>
+            )}
           </Card>
         </TabsContent>
 

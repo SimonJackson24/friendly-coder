@@ -1,5 +1,4 @@
 import { useSession } from "@supabase/auth-helpers-react";
-import { WorkflowDashboard } from "@/components/workflow/WorkflowDashboard";
 import { useProject } from "@/contexts/ProjectContext";
 
 export default function Index() {
@@ -31,7 +30,6 @@ export default function Index() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Project Dashboard</h1>
-      <WorkflowDashboard projectId={selectedProject.id} />
     </div>
   );
 }
