@@ -86,8 +86,8 @@ export interface PackageVersion {
   package_data: any;
   published_by: string;
   created_at: string;
-  dependency_tree?: Record<string, string>;
-  resolved_dependencies?: Record<string, string>;
+  dependency_tree?: Record<string, any>;
+  resolved_dependencies?: Record<string, any>;
   conflict_status?: Record<string, any>;
 }
 
