@@ -69,12 +69,18 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
 
   const getInitialMessage = (projectType: string) => {
     switch (projectType) {
-      case 'android':
-        return "I'll help you create your Android app! Let's start by defining the basic structure. What kind of Android app would you like to build?";
-      case 'web-to-android':
-        return "I'll help you convert your web app to an Android app. First, let's review your web app's structure and plan the Android conversion. What are the main features of your web app?";
+      case 'responsive-pwa':
+        return "I'll help you create a responsive website with PWA capabilities! Let's start by defining the core features. What kind of website would you like to build? I'll help you set up the service worker, manifest, and ensure it works offline.";
+      
       case 'fullstack':
-        return "Let's build your full-stack application! We'll set up both the frontend and backend. What kind of application would you like to create?";
+        return "Let's build your full-stack web application! We'll set up both the frontend with React and Tailwind, and the backend using Supabase for authentication, database, and APIs. What features would you like to implement first?";
+      
+      case 'android':
+        return "I'll help you create your Android app from scratch! We'll use best practices for Android development. What kind of Android app would you like to build? Let's start by defining the main screens and functionality.";
+      
+      case 'web-to-android':
+        return "I'll help you convert your web app to a native Android app! First, let's analyze your web app's structure and plan the Android conversion. What are the main features we need to preserve in the Android version?";
+      
       default:
         return "How can I help you with your project today?";
     }
@@ -114,6 +120,9 @@ Recent Build Errors: ${JSON.stringify(context.recentBuildErrors)}
 Recent Schema Changes: ${JSON.stringify(context.recentSchemaChanges)}
 Recent Package Operations: ${JSON.stringify(context.recentPackageOperations)}
 Recent File Operations: ${JSON.stringify(context.recentFileOperations)}
+
+Project Type Instructions:
+${getProjectTypeInstructions(project?.project_type)}
 ]
 
 ${userMessage}`;
@@ -135,6 +144,50 @@ ${userMessage}`;
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const getProjectTypeInstructions = (projectType: string | undefined) => {
+    switch (projectType) {
+      case 'responsive-pwa':
+        return `
+- Use React with Vite for the frontend
+- Implement responsive design using Tailwind CSS
+- Set up PWA capabilities with service workers
+- Use shadcn/ui components for the UI
+- Ensure offline functionality
+- Implement proper meta tags and manifest`;
+      
+      case 'fullstack':
+        return `
+- Use React with Vite for the frontend
+- Implement Supabase for backend functionality
+- Set up authentication flows
+- Create necessary database tables
+- Implement proper data validation
+- Use React Query for data fetching
+- Use shadcn/ui components for the UI`;
+      
+      case 'android':
+        return `
+- Create native Android app structure
+- Set up proper Android build configuration
+- Implement Material Design components
+- Handle Android lifecycle methods
+- Set up proper navigation
+- Implement data persistence`;
+      
+      case 'web-to-android':
+        return `
+- Analyze web app structure
+- Convert web routes to Android activities/fragments
+- Implement proper state management
+- Handle Android-specific features
+- Ensure proper data persistence
+- Maintain UI consistency`;
+      
+      default:
+        return '';
     }
   };
 
