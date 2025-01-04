@@ -3,7 +3,7 @@ import { ChatInterface } from "@/components/ChatInterface";
 import { FileEditor } from "@/components/FileEditor";
 import { Console } from "@/components/Console";
 import { ProjectSettings } from "@/components/ProjectSettings";
-import { GitHubActions } from "@/components/github/GitHubActions";
+import { VersionControl } from "@/components/version-control/VersionControl";
 import { FileNode } from "@/hooks/useFileSystem";
 
 interface MainContentProps {
@@ -32,7 +32,7 @@ export function MainContent({
         <TabsTrigger value="editor">Editor</TabsTrigger>
         <TabsTrigger value="console">Console</TabsTrigger>
         <TabsTrigger value="settings">Settings</TabsTrigger>
-        <TabsTrigger value="github">GitHub</TabsTrigger>
+        <TabsTrigger value="version-control">Version Control</TabsTrigger>
       </TabsList>
       
       <div className="flex-grow overflow-hidden">
@@ -60,8 +60,8 @@ export function MainContent({
           <ProjectSettings project={project} />
         </TabsContent>
 
-        <TabsContent value="github" className="h-full m-0">
-          <GitHubActions />
+        <TabsContent value="version-control" className="h-full m-0">
+          <VersionControl projectId={projectId} />
         </TabsContent>
       </div>
     </Tabs>
