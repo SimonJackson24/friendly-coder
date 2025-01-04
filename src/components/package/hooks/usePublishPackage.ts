@@ -39,8 +39,8 @@ export function usePublishPackage() {
       const validationResult = await validatePackage(
         name,
         version,
-        isPrivate,
-        description
+        description,
+        {} // Empty dependencies object for now
       );
       
       setValidation({
