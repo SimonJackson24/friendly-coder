@@ -86,6 +86,9 @@ export interface PackageVersion {
   package_data: any;
   published_by: string;
   created_at: string;
+  dependency_tree?: Record<string, string>;
+  resolved_dependencies?: Record<string, string>;
+  conflict_status?: Record<string, any>;
 }
 
 export interface ReleaseNote {
@@ -97,4 +100,12 @@ export interface ReleaseNote {
   changes: string[];
   breaking_changes: string[];
   created_at: string;
+  changelog_type?: 'feature' | 'bugfix' | 'maintenance';
+  impact_level?: 'minor' | 'major' | 'patch';
+  affected_components?: string[];
+  migration_steps?: Array<{
+    step: string;
+    description: string;
+    required: boolean;
+  }>;
 }
