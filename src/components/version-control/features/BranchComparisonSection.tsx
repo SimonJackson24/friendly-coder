@@ -11,6 +11,22 @@ interface BranchComparisonSectionProps {
   activeBranchId: string | null;
 }
 
+interface ComparisonData {
+  source_content: string;
+  target_content: string;
+}
+
+interface BranchComparison {
+  id: string;
+  repository_id: string;
+  source_branch_id: string;
+  target_branch_id: string;
+  comparison_data: ComparisonData;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+}
+
 export function BranchComparisonSection({ 
   repositoryId,
   activeBranchId 
@@ -32,7 +48,7 @@ export function BranchComparisonSection({
     enabled: !!repositoryId
   });
 
-  const { data: comparison } = useQuery({
+  const { data: comparison } = useQuery<BranchComparison | null>({
     queryKey: ['branch-comparison', activeBranchId, targetBranchId],
     queryFn: async () => {
       if (!activeBranchId || !targetBranchId || !repositoryId) return null;
@@ -76,11 +92,11 @@ export function BranchComparisonSection({
         </div>
       </div>
 
-      {comparison && (
+      {comparison && comparison.comparison_data && (
         <div className="mt-4">
           <FileDiffViewer
-            oldContent={comparison.comparison_data?.source_content || ''}
-            newContent={comparison.comparison_data?.target_content || ''}
+            oldContent={comparison.comparison_data.source_content}
+            newContent={comparison.comparison_data.target_content}
           />
         </div>
       )}
