@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
-import { Check, X, MessageSquare, GitPullRequest } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar } from "@/components/ui/avatar";
 
@@ -38,19 +38,34 @@ export function CodeReviewPanel({ pullRequestId, onReviewSubmitted }: CodeReview
     try {
       console.log("Fetching review comments for PR:", pullRequestId);
       
-      const { data, error } = await supabase
+      const { data: reviewComments, error } = await supabase
         .from('review_comments')
         .select(`
           id,
           content,
           created_at,
-          reviewer:reviewer_id(email)
+          review:review_id (
+            reviewer:reviewer_id (
+              email
+            )
+          )
         `)
         .eq('pull_request_id', pullRequestId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setComments(data || []);
+
+      // Transform the data to match our ReviewComment interface
+      const formattedComments: ReviewComment[] = reviewComments?.map(comment => ({
+        id: comment.id,
+        content: comment.content,
+        created_at: comment.created_at,
+        reviewer: {
+          email: comment.review.reviewer.email
+        }
+      })) || [];
+
+      setComments(formattedComments);
     } catch (error) {
       console.error("Error fetching comments:", error);
       toast({
@@ -96,7 +111,8 @@ export function CodeReviewPanel({ pullRequestId, onReviewSubmitted }: CodeReview
           .insert({
             review_id: review.id,
             content: comment.trim(),
-            pull_request_id: pullRequestId,
+            file_path: '/', // Default file path
+            line_number: 0, // Default line number
           });
 
         if (commentError) throw commentError;

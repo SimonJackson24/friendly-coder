@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { FileDiffViewer } from "./FileDiffViewer";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { mergeFiles } from "@/utils/mergeUtils";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSession } from "@supabase/auth-helpers-react";
 import { Check, AlertTriangle, ArrowRight, GitMerge } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CodeReviewPanel } from "../code-review/CodeReviewPanel";
 
@@ -38,6 +38,7 @@ export function BranchMergeDialog({
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("changes");
   const { toast } = useToast();
+  const session = useSession();
 
   useEffect(() => {
     if (isOpen) {
@@ -45,12 +46,30 @@ export function BranchMergeDialog({
     }
   }, [isOpen, sourceBranchId, targetBranchId]);
 
+  const detectConflicts = (sourceFiles: any[], targetFiles: any[]): Conflict[] => {
+    const conflicts: Conflict[] = [];
+    
+    sourceFiles.forEach(sourceFile => {
+      const targetFile = targetFiles.find(tf => tf.path === sourceFile.path);
+      if (targetFile && targetFile.content !== sourceFile.content) {
+        conflicts.push({
+          fileId: sourceFile.id,
+          fileName: sourceFile.name,
+          baseContent: targetFile.content || "",
+          sourceContent: sourceFile.content || "",
+          targetContent: targetFile.content || "",
+        });
+      }
+    });
+
+    return conflicts;
+  };
+
   const fetchConflicts = async () => {
     setIsLoading(true);
     try {
       console.log("Fetching conflicts for merge:", { sourceBranchId, targetBranchId });
       
-      // Fetch the files from both branches
       const { data: sourceFiles, error: sourceError } = await supabase
         .from('files')
         .select('*')
@@ -63,8 +82,7 @@ export function BranchMergeDialog({
 
       if (sourceError || targetError) throw sourceError || targetError;
 
-      // Compare files and detect conflicts
-      const detectedConflicts = detectConflicts(sourceFiles, targetFiles);
+      const detectedConflicts = detectConflicts(sourceFiles || [], targetFiles || []);
       setConflicts(detectedConflicts);
     } catch (error) {
       console.error("Error fetching conflicts:", error);
@@ -79,6 +97,15 @@ export function BranchMergeDialog({
   };
 
   const handleMerge = async () => {
+    if (!session?.user?.id) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to perform merges",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       console.log("Initiating merge process");
       
@@ -88,7 +115,8 @@ export function BranchMergeDialog({
         .insert({
           branch_id: targetBranchId,
           message: `Merge branch ${sourceBranchId} into ${targetBranchId}`,
-          parent_commit_id: null // You might want to set this to the latest commit of the target branch
+          parent_commit_id: null,
+          author_id: session.user.id
         })
         .select()
         .single();
