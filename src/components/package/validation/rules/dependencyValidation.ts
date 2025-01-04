@@ -1,75 +1,41 @@
 import { DependencyCheck } from "../../types";
-import { supabase } from "@/integrations/supabase/client";
+import semver from 'semver';
 
-interface ValidationResult {
-  errors: string[];
-  warnings: string[];
-  dependencies: DependencyCheck[];
-}
-
-export async function validateDependencies(
+export const validateDependencies = async (
   dependencies: Record<string, string>
-): Promise<ValidationResult> {
-  const errors: string[] = [];
-  const warnings: string[] = [];
-  const dependencyChecks: DependencyCheck[] = [];
-  
-  console.log('Validating dependencies:', dependencies);
+): Promise<DependencyCheck[]> => {
+  const checks: DependencyCheck[] = [];
 
   for (const [name, version] of Object.entries(dependencies)) {
-    console.log(`Checking dependency: ${name}@${version}`);
-    
     try {
-      const { data: versions, error } = await supabase
-        .from('package_versions')
-        .select('version, dependency_tree, conflict_status')
-        .eq('name', name)
-        .order('created_at', { ascending: false });
+      // Fetch package info from npm registry
+      const response = await fetch(`https://registry.npmjs.org/${name}`);
+      const packageInfo = await response.json();
 
-      if (error) throw error;
+      const latestVersion = packageInfo['dist-tags'].latest;
+      const isCompatible = semver.satisfies(latestVersion, version);
+      const hasBreakingChanges = semver.major(latestVersion) > semver.major(version);
 
-      if (!versions?.length) {
-        errors.push(`Package ${name} not found in registry`);
-        continue;
-      }
-
-      const check: DependencyCheck = {
+      checks.push({
         name,
         version,
-        isCompatible: true,
-        conflicts: [],
-        requiredBy: [],
-      };
-
-      // Check for version compatibility
-      const matchingVersion = versions.find(v => v.version === version);
-      if (!matchingVersion) {
-        check.isCompatible = false;
-        check.conflicts.push(`Version ${version} not found`);
-        check.suggestedVersion = versions[0].version;
-      } else {
-        // Parse conflict_status as JSON if it's a string
-        const conflictStatus = typeof matchingVersion.conflict_status === 'string' 
-          ? JSON.parse(matchingVersion.conflict_status)
-          : matchingVersion.conflict_status;
-
-        if (conflictStatus?.conflicts?.length > 0) {
-          check.isCompatible = false;
-          check.conflicts.push(...conflictStatus.conflicts);
-        }
-      }
-
-      dependencyChecks.push(check);
-
+        compatible: isCompatible,
+        conflicts: hasBreakingChanges ? [`Major version mismatch with latest (${latestVersion})`] : [],
+        suggestedVersion: hasBreakingChanges ? latestVersion : undefined,
+        message: hasBreakingChanges 
+          ? `Consider updating to latest version ${latestVersion}`
+          : undefined
+      });
     } catch (error) {
-      console.error(`Error validating dependency ${name}:`, error);
-      errors.push(`Failed to validate dependency ${name}`);
+      checks.push({
+        name,
+        version,
+        compatible: false,
+        conflicts: ['Failed to validate dependency'],
+        message: 'Error checking version compatibility'
+      });
     }
   }
 
-  return {
-    errors,
-    warnings,
-    dependencies: dependencyChecks
-  };
-}
+  return checks;
+};

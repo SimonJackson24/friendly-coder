@@ -1,9 +1,10 @@
 import { PackageVersion } from "../types";
+import semver from 'semver';
 
-export const generateChangelog = (
+export const generateAutomatedChangelog = async (
   currentVersion: PackageVersion,
   previousVersion?: PackageVersion
-): string => {
+): Promise<string> => {
   if (!previousVersion) {
     return `# Version ${currentVersion.version}\n\nInitial release`;
   }
@@ -48,4 +49,46 @@ export const generateChangelog = (
     breakingChanges.length ? "\n## Breaking Changes\n\n" + 
       breakingChanges.map(c => `- ${c}`).join("\n") : "",
   ].filter(Boolean).join("\n");
+};
+
+export const analyzeRollbackRisk = async (
+  currentVersion: PackageVersion,
+  previousVersion: PackageVersion
+): Promise<{ riskLevel: string; analysis: string[] }> => {
+  const analysis: string[] = [];
+  let riskLevel = "low";
+
+  // Check version difference
+  const versionDiff = semver.diff(currentVersion.version, previousVersion.version);
+  if (versionDiff === "major") {
+    analysis.push("Major version change detected - high risk of breaking changes");
+    riskLevel = "high";
+  }
+
+  // Check dependency changes
+  const oldDeps = previousVersion.package_data?.dependencies || {};
+  const newDeps = currentVersion.package_data?.dependencies || {};
+
+  const removedDeps = Object.keys(oldDeps).filter(dep => !newDeps[dep]);
+  if (removedDeps.length) {
+    analysis.push(`Removed dependencies: ${removedDeps.join(", ")}`);
+    riskLevel = "high";
+  }
+
+  const addedDeps = Object.keys(newDeps).filter(dep => !oldDeps[dep]);
+  if (addedDeps.length) {
+    analysis.push(`Added dependencies: ${addedDeps.join(", ")}`);
+    riskLevel = riskLevel === "high" ? "high" : "medium";
+  }
+
+  // Check for breaking changes in package data
+  if (currentVersion.package_data?.breakingChanges?.length > 0) {
+    analysis.push("Breaking changes detected in package data");
+    riskLevel = "high";
+  }
+
+  return {
+    riskLevel,
+    analysis: analysis.length ? analysis : ["No significant risks detected"]
+  };
 };
