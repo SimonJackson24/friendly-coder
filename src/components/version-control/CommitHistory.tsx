@@ -5,6 +5,7 @@ import { FileDiffViewer } from "./FileDiffViewer";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Commit {
   id: string;
@@ -23,8 +24,9 @@ interface CommitChange {
 }
 
 export function CommitHistory({ branchId }: { branchId: string }) {
-  const [selectedCommit, setSelectedCommit] = useState<string | null>(null);
+  const [selectedCommits, setSelectedCommits] = useState<string[]>([]);
   const [selectedFile, setSelectedFile] = useState<CommitChange | null>(null);
+  const [isComparing, setIsComparing] = useState(false);
 
   const { data: commits, isLoading } = useQuery({
     queryKey: ["commits", branchId],
@@ -47,45 +49,39 @@ export function CommitHistory({ branchId }: { branchId: string }) {
   });
 
   const { data: commitChanges } = useQuery({
-    queryKey: ["commit_changes", selectedCommit],
+    queryKey: ["commit_changes", selectedCommits],
     queryFn: async () => {
-      if (!selectedCommit) return null;
+      if (selectedCommits.length === 0) return null;
       const { data, error } = await supabase
         .from("commit_changes")
         .select("*")
-        .eq("commit_id", selectedCommit);
+        .in("commit_id", selectedCommits);
 
       if (error) throw error;
       return data as CommitChange[];
     },
-    enabled: !!selectedCommit,
+    enabled: selectedCommits.length > 0,
   });
 
-  const { data: previousContent } = useQuery({
-    queryKey: ["previous_content", selectedFile?.commit_id, selectedFile?.file_path],
-    queryFn: async () => {
-      if (!selectedFile) return null;
-      
-      // Get the previous commit's content for this file
-      const { data: commit } = await supabase
-        .from("commits")
-        .select("parent_commit_id")
-        .eq("id", selectedFile.commit_id)
-        .single();
+  const handleCommitSelect = (commitId: string) => {
+    setSelectedCommits(prev => {
+      if (prev.includes(commitId)) {
+        return prev.filter(id => id !== commitId);
+      }
+      if (prev.length < 2) {
+        return [...prev, commitId];
+      }
+      return [prev[1], commitId];
+    });
+  };
 
-      if (!commit?.parent_commit_id) return "";
-
-      const { data } = await supabase
-        .from("commit_changes")
-        .select("content")
-        .eq("commit_id", commit.parent_commit_id)
-        .eq("file_path", selectedFile.file_path)
-        .single();
-
-      return data?.content || "";
-    },
-    enabled: !!selectedFile,
-  });
+  const getFileContent = (fileChange: CommitChange | null, commitId: string) => {
+    if (!commitChanges || !fileChange) return "";
+    const change = commitChanges.find(
+      c => c.commit_id === commitId && c.file_path === fileChange.file_path
+    );
+    return change?.content || "";
+  };
 
   if (isLoading) {
     return <div>Loading commits...</div>;
@@ -93,32 +89,53 @@ export function CommitHistory({ branchId }: { branchId: string }) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Commit History</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Commit History</h2>
+        {selectedCommits.length === 2 && (
+          <Button onClick={() => setIsComparing(true)}>
+            Compare Selected Commits
+          </Button>
+        )}
+      </div>
+      
       <ScrollArea className="h-[400px]">
         <div className="space-y-2">
           {commits?.map((commit) => (
             <div
               key={commit.id}
-              className="p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
-              onClick={() => setSelectedCommit(commit.id)}
+              className="p-4 border rounded-lg hover:bg-accent transition-colors"
             >
-              <h3 className="font-semibold">{commit.message}</h3>
-              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                <span>Committed on {new Date(commit.created_at).toLocaleString()}</span>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedCommits.includes(commit.id)}
+                  onCheckedChange={() => handleCommitSelect(commit.id)}
+                />
+                <div>
+                  <h3 className="font-semibold">{commit.message}</h3>
+                  <div className="text-sm text-muted-foreground">
+                    Committed on {new Date(commit.created_at).toLocaleString()}
+                  </div>
+                </div>
               </div>
-              {selectedCommit === commit.id && commitChanges && (
+              
+              {selectedCommits.includes(commit.id) && commitChanges && (
                 <div className="mt-4 space-y-2">
                   <h4 className="font-medium">Changed Files:</h4>
-                  {commitChanges.map((change) => (
-                    <Button
-                      key={change.id}
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => setSelectedFile(change)}
-                    >
-                      {change.file_path}
-                    </Button>
-                  ))}
+                  {commitChanges
+                    .filter(change => change.commit_id === commit.id)
+                    .map((change) => (
+                      <Button
+                        key={change.id}
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setSelectedFile(change);
+                          setIsComparing(true);
+                        }}
+                      >
+                        {change.file_path}
+                      </Button>
+                    ))}
                 </div>
               )}
             </div>
@@ -126,15 +143,17 @@ export function CommitHistory({ branchId }: { branchId: string }) {
         </div>
       </ScrollArea>
 
-      <Dialog open={!!selectedFile} onOpenChange={() => setSelectedFile(null)}>
+      <Dialog open={isComparing} onOpenChange={setIsComparing}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>{selectedFile?.file_path}</DialogTitle>
+            <DialogTitle>
+              {selectedFile ? selectedFile.file_path : "Select a file to compare"}
+            </DialogTitle>
           </DialogHeader>
-          {selectedFile && (
+          {selectedFile && selectedCommits.length === 2 && (
             <FileDiffViewer
-              oldContent={previousContent || ""}
-              newContent={selectedFile.content || ""}
+              oldContent={getFileContent(selectedFile, selectedCommits[0])}
+              newContent={getFileContent(selectedFile, selectedCommits[1])}
             />
           )}
         </DialogContent>

@@ -1,5 +1,6 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import * as Diff from 'diff';
 
 interface FileDiffViewerProps {
   oldContent: string;
@@ -7,40 +8,82 @@ interface FileDiffViewerProps {
   className?: string;
 }
 
+interface DiffLine {
+  type: 'added' | 'removed' | 'unchanged';
+  content: string;
+  lineNumber: number;
+  oldLineNumber?: number;
+  newLineNumber?: number;
+}
+
 export function FileDiffViewer({ oldContent, newContent, className }: FileDiffViewerProps) {
-  const oldLines = oldContent.split('\n');
-  const newLines = newContent.split('\n');
+  // Generate diff using the diff library
+  const diff = Diff.diffLines(oldContent, newContent);
   
-  // Simple diff implementation - in a real app, you'd want to use a proper diff algorithm
-  const diffs = newLines.map((line, i) => {
-    if (i >= oldLines.length) return { type: 'added', content: line };
-    if (line !== oldLines[i]) return { type: 'modified', content: line, oldContent: oldLines[i] };
-    return { type: 'unchanged', content: line };
+  // Convert diff to lines with line numbers
+  const lines: DiffLine[] = [];
+  let oldLineNumber = 1;
+  let newLineNumber = 1;
+
+  diff.forEach((part) => {
+    const partLines = part.value.split('\n');
+    // Remove empty line at the end if present
+    if (partLines[partLines.length - 1] === '') {
+      partLines.pop();
+    }
+
+    partLines.forEach((line) => {
+      if (part.added) {
+        lines.push({
+          type: 'added',
+          content: line,
+          lineNumber: newLineNumber,
+          newLineNumber: newLineNumber++
+        });
+      } else if (part.removed) {
+        lines.push({
+          type: 'removed',
+          content: line,
+          lineNumber: oldLineNumber,
+          oldLineNumber: oldLineNumber++
+        });
+      } else {
+        lines.push({
+          type: 'unchanged',
+          content: line,
+          lineNumber: newLineNumber,
+          oldLineNumber: oldLineNumber++,
+          newLineNumber: newLineNumber++
+        });
+      }
+    });
   });
 
   return (
-    <ScrollArea className={cn("h-[400px] w-full", className)}>
-      <div className="space-y-1 font-mono text-sm">
-        {diffs.map((diff, i) => (
+    <ScrollArea className={cn("h-[400px] w-full font-mono text-sm", className)}>
+      <div className="space-y-1">
+        {lines.map((line, i) => (
           <div
             key={i}
             className={cn(
-              "px-4 py-1",
-              diff.type === 'added' && "bg-green-500/10",
-              diff.type === 'modified' && "bg-yellow-500/10"
+              "grid grid-cols-[50px_50px_1fr] gap-2",
+              line.type === 'added' && "bg-green-500/10",
+              line.type === 'removed' && "bg-red-500/10"
             )}
           >
-            <span className="select-none text-muted-foreground w-8 inline-block">
-              {i + 1}
+            <span className="select-none text-muted-foreground text-right pr-2">
+              {line.oldLineNumber || ' '}
             </span>
-            {diff.type === 'modified' ? (
-              <>
-                <div className="pl-8 text-red-500">- {diff.oldContent}</div>
-                <div className="pl-8 text-green-500">+ {diff.content}</div>
-              </>
-            ) : (
-              <span className="pl-8">{diff.content}</span>
-            )}
+            <span className="select-none text-muted-foreground text-right pr-2">
+              {line.newLineNumber || ' '}
+            </span>
+            <span className={cn(
+              "pl-2",
+              line.type === 'added' && "text-green-500",
+              line.type === 'removed' && "text-red-500"
+            )}>
+              {line.content || ' '}
+            </span>
           </div>
         ))}
       </div>
