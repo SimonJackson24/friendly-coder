@@ -9,6 +9,8 @@ import { Check, AlertTriangle, ArrowRight, GitMerge } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CodeReviewPanel } from "../code-review/CodeReviewPanel";
+import { MergeConflictResolver } from "./MergeConflictResolver";
+import { detectMergeConflicts, type MergeConflict } from "@/utils/mergeConflictUtils";
 
 interface BranchMergeDialogProps {
   isOpen: boolean;
@@ -18,14 +20,6 @@ interface BranchMergeDialogProps {
   onMergeComplete: () => void;
 }
 
-interface Conflict {
-  fileId: string;
-  fileName: string;
-  baseContent: string;
-  sourceContent: string;
-  targetContent: string;
-}
-
 export function BranchMergeDialog({
   isOpen,
   onOpenChange,
@@ -33,7 +27,7 @@ export function BranchMergeDialog({
   targetBranchId,
   onMergeComplete,
 }: BranchMergeDialogProps) {
-  const [conflicts, setConflicts] = useState<Conflict[]>([]);
+  const [conflicts, setConflicts] = useState<MergeConflict[]>([]);
   const [currentConflictIndex, setCurrentConflictIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("changes");
@@ -45,25 +39,6 @@ export function BranchMergeDialog({
       fetchConflicts();
     }
   }, [isOpen, sourceBranchId, targetBranchId]);
-
-  const detectConflicts = (sourceFiles: any[], targetFiles: any[]): Conflict[] => {
-    const conflicts: Conflict[] = [];
-    
-    sourceFiles.forEach(sourceFile => {
-      const targetFile = targetFiles.find(tf => tf.path === sourceFile.path);
-      if (targetFile && targetFile.content !== sourceFile.content) {
-        conflicts.push({
-          fileId: sourceFile.id,
-          fileName: sourceFile.name,
-          baseContent: targetFile.content || "",
-          sourceContent: sourceFile.content || "",
-          targetContent: targetFile.content || "",
-        });
-      }
-    });
-
-    return conflicts;
-  };
 
   const fetchConflicts = async () => {
     setIsLoading(true);
@@ -82,7 +57,7 @@ export function BranchMergeDialog({
 
       if (sourceError || targetError) throw sourceError || targetError;
 
-      const detectedConflicts = detectConflicts(sourceFiles || [], targetFiles || []);
+      const detectedConflicts = detectMergeConflicts(sourceFiles || [], targetFiles || []);
       setConflicts(detectedConflicts);
     } catch (error) {
       console.error("Error fetching conflicts:", error);
@@ -149,6 +124,18 @@ export function BranchMergeDialog({
     }
   };
 
+  const handleConflictResolved = () => {
+    const newConflicts = [...conflicts];
+    newConflicts.splice(currentConflictIndex, 1);
+    setConflicts(newConflicts);
+    
+    if (newConflicts.length === 0) {
+      handleMerge();
+    } else {
+      setCurrentConflictIndex(Math.min(currentConflictIndex, newConflicts.length - 1));
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl h-[80vh]">
@@ -188,27 +175,11 @@ export function BranchMergeDialog({
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : conflicts.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      Resolving conflict {currentConflictIndex + 1} of {conflicts.length}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="font-medium">{conflicts[currentConflictIndex].fileName}</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </div>
-                  </div>
-                  
-                  <FileDiffViewer
-                    oldContent={conflicts[currentConflictIndex].baseContent}
-                    newContent={conflicts[currentConflictIndex].sourceContent}
-                    hasConflicts={true}
-                    onResolveConflict={(resolvedContent) => {
-                      // Handle conflict resolution
-                      console.log("Resolved content:", resolvedContent);
-                    }}
-                  />
-                </div>
+                <MergeConflictResolver
+                  file={conflicts[currentConflictIndex].filePath}
+                  conflict={conflicts[currentConflictIndex]}
+                  onResolved={handleConflictResolved}
+                />
               ) : (
                 <div className="text-center py-4 space-y-2">
                   <Check className="h-8 w-8 text-green-500 mx-auto" />
