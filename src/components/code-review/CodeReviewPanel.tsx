@@ -61,7 +61,7 @@ export function CodeReviewPanel({ pullRequestId, onReviewSubmitted }: CodeReview
         content: comment.content,
         created_at: comment.created_at,
         reviewer: {
-          email: comment.review.reviewer.email
+          email: comment.review?.reviewer?.email || 'Unknown User'
         }
       })) || [];
 
@@ -113,6 +113,7 @@ export function CodeReviewPanel({ pullRequestId, onReviewSubmitted }: CodeReview
             content: comment.trim(),
             file_path: '/', // Default file path
             line_number: 0, // Default line number
+            pull_request_id: pullRequestId
           });
 
         if (commentError) throw commentError;
