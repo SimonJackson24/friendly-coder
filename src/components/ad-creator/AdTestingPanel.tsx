@@ -7,6 +7,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { calculateStatisticalSignificance } from "@/utils/statistics";
 
 interface TestVariant {
   id: string;
@@ -66,31 +67,6 @@ export function AdTestingPanel() {
       return data;
     },
   });
-
-  const calculateStatisticalSignificance = (variantA: TestVariant, variantB: TestVariant): TestAnalysis => {
-    // Z-score calculation for statistical significance
-    const pA = variantA.clicks / variantA.impressions;
-    const pB = variantB.clicks / variantB.impressions;
-    const nA = variantA.impressions;
-    const nB = variantB.impressions;
-    
-    const pooledStdErr = Math.sqrt((pA * (1 - pA)) / nA + (pB * (1 - pB)) / nB);
-    const zScore = Math.abs((pB - pA) / pooledStdErr);
-    
-    // Convert z-score to confidence level
-    const confidence = (1 - 0.5 * Math.erfc(zScore / Math.sqrt(2))) * 100;
-    
-    const improvementPercent = ((pB - pA) / pA) * 100;
-    
-    return {
-      winner: improvementPercent > 0 ? "B" : (improvementPercent < 0 ? "A" : null),
-      confidenceLevel: confidence,
-      improvementPercent: Math.abs(improvementPercent),
-      recommendation: confidence > 95 
-        ? `Variant ${improvementPercent > 0 ? 'B' : 'A'} is the clear winner with ${confidence.toFixed(1)}% confidence`
-        : "Continue testing to reach statistical significance",
-    };
-  };
 
   const analysis = calculateStatisticalSignificance(variants[0], variants[1]);
 
