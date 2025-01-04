@@ -6,27 +6,44 @@ import { ConflictResolutionStrategy } from '../conflict-resolution/types';
 import { toast } from '@/components/ui/use-toast';
 
 export function usePublishPackage() {
+  const [name, setName] = useState('');
+  const [version, setVersion] = useState('');
+  const [description, setDescription] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [validation, setValidation] = useState<PublishValidation | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [publishSteps, setPublishSteps] = useState<Array<{
+    id: string;
+    title: string;
+    description: string;
+    status: 'pending' | 'in_progress' | 'completed' | 'error';
+    error?: string;
+  }>>([]);
 
-  const validateAndPublish = async (pkg: Package) => {
-    console.log('Starting package validation and publish process');
-    setIsPublishing(true);
-    
+  const handlePublish = async () => {
+    setIsValidating(true);
+    const pkg: Package = {
+      id: '', // Will be generated on insert
+      name,
+      version,
+      description,
+      is_private: isPrivate,
+      author_id: '', // Will be set by RLS
+      package_data: {}
+    };
+
     try {
       const validationResult = await validatePackage(pkg);
-      console.log('Validation result:', validationResult);
-
       setValidation({
         ...validationResult,
-        publishSteps: [],
+        dependencyChecks: [],
         breakingChanges: [],
-        dependencyChecks: []
+        publishSteps: []
       });
 
       if (!validationResult.isValid) {
-        console.log('Package validation failed');
         toast({
           title: "Validation Failed",
           description: "Please resolve all validation errors before publishing",
@@ -36,15 +53,32 @@ export function usePublishPackage() {
       }
 
       setCurrentStep(1);
+      await validateAndPublish(pkg);
+
+    } catch (error) {
+      console.error('Error during publish:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred during validation",
+        variant: "destructive"
+      });
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const validateAndPublish = async (pkg: Package) => {
+    console.log('Starting package validation and publish process');
+    setIsPublishing(true);
+    
+    try {
       const { data: existingPackage, error: fetchError } = await supabase
         .from('packages')
         .select('*')
         .eq('name', pkg.name)
-        .single();
+        .maybeSingle();
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
+      if (fetchError) throw fetchError;
 
       setCurrentStep(2);
       if (existingPackage) {
@@ -72,19 +106,6 @@ export function usePublishPackage() {
       }
 
       setCurrentStep(3);
-      const { error: versionError } = await supabase
-        .from('package_versions')
-        .insert({
-          package_id: pkg.id,
-          version: pkg.version,
-          package_data: pkg.package_data,
-          published_by: pkg.author_id,
-          created_at: new Date().toISOString()
-        });
-
-      if (versionError) throw versionError;
-
-      setCurrentStep(4);
       toast({
         title: "Success",
         description: "Package published successfully",
@@ -116,26 +137,11 @@ export function usePublishPackage() {
           .insert({
             package_name: packageName,
             resolution_strategy: strategy.action,
-            resolved_version: strategy.action === 'upgrade' ? strategy.id.split('-')[1] : null,
-            resolution_date: new Date().toISOString(),
+            resolved_version: strategy.action === 'upgrade' ? strategy.version : null,
             risk_level: strategy.risk
           });
 
         if (error) throw error;
-      }
-
-      // Refresh validation after applying resolutions
-      if (validation?.package_id) {
-        const updatedValidation = await validatePackage({
-          id: validation.package_id,
-          name: '',
-          version: '',
-          description: '',
-          is_private: false,
-          author_id: '',
-          package_data: {}
-        });
-        setValidation(updatedValidation);
       }
 
       toast({
@@ -158,13 +164,28 @@ export function usePublishPackage() {
     setIsPublishing(false);
     setValidation(null);
     setCurrentStep(0);
+    setName('');
+    setVersion('');
+    setDescription('');
+    setIsPrivate(false);
+    setPublishSteps([]);
   };
 
   return {
+    name,
+    version,
+    description,
+    isPrivate,
     isPublishing,
+    isValidating,
     validation,
     currentStep,
-    validateAndPublish,
+    publishSteps,
+    setName,
+    setVersion,
+    setDescription,
+    setIsPrivate,
+    handlePublish,
     handleConflictResolutions,
     handleCancel,
   };
