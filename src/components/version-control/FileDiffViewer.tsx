@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 import * as Diff from 'diff';
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Check, X } from "lucide-react";
 
 interface FileDiffViewerProps {
   oldContent: string;
@@ -93,10 +95,7 @@ export function FileDiffViewer({
       .join('\n');
 
     onResolveConflict(resolvedContent);
-    toast({
-      title: "Conflict Resolution",
-      description: "Changes have been merged successfully",
-    });
+    setSelectedLines(new Set());
   };
 
   return (
@@ -107,12 +106,22 @@ export function FileDiffViewer({
           <p className="text-sm text-muted-foreground mb-4">
             Click on the lines you want to keep in the final version.
           </p>
-          <button
-            onClick={handleResolveConflict}
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
-          >
-            Resolve Conflicts
-          </button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleResolveConflict}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Check className="h-4 w-4 mr-2" />
+              Resolve Conflicts
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedLines(new Set())}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Clear Selection
+            </Button>
+          </div>
         </div>
       )}
       <ScrollArea className={cn("h-[400px] w-full font-mono text-sm", className)}>
@@ -122,11 +131,11 @@ export function FileDiffViewer({
               key={i}
               onClick={() => handleLineClick(line.lineNumber)}
               className={cn(
-                "grid grid-cols-[50px_50px_1fr] gap-2 cursor-pointer",
-                line.type === 'added' && "bg-green-500/10",
-                line.type === 'removed' && "bg-red-500/10",
-                line.type === 'conflict' && "bg-yellow-500/10",
-                selectedLines.has(line.lineNumber) && "border-2 border-primary"
+                "grid grid-cols-[50px_50px_1fr] gap-2 cursor-pointer p-1 transition-colors",
+                line.type === 'added' && "bg-green-500/10 hover:bg-green-500/20",
+                line.type === 'removed' && "bg-red-500/10 hover:bg-red-500/20",
+                line.type === 'conflict' && "bg-yellow-500/10 hover:bg-yellow-500/20",
+                selectedLines.has(line.lineNumber) && "border-l-4 border-primary bg-accent"
               )}
             >
               <span className="select-none text-muted-foreground text-right pr-2">
