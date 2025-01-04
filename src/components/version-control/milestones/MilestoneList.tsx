@@ -9,6 +9,20 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
+interface MilestoneUser {
+  email: string;
+}
+
+interface Milestone {
+  id: string;
+  title: string;
+  description: string | null;
+  due_date: string | null;
+  status: string;
+  created_by: MilestoneUser;
+  created_at: string;
+}
+
 interface MilestoneListProps {
   repositoryId: string;
 }
@@ -24,7 +38,9 @@ export function MilestoneList({ repositoryId }: MilestoneListProps) {
         .from("milestones")
         .select(`
           *,
-          created_by:created_by(email)
+          created_by:created_by(
+            email
+          )
         `)
         .eq("repository_id", repositoryId)
         .order("created_at", { ascending: false });
@@ -34,7 +50,7 @@ export function MilestoneList({ repositoryId }: MilestoneListProps) {
         throw error;
       }
 
-      return data;
+      return data as Milestone[];
     },
   });
 
@@ -78,7 +94,7 @@ export function MilestoneList({ repositoryId }: MilestoneListProps) {
                 </div>
                 <div className="flex items-center gap-1">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Created by {milestone.created_by?.email}</span>
+                  <span>Created by {milestone.created_by?.email || 'Unknown user'}</span>
                 </div>
               </div>
             </Card>
