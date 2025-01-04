@@ -115,6 +115,7 @@ export type Database = {
           github_url: string | null
           id: string
           is_template: boolean | null
+          project_type: string
           status: string
           supabase_url: string | null
           title: string
@@ -132,6 +133,7 @@ export type Database = {
           github_url?: string | null
           id?: string
           is_template?: boolean | null
+          project_type?: string
           status?: string
           supabase_url?: string | null
           title: string
@@ -149,6 +151,7 @@ export type Database = {
           github_url?: string | null
           id?: string
           is_template?: boolean | null
+          project_type?: string
           status?: string
           supabase_url?: string | null
           title?: string

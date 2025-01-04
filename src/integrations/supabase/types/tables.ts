@@ -49,6 +49,11 @@ export interface ProjectsTable {
     title: string
     updated_at: string | null
     user_id: string
+    project_type: string
+    github_import_status: string | null
+    github_import_error: string | null
+    github_branch: string | null
+    github_commit_sha: string | null
   }
   Insert: {
     created_at?: string | null
@@ -62,6 +67,11 @@ export interface ProjectsTable {
     title: string
     updated_at?: string | null
     user_id: string
+    project_type?: string
+    github_import_status?: string | null
+    github_import_error?: string | null
+    github_branch?: string | null
+    github_commit_sha?: string | null
   }
   Update: {
     created_at?: string | null
@@ -75,6 +85,11 @@ export interface ProjectsTable {
     title?: string
     updated_at?: string | null
     user_id?: string
+    project_type?: string
+    github_import_status?: string | null
+    github_import_error?: string | null
+    github_branch?: string | null
+    github_commit_sha?: string | null
   }
 }
 
