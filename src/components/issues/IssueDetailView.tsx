@@ -6,6 +6,7 @@ import { formatDistanceToNow } from "date-fns";
 import { IssueComments } from "./IssueComments";
 import { IssueMetadata } from "./IssueMetadata";
 import { Issue } from "./types";
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface IssueDetailViewProps {
   issueId: string;
@@ -57,7 +58,11 @@ export function IssueDetailView({ issueId, onClose }: IssueDetailViewProps) {
       // Get comment authors
       const commentUserIds = issueData.comments.map(comment => comment.created_by);
       const { data: commentUsers } = await supabase.auth.admin.listUsers();
-      const userMap = new Map(commentUsers.users.map(user => [user.id, user]));
+      
+      // Create a properly typed Map of user IDs to users
+      const userMap = new Map<string, SupabaseUser>(
+        commentUsers.users.map(user => [user.id, user] as [string, SupabaseUser])
+      );
 
       // Transform the data to match our Issue type
       const transformedIssue: Issue = {
@@ -66,7 +71,9 @@ export function IssueDetailView({ issueId, onClose }: IssueDetailViewProps) {
         assigned_to_user: assignedToUser?.user ? { email: assignedToUser.user.email } : null,
         comments: issueData.comments.map(comment => ({
           ...comment,
-          created_by: { email: userMap.get(comment.created_by)?.email || 'Unknown' }
+          created_by: { 
+            email: userMap.get(comment.created_by)?.email || 'Unknown'
+          }
         }))
       };
 
