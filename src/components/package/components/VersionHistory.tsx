@@ -1,15 +1,14 @@
 import { useState, useEffect } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PackageVersion, ReleaseNote } from "../types";
 import { supabase } from "@/integrations/supabase/client";
 import { History } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { VersionDiffViewer } from "./version/VersionDiffViewer";
-import { VersionChangelogDialog } from "./version/VersionChangelogDialog";
+import { VersionMetadata } from "./version/VersionMetadata";
+import { VersionDiff } from "./version/VersionDiff";
+import { VersionChangelogForm } from "./version/VersionChangelogForm";
 import { VersionList } from "./version/VersionList";
-import { CompareVersions } from "./version/CompareVersions";
 
 interface VersionHistoryProps {
   packageId: string;
@@ -19,7 +18,6 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
   const [versions, setVersions] = useState<PackageVersion[]>([]);
   const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
   const [compareMode, setCompareMode] = useState(false);
-  const [showDiffViewer, setShowDiffViewer] = useState(false);
   const [showChangelogEditor, setShowChangelogEditor] = useState(false);
   const [releaseNotes, setReleaseNotes] = useState<ReleaseNote | null>(null);
   const [showReleaseNotes, setShowReleaseNotes] = useState(false);
@@ -39,25 +37,9 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
 
       if (error) throw error;
 
-      const parsedVersions: PackageVersion[] = (data || []).map(version => ({
-        ...version,
-        dependency_tree: typeof version.dependency_tree === 'string' 
-          ? JSON.parse(version.dependency_tree) 
-          : version.dependency_tree || {},
-        resolved_dependencies: typeof version.resolved_dependencies === 'string'
-          ? JSON.parse(version.resolved_dependencies)
-          : version.resolved_dependencies || {},
-        conflict_status: typeof version.conflict_status === 'string'
-          ? JSON.parse(version.conflict_status)
-          : version.conflict_status || {},
-        package_data: typeof version.package_data === 'string'
-          ? JSON.parse(version.package_data)
-          : version.package_data || {}
-      }));
-
-      setVersions(parsedVersions);
+      setVersions(data || []);
     } catch (error) {
-      console.error('Error fetching versions:', error);
+      console.error("Error fetching versions:", error);
       toast({
         title: "Error",
         description: "Failed to fetch version history",
@@ -78,7 +60,7 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
     }
   };
 
-  const handleSaveChangelog = async (changelog: string) => {
+  const handleSaveChangelog = async (changelog: string, type: string) => {
     if (!selectedVersions[0]) return;
     
     const version = versions.find(v => v.id === selectedVersions[0]);
@@ -92,6 +74,7 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
           version: version.version,
           title: `Release ${version.version}`,
           description: changelog,
+          changelog_type: type,
           changes: [],
           breaking_changes: []
         });
@@ -100,19 +83,18 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
 
       toast({
         title: "Success",
-        description: "Changelog saved successfully",
+        description: "Changelog saved successfully"
       });
       
       setShowChangelogEditor(false);
     } catch (error) {
-      console.error('Error saving changelog:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save changelog",
-        variant: "destructive"
-      });
+      console.error("Error saving changelog:", error);
+      throw error;
     }
   };
+
+  const selectedVersion = versions.find(v => v.id === selectedVersions[0]);
+  const previousVersion = versions[versions.findIndex(v => v.id === selectedVersions[0]) + 1];
 
   return (
     <div className="border rounded-lg p-4">
@@ -124,7 +106,6 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            size="sm"
             onClick={() => setCompareMode(!compareMode)}
           >
             {compareMode ? "Exit Compare" : "Compare Versions"}
@@ -132,7 +113,6 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
           {selectedVersions.length === 1 && (
             <Button
               variant="outline"
-              size="sm"
               onClick={() => setShowChangelogEditor(true)}
             >
               Edit Changelog
@@ -140,86 +120,56 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
           )}
         </div>
       </div>
-      
-      <ScrollArea className="h-[200px]">
-        <VersionList
-          versions={versions}
-          selectedVersions={selectedVersions}
-          onVersionSelect={handleVersionSelect}
-          onViewNotes={(version) => {
-            setSelectedVersions([version.id]);
-            setShowReleaseNotes(true);
-          }}
-        />
-      </ScrollArea>
+
+      <VersionList
+        versions={versions}
+        selectedVersions={selectedVersions}
+        onVersionSelect={handleVersionSelect}
+        onViewNotes={(version) => {
+          setSelectedVersions([version.id]);
+          setShowReleaseNotes(true);
+        }}
+        compareMode={compareMode}
+      />
 
       {compareMode && selectedVersions.length === 2 && (
-        <CompareVersions
-          selectedVersions={selectedVersions}
-          versions={versions}
-          onShowDiff={() => setShowDiffViewer(true)}
+        <VersionDiff
+          oldVersion={versions.find(v => v.id === selectedVersions[0])!}
+          newVersion={versions.find(v => v.id === selectedVersions[1])!}
         />
       )}
 
-      <Dialog open={showDiffViewer} onOpenChange={setShowDiffViewer}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Version Comparison</DialogTitle>
-          </DialogHeader>
-          {selectedVersions.length === 2 && (
-            <VersionDiffViewer
-              oldVersion={versions.find(v => v.id === selectedVersions[0])!}
-              newVersion={versions.find(v => v.id === selectedVersions[1])!}
+      {showChangelogEditor && selectedVersion && (
+        <Dialog open={showChangelogEditor} onOpenChange={setShowChangelogEditor}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Edit Changelog - v{selectedVersion.version}</DialogTitle>
+            </DialogHeader>
+            <VersionChangelogForm
+              currentVersion={selectedVersion}
+              previousVersion={previousVersion}
+              onSave={handleSaveChangelog}
             />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {showChangelogEditor && selectedVersions.length === 1 && (
-        <VersionChangelogDialog
-          open={showChangelogEditor}
-          onOpenChange={setShowChangelogEditor}
-          currentVersion={versions.find(v => v.id === selectedVersions[0])!}
-          previousVersion={versions[versions.findIndex(v => v.id === selectedVersions[0]) + 1]}
-          onSave={handleSaveChangelog}
-        />
+          </DialogContent>
+        </Dialog>
       )}
 
-      <Dialog open={showReleaseNotes} onOpenChange={setShowReleaseNotes}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Release Notes - v{releaseNotes?.version}</DialogTitle>
-          </DialogHeader>
-          {releaseNotes && (
-            <div className="space-y-4">
-              <h4 className="font-medium">{releaseNotes.title}</h4>
-              <p>{releaseNotes.description}</p>
-              
-              {releaseNotes.changes.length > 0 && (
-                <div>
-                  <h5 className="font-medium mb-2">Changes</h5>
-                  <ul className="list-disc pl-4">
-                    {releaseNotes.changes.map((change, i) => (
-                      <li key={i}>{change}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {releaseNotes.breaking_changes.length > 0 && (
-                <div>
-                  <h5 className="font-medium mb-2 text-destructive">Breaking Changes</h5>
-                  <ul className="list-disc pl-4">
-                    {releaseNotes.breaking_changes.map((change, i) => (
-                      <li key={i}>{change}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {selectedVersion && (
+        <Dialog open={showReleaseNotes} onOpenChange={setShowReleaseNotes}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Version Details - v{selectedVersion.version}</DialogTitle>
+            </DialogHeader>
+            <VersionMetadata version={selectedVersion} />
+            {releaseNotes && (
+              <div className="mt-4 space-y-4">
+                <h4 className="font-medium">{releaseNotes.title}</h4>
+                <p>{releaseNotes.description}</p>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
