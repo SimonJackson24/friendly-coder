@@ -4,6 +4,22 @@ import { Badge } from "@/components/ui/badge";
 import { Lightbulb, TrendingUp, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+interface InsightRecommendation {
+  suggestion?: string;
+  prediction?: string;
+  insight?: string;
+  type?: string;
+  expectedImpact?: string;
+  confidence?: string;
+  action?: string;
+}
+
+interface InsightContent {
+  recommendations: InsightRecommendation[];
+  confidenceScore: number;
+  impactScore: number;
+}
+
 export function AIInsights() {
   const { data: insights, isLoading } = useQuery({
     queryKey: ["ad-insights"],
@@ -40,32 +56,37 @@ export function AIInsights() {
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">AI-Powered Insights</h3>
       <div className="grid gap-4">
-        {insights?.map((insight) => (
-          <Card key={insight.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {insight.insight_type.charAt(0).toUpperCase() + insight.insight_type.slice(1)} Insight
-              </CardTitle>
-              <Badge variant={insight.implemented ? "default" : "secondary"}>
-                {insight.implemented ? "Implemented" : "New"}
-              </Badge>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-2">
-                {getInsightIcon(insight.insight_type)}
-                <CardDescription>
-                  {insight.content.recommendations?.[0]?.suggestion || 
-                   insight.content.recommendations?.[0]?.prediction ||
-                   insight.content.recommendations?.[0]?.insight}
-                </CardDescription>
-              </div>
-              <div className="mt-2 text-xs text-muted-foreground">
-                Confidence: {(insight.confidence_score * 100).toFixed(0)}%
-                {insight.impact_score && ` • Impact: ${(insight.impact_score * 100).toFixed(0)}%`}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {insights?.map((insight) => {
+          const content = insight.content as InsightContent;
+          const recommendation = content.recommendations?.[0];
+          
+          return (
+            <Card key={insight.id}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {insight.insight_type.charAt(0).toUpperCase() + insight.insight_type.slice(1)} Insight
+                </CardTitle>
+                <Badge variant={insight.implemented ? "default" : "secondary"}>
+                  {insight.implemented ? "Implemented" : "New"}
+                </Badge>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center space-x-2">
+                  {getInsightIcon(insight.insight_type)}
+                  <CardDescription>
+                    {recommendation?.suggestion || 
+                     recommendation?.prediction ||
+                     recommendation?.insight}
+                  </CardDescription>
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  Confidence: {(insight.confidence_score * 100).toFixed(0)}%
+                  {insight.impact_score && ` • Impact: ${(insight.impact_score * 100).toFixed(0)}%`}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
