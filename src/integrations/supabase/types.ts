@@ -9,6 +9,56 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      android_builds: {
+        Row: {
+          apk_url: string | null
+          build_config: Json | null
+          build_logs: string[] | null
+          created_at: string | null
+          id: string
+          package_name: string
+          project_id: string
+          status: string
+          updated_at: string | null
+          version_code: number
+          version_name: string
+        }
+        Insert: {
+          apk_url?: string | null
+          build_config?: Json | null
+          build_logs?: string[] | null
+          created_at?: string | null
+          id?: string
+          package_name: string
+          project_id: string
+          status?: string
+          updated_at?: string | null
+          version_code?: number
+          version_name?: string
+        }
+        Update: {
+          apk_url?: string | null
+          build_config?: Json | null
+          build_logs?: string[] | null
+          created_at?: string | null
+          id?: string
+          package_name?: string
+          project_id?: string
+          status?: string
+          updated_at?: string | null
+          version_code?: number
+          version_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "android_builds_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       files: {
         Row: {
           build_status: string | null
