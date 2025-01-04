@@ -3,32 +3,69 @@ import { Card } from "./ui/card";
 import { FileNode } from "@/hooks/useFileSystem";
 import Logger from "@/utils/logger";
 import { Alert, AlertDescription } from "./ui/alert";
-import { Loader2 } from "lucide-react";
+import { Loader2, Smartphone } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PreviewProps {
   files: FileNode[];
   onConsoleMessage: (message: string) => void;
   onConsoleError: (error: string) => void;
+  projectId?: string | null;
 }
 
-export function Preview({ files, onConsoleMessage, onConsoleError }: PreviewProps) {
+export function Preview({ files, onConsoleMessage, onConsoleError, projectId }: PreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [buildState, setBuildState] = useState<'idle' | 'building' | 'success' | 'error'>('idle');
   const [lastSuccessfulState, setLastSuccessfulState] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const getEntryFile = (files: FileNode[]) => {
-    // Check for different project type entry points
-    const entryPoints = [
-      { name: "index.html", type: "web" },
-      { name: "App.tsx", type: "react" },
-      { name: "main.ts", type: "node" },
-    ];
+  // Fetch project type
+  const { data: project } = useQuery({
+    queryKey: ["project", projectId],
+    queryFn: async () => {
+      if (!projectId) return null;
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("id", projectId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!projectId
+  });
 
-    for (const entry of entryPoints) {
-      const file = files.find(f => f.name === entry.name);
-      if (file) {
-        return { file, type: entry.type };
+  const isAndroidProject = project?.project_type === 'android' || project?.project_type === 'web-to-android';
+
+  const getEntryFile = (files: FileNode[]) => {
+    if (isAndroidProject) {
+      // For Android projects, look for activity_main.xml or MainActivity.kt
+      const androidEntryPoints = [
+        { name: "activity_main.xml", type: "layout" },
+        { name: "MainActivity.kt", type: "activity" }
+      ];
+
+      for (const entry of androidEntryPoints) {
+        const file = files.find(f => f.name === entry.name);
+        if (file) {
+          return { file, type: entry.type };
+        }
+      }
+    } else {
+      // Web project entry points
+      const webEntryPoints = [
+        { name: "index.html", type: "web" },
+        { name: "App.tsx", type: "react" },
+        { name: "main.ts", type: "node" },
+      ];
+
+      for (const entry of webEntryPoints) {
+        const file = files.find(f => f.name === entry.name);
+        if (file) {
+          return { file, type: entry.type };
+        }
       }
     }
     return null;
@@ -36,7 +73,7 @@ export function Preview({ files, onConsoleMessage, onConsoleError }: PreviewProp
 
   useEffect(() => {
     const updatePreview = () => {
-      if (!iframeRef.current || !files.length) return;
+      if (!files.length) return;
 
       setBuildState('building');
       setErrorMessage(null);
@@ -44,7 +81,9 @@ export function Preview({ files, onConsoleMessage, onConsoleError }: PreviewProp
 
       const entry = getEntryFile(files);
       if (!entry?.file) {
-        const error = 'No entry file found for preview';
+        const error = isAndroidProject ? 
+          'No Android layout file found. Create activity_main.xml to see the preview.' :
+          'No entry file found for preview';
         Logger.log('error', error);
         setBuildState('error');
         setErrorMessage(error);
@@ -52,6 +91,87 @@ export function Preview({ files, onConsoleMessage, onConsoleError }: PreviewProp
       }
 
       try {
+        if (isAndroidProject) {
+          // Handle Android layout preview
+          const layoutContent = entry.file.content;
+          if (!layoutContent) {
+            throw new Error('Empty layout file');
+          }
+
+          // Create a simplified Android-like preview
+          const previewContent = `
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <style>
+                  body { 
+                    margin: 0; 
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    background: #f5f5f5;
+                  }
+                  .android-frame {
+                    width: 360px;
+                    height: 640px;
+                    background: white;
+                    border-radius: 20px;
+                    position: relative;
+                    border: 12px solid #1a1a1a;
+                    overflow: hidden;
+                  }
+                  .android-content {
+                    padding: 16px;
+                    height: 100%;
+                    overflow: auto;
+                  }
+                  .status-bar {
+                    height: 24px;
+                    background: #2196F3;
+                    width: 100%;
+                  }
+                </style>
+              </head>
+              <body>
+                <div class="android-frame">
+                  <div class="status-bar"></div>
+                  <div class="android-content">
+                    <pre>${layoutContent}</pre>
+                  </div>
+                </div>
+                <script>
+                  // Console interceptor
+                  const originalConsole = { ...console };
+                  Object.keys(console).forEach(key => {
+                    console[key] = (...args) => {
+                      originalConsole[key](...args);
+                      if (key === 'error' || key === 'warn' || key === 'log') {
+                        window.parent.postMessage({
+                          type: 'console',
+                          message: args.map(arg => 
+                            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+                          ).join(' ')
+                        }, '*');
+                      }
+                    };
+                  });
+                </script>
+              </body>
+            </html>
+          `;
+
+          const blob = new Blob([previewContent], { type: "text/html" });
+          const url = URL.createObjectURL(blob);
+
+          if (iframeRef.current) {
+            iframeRef.current.src = url;
+          }
+          setBuildState('success');
+          Logger.log('build', 'Android preview build successful');
+
+          return () => URL.revokeObjectURL(url);
+        } else {
         // Inject session and error handling scripts
         const previewScript = `
           <script>
@@ -122,15 +242,14 @@ export function Preview({ files, onConsoleMessage, onConsoleError }: PreviewProp
           }
         };
 
-        return () => URL.revokeObjectURL(url);
+        }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
         Logger.log('error', 'Preview build failed', { error: errorMsg });
         setBuildState('error');
         setErrorMessage(errorMsg);
         
-        // Revert to last successful state if available
-        if (lastSuccessfulState) {
+        if (lastSuccessfulState && iframeRef.current) {
           Logger.log('build', 'Reverting to last successful build');
           const blob = new Blob([lastSuccessfulState], { type: "text/html" });
           const url = URL.createObjectURL(blob);
@@ -140,7 +259,7 @@ export function Preview({ files, onConsoleMessage, onConsoleError }: PreviewProp
     };
 
     updatePreview();
-  }, [files, buildState]);
+  }, [files, isAndroidProject]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -164,13 +283,16 @@ export function Preview({ files, onConsoleMessage, onConsoleError }: PreviewProp
       <div className="p-4 border-b">
         <h2 className="text-lg font-semibold">Preview</h2>
         <div className="text-sm text-muted-foreground flex items-center gap-2">
+          {isAndroidProject && <Smartphone className="h-4 w-4" />}
           {buildState === 'building' && (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
               Building preview...
             </>
           )}
-          {buildState === 'success' && 'Preview ready'}
+          {buildState === 'success' && (
+            isAndroidProject ? 'Android layout preview ready' : 'Preview ready'
+          )}
           {buildState === 'error' && 'Build failed'}
           {buildState === 'error' && lastSuccessfulState && ' (showing last working state)'}
         </div>
