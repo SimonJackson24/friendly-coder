@@ -1,7 +1,7 @@
 import { PackageVersion } from "../types";
 import semver from 'semver';
 
-export const generateAutomatedChangelog = async (
+export const generateChangelog = async (
   currentVersion: PackageVersion,
   previousVersion?: PackageVersion
 ): Promise<string> => {

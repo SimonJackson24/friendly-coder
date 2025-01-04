@@ -33,6 +33,12 @@ export interface DependencyCheck {
   requiredBy?: string[];
 }
 
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
 export interface PublishValidation {
   valid: boolean;
   errors: string[];
