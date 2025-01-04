@@ -6,15 +6,18 @@ import { RepositoryList } from "./RepositoryList";
 import { BranchList } from "./BranchList";
 import { CommitHistory } from "./CommitHistory";
 import { CreateCommitDialog } from "./CreateCommitDialog";
+import { PullRequestList } from "./pull-requests/PullRequestList";
+import { CreatePullRequest } from "./pull-requests/CreatePullRequest";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { FileNode } from "@/hooks/useFileSystem";
-import { Plus } from "lucide-react";
+import { Plus, GitPullRequest } from "lucide-react";
 
 export function VersionControl({ projectId }: { projectId: string | null }) {
   const [selectedRepositoryId, setSelectedRepositoryId] = useState<string | null>(null);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+  const [targetBranchId, setTargetBranchId] = useState<string | null>(null);
   const [activeBranchId, setActiveBranchId] = useState<string | null>(null);
   const [isCommitDialogOpen, setIsCommitDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -38,8 +41,6 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
     try {
       console.log("Switching to branch:", branchId);
       
-      // Here we would typically update the file system to reflect the selected branch
-      // For now, we'll just update the active branch
       setActiveBranchId(branchId);
       setSelectedBranchId(branchId);
       
@@ -77,6 +78,7 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
           <TabsTrigger value="repositories">Repositories</TabsTrigger>
           <TabsTrigger value="branches">Branches</TabsTrigger>
           <TabsTrigger value="commits">Commits</TabsTrigger>
+          <TabsTrigger value="pull-requests">Pull Requests</TabsTrigger>
         </TabsList>
 
         <TabsContent value="repositories">
@@ -119,6 +121,29 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
             <div className="text-center py-8">
               <p className="text-muted-foreground">
                 Select a branch to view commit history
+              </p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="pull-requests" className="space-y-4">
+          {selectedRepositoryId ? (
+            <>
+              <div className="flex justify-end">
+                {activeBranchId && targetBranchId && (
+                  <CreatePullRequest
+                    repositoryId={selectedRepositoryId}
+                    sourceBranchId={activeBranchId}
+                    targetBranchId={targetBranchId}
+                  />
+                )}
+              </div>
+              <PullRequestList repositoryId={selectedRepositoryId} />
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                Select a repository to view pull requests
               </p>
             </div>
           )}
