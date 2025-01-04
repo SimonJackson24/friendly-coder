@@ -1,17 +1,38 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { RepositoryList } from "./RepositoryList";
 import { BranchList } from "./BranchList";
 import { CommitHistory } from "./CommitHistory";
+import { CreateCommitDialog } from "./CreateCommitDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { FileNode } from "@/hooks/useFileSystem";
+import { Plus } from "lucide-react";
 
 export function VersionControl({ projectId }: { projectId: string | null }) {
   const [selectedRepositoryId, setSelectedRepositoryId] = useState<string | null>(null);
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [activeBranchId, setActiveBranchId] = useState<string | null>(null);
+  const [isCommitDialogOpen, setIsCommitDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  const { data: files = [] } = useQuery({
+    queryKey: ["files", projectId],
+    queryFn: async () => {
+      if (!projectId) return [];
+      const { data, error } = await supabase
+        .from("files")
+        .select("*")
+        .eq("project_id", projectId);
+
+      if (error) throw error;
+      return data as FileNode[];
+    },
+    enabled: !!projectId,
+  });
 
   const handleBranchSelect = async (branchId: string) => {
     try {
@@ -65,13 +86,23 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
           />
         </TabsContent>
 
-        <TabsContent value="branches">
+        <TabsContent value="branches" className="space-y-4">
           {selectedRepositoryId ? (
-            <BranchList 
-              repositoryId={selectedRepositoryId}
-              onSelectBranch={handleBranchSelect}
-              activeBranchId={activeBranchId}
-            />
+            <>
+              <div className="flex justify-end">
+                {activeBranchId && (
+                  <Button onClick={() => setIsCommitDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Commit
+                  </Button>
+                )}
+              </div>
+              <BranchList 
+                repositoryId={selectedRepositoryId}
+                onSelectBranch={handleBranchSelect}
+                activeBranchId={activeBranchId}
+              />
+            </>
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground">
@@ -93,6 +124,19 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
           )}
         </TabsContent>
       </Tabs>
+
+      {activeBranchId && (
+        <CreateCommitDialog
+          isOpen={isCommitDialogOpen}
+          onOpenChange={setIsCommitDialogOpen}
+          branchId={activeBranchId}
+          files={files}
+          onCommitCreated={() => {
+            // Refresh commit history
+            // This will be handled by react-query invalidation
+          }}
+        />
+      )}
     </Card>
   );
 }
