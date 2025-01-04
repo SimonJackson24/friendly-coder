@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const generateChangelog = async (
   currentVersion: PackageVersion,
-  previousVersion?: PackageVersion
+  previousVersion: PackageVersion
 ): Promise<string> => {
   if (!previousVersion) {
     return `# Version ${currentVersion.version}\n\nInitial release`;
@@ -76,7 +76,7 @@ export const analyzeRollbackRisk = async (
   // Compare dependencies
   const oldDeps = previousVersion.package_data.dependencies || {};
   const newDeps = currentVersion.package_data.dependencies || {};
-
+  
   const addedDeps = Object.keys(newDeps).filter(dep => !oldDeps[dep]);
   const removedDeps = Object.keys(oldDeps).filter(dep => !newDeps[dep]);
   const updatedDeps = Object.entries(newDeps)
@@ -115,7 +115,10 @@ export const analyzeRollbackRisk = async (
   // Save analysis to database
   await supabase
     .from('rollback_analysis')
-    .insert(rollbackAnalysis);
+    .insert({
+      ...rollbackAnalysis,
+      risk_level: riskLevel // Add this field to match the database schema
+    });
 
   return rollbackAnalysis;
 };
