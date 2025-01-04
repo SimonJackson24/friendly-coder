@@ -1,9 +1,13 @@
-import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
-import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DollarSign, TrendingUp, Users, Target } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
+import { MetricCard } from "./metrics/MetricCard";
+import { PerformanceChart } from "./metrics/PerformanceChart";
+import { PlatformMetrics } from "./metrics/PlatformMetrics";
+import { ConversionMetrics } from "./metrics/ConversionMetrics";
+import { useToast } from "@/components/ui/use-toast";
 
 const PLATFORM_COLORS = {
   facebook: "#4267B2",
@@ -12,105 +16,110 @@ const PLATFORM_COLORS = {
   google: "#DB4437"
 };
 
-// Custom formatter for cost per conversion
-const CostPerConversionTooltip = (props: any) => {
-  const { payload } = props;
-  if (!payload || !payload.length) return null;
-  
-  const data = payload[0].payload;
-  const costPerConversion = data.spend / data.conversions;
-  
-  return (
-    <div className="bg-white p-2 border rounded shadow">
-      <p className="text-sm">{`$${costPerConversion.toFixed(2)}`}</p>
-    </div>
-  );
-};
-
 export function AdMetricsDashboard() {
-  const { data: metrics, isLoading } = useQuery({
+  const { toast } = useToast();
+
+  const { data: metrics, isLoading, refetch } = useQuery({
     queryKey: ["ad-metrics"],
     queryFn: async () => {
-      // This would be replaced with actual API calls to ad platforms
-      const sampleData = Array.from({ length: 7 }, (_, i) => ({
-        date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toLocaleDateString(),
-        impressions: Math.floor(Math.random() * 1000),
-        clicks: Math.floor(Math.random() * 100),
-        conversions: Math.floor(Math.random() * 20),
-        cost: Math.random() * 500,
-        ctr: Math.random() * 5,
-        cpc: Math.random() * 2,
-        conversionRate: Math.random() * 10,
-        platform: ['facebook', 'instagram', 'twitter', 'google'][Math.floor(Math.random() * 4)],
-        roas: Math.random() * 4 + 1,
-      })).reverse();
-      
-      return sampleData;
+      console.log("Fetching ad metrics...");
+      const { data, error } = await supabase
+        .from("ad_metrics")
+        .select("*")
+        .order("date", { ascending: true });
+
+      if (error) {
+        console.error("Error fetching ad metrics:", error);
+        throw error;
+      }
+
+      return data;
     },
   });
 
   const { data: platformMetrics } = useQuery({
     queryKey: ["platform-metrics"],
     queryFn: async () => {
-      return Object.entries(PLATFORM_COLORS).map(([platform]) => ({
-        platform,
-        spend: Math.random() * 1000,
-        conversions: Math.floor(Math.random() * 100),
-        revenue: Math.random() * 2000,
-      }));
+      console.log("Fetching platform metrics...");
+      const { data, error } = await supabase
+        .from("ad_metrics")
+        .select("platform, spend, conversions, revenue")
+        .order("platform", { ascending: true });
+
+      if (error) {
+        console.error("Error fetching platform metrics:", error);
+        throw error;
+      }
+
+      return data;
     },
   });
+
+  // Subscribe to real-time updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('ad-metrics-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ad_metrics'
+        },
+        (payload) => {
+          console.log('Real-time update received:', payload);
+          refetch();
+          toast({
+            title: "Metrics Updated",
+            description: "Ad performance metrics have been updated in real-time.",
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch, toast]);
 
   if (isLoading) {
     return <div>Loading metrics...</div>;
   }
 
-  const totalSpend = metrics?.reduce((acc, curr) => acc + curr.cost, 0) || 0;
+  const totalSpend = metrics?.reduce((acc, curr) => acc + curr.spend, 0) || 0;
   const totalConversions = metrics?.reduce((acc, curr) => acc + curr.conversions, 0) || 0;
   const averageRoas = metrics?.reduce((acc, curr) => acc + curr.roas, 0) / (metrics?.length || 1);
+  const averageCTR = (metrics?.reduce((acc, curr) => acc + curr.ctr, 0) || 0) / (metrics?.length || 1);
 
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">Ad Performance Analytics</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-sm font-medium">Total Spend</h3>
-          </div>
-          <p className="text-2xl font-bold mt-2">${totalSpend.toFixed(2)}</p>
-          <p className="text-xs text-muted-foreground">Across all platforms</p>
-        </Card>
-        
-        <Card className="p-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-sm font-medium">Conversions</h3>
-          </div>
-          <p className="text-2xl font-bold mt-2">{totalConversions}</p>
-          <p className="text-xs text-muted-foreground">Total conversions</p>
-        </Card>
-        
-        <Card className="p-4">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-sm font-medium">Avg. ROAS</h3>
-          </div>
-          <p className="text-2xl font-bold mt-2">{averageRoas.toFixed(2)}x</p>
-          <p className="text-xs text-muted-foreground">Return on ad spend</p>
-        </Card>
-        
-        <Card className="p-4">
-          <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-sm font-medium">CTR</h3>
-          </div>
-          <p className="text-2xl font-bold mt-2">
-            {((metrics?.reduce((acc, curr) => acc + curr.ctr, 0) || 0) / (metrics?.length || 1)).toFixed(2)}%
-          </p>
-          <p className="text-xs text-muted-foreground">Average click-through rate</p>
-        </Card>
+        <MetricCard
+          title="Total Spend"
+          value={`$${totalSpend.toFixed(2)}`}
+          description="Across all platforms"
+          icon={DollarSign}
+        />
+        <MetricCard
+          title="Conversions"
+          value={totalConversions}
+          description="Total conversions"
+          icon={TrendingUp}
+        />
+        <MetricCard
+          title="Avg. ROAS"
+          value={`${averageRoas.toFixed(2)}x`}
+          description="Return on ad spend"
+          icon={Users}
+        />
+        <MetricCard
+          title="CTR"
+          value={`${averageCTR.toFixed(2)}%`}
+          description="Average click-through rate"
+          icon={Target}
+        />
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
@@ -121,88 +130,18 @@ export function AdMetricsDashboard() {
         </TabsList>
 
         <TabsContent value="overview">
-          <Card className="p-4">
-            <h3 className="text-lg font-medium mb-4">Performance Trends</h3>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={metrics}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="impressions" stroke="#8884d8" fill="#8884d8" />
-                  <Area type="monotone" dataKey="clicks" stroke="#82ca9d" fill="#82ca9d" />
-                  <Area type="monotone" dataKey="conversions" stroke="#ffc658" fill="#ffc658" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
+          <PerformanceChart data={metrics || []} />
         </TabsContent>
 
         <TabsContent value="platforms">
-          <Card className="p-4">
-            <h3 className="text-lg font-medium mb-4">Platform Performance</h3>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={platformMetrics}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="platform" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="spend" name="Spend" fill="#8884d8" />
-                  <Bar dataKey="conversions" name="Conversions" fill="#82ca9d" />
-                  <Bar dataKey="revenue" name="Revenue" fill="#ffc658" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
+          <PlatformMetrics data={platformMetrics || []} />
         </TabsContent>
 
         <TabsContent value="conversions">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="p-4">
-              <h3 className="text-lg font-medium mb-4">Conversion by Platform</h3>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={platformMetrics}
-                      dataKey="conversions"
-                      nameKey="platform"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label
-                    >
-                      {platformMetrics?.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={PLATFORM_COLORS[entry.platform]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-
-            <Card className="p-4">
-              <h3 className="text-lg font-medium mb-4">Cost per Conversion</h3>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={platformMetrics}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="platform" />
-                    <YAxis />
-                    <Tooltip content={<CostPerConversionTooltip />} />
-                    <Bar
-                      dataKey="spend"
-                      name="Cost per Conversion"
-                      fill="#8884d8"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-          </div>
+          <ConversionMetrics 
+            data={platformMetrics || []} 
+            platformColors={PLATFORM_COLORS}
+          />
         </TabsContent>
       </Tabs>
     </div>
