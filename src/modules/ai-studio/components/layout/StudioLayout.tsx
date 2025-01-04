@@ -2,6 +2,7 @@ import { FileNode } from "@/hooks/useFileSystem";
 import { FileExplorerSection } from "@/components/assistant/FileExplorerSection";
 import { Preview } from "@/components/Preview";
 import { StudioTabs } from "./StudioTabs";
+import { StudioHeader } from "./StudioHeader";
 
 interface StudioLayoutProps {
   files: FileNode[];
@@ -34,7 +35,10 @@ export function StudioLayout({
 }: StudioLayoutProps) {
   return (
     <div className="h-screen w-full bg-background">
-      <div className="h-full grid grid-cols-12 gap-4 p-2 md:p-4">
+      <div className="p-4">
+        <StudioHeader projectTitle={project?.title} />
+      </div>
+      <div className="h-[calc(100vh-100px)] grid grid-cols-12 gap-4 p-2 md:p-4">
         <div className="col-span-12 md:col-span-3 h-full">
           <FileExplorerSection
             files={files}
