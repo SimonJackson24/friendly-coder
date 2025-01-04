@@ -12,6 +12,7 @@ interface FileTreeNodeProps {
   onFileSelect: (file: FileNode) => void;
   onDeleteFile: (id: string) => void;
   onMoveFile?: (sourceId: string, targetId: string) => void;
+  onDrop?: (draggedId: string, targetId: string) => void;
 }
 
 export function FileTreeNode({
@@ -20,6 +21,7 @@ export function FileTreeNode({
   onFileSelect,
   onDeleteFile,
   onMoveFile,
+  onDrop,
 }: FileTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -65,8 +67,12 @@ export function FileTreeNode({
     if (node.type !== "folder") return;
 
     const sourceId = e.dataTransfer.getData("text/plain");
-    if (sourceId !== node.id && onMoveFile) {
-      onMoveFile(sourceId, node.id);
+    if (sourceId !== node.id) {
+      if (onDrop) {
+        onDrop(sourceId, node.id);
+      } else if (onMoveFile) {
+        onMoveFile(sourceId, node.id);
+      }
     }
   };
 
@@ -150,6 +156,7 @@ export function FileTreeNode({
               onFileSelect={onFileSelect}
               onDeleteFile={onDeleteFile}
               onMoveFile={onMoveFile}
+              onDrop={onDrop}
             />
           ))}
         </div>
