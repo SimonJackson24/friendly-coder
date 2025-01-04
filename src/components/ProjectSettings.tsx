@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { GitHubSection } from "./settings/GitHubSection";
 import { SupabaseOAuthSection } from "./settings/SupabaseOAuthSection";
 import { EnvironmentVariablesSection } from "./settings/EnvironmentVariablesSection";
+import { AndroidBuildSection } from "./settings/AndroidBuildSection";
 
 interface ProjectSettingsProps {
   project: any;
@@ -79,6 +80,10 @@ export function ProjectSettings({ project }: ProjectSettingsProps) {
           envVars={envVars} 
           onChange={setEnvVars} 
         />
+
+        <Separator />
+
+        <AndroidBuildSection projectId={project?.id} />
 
         <Button 
           onClick={handleSave}
