@@ -1,4 +1,5 @@
 import { FilesTable, ProjectsTable, SettingsTable, SupabaseConnectionsTable, VersionHistoryTable } from './tables';
+import { WorkflowConfigurationsTable } from './workflow';
 import { DatabaseFunctions } from './functions';
 
 export type Json =
@@ -17,6 +18,7 @@ export interface Database {
       settings: SettingsTable
       supabase_connections: SupabaseConnectionsTable
       version_history: VersionHistoryTable
+      workflow_configurations: WorkflowConfigurationsTable
     }
     Views: {
       [_ in never]: never
