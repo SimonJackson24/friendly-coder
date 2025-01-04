@@ -8,7 +8,10 @@ import { CommitHistory } from "./CommitHistory";
 import { CreateCommitDialog } from "./CreateCommitDialog";
 import { PullRequestList } from "./pull-requests/PullRequestList";
 import { CreatePullRequest } from "./pull-requests/CreatePullRequest";
-import { useToast } from "@/components/ui/use-toast";
+import { BranchProtectionRules } from "./branch-protection/BranchProtectionRules";
+import { RebaseOperations } from "./rebase/RebaseOperations";
+import { CherryPick } from "./cherry-pick/CherryPick";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { FileNode } from "@/hooks/useFileSystem";
@@ -93,6 +96,9 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
           <TabsTrigger value="branches">Branches</TabsTrigger>
           <TabsTrigger value="commits">Commits</TabsTrigger>
           <TabsTrigger value="pull-requests">Pull Requests</TabsTrigger>
+          <TabsTrigger value="protection">Branch Protection</TabsTrigger>
+          <TabsTrigger value="rebase">Rebase</TabsTrigger>
+          <TabsTrigger value="cherry-pick">Cherry Pick</TabsTrigger>
         </TabsList>
 
         <TabsContent value="repositories">
@@ -158,6 +164,54 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
             <div className="text-center py-8">
               <p className="text-muted-foreground">
                 Select a repository to view pull requests
+              </p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="protection">
+          {selectedBranchId && selectedRepositoryId ? (
+            <BranchProtectionRules
+              branchId={selectedBranchId}
+              repositoryId={selectedRepositoryId}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                Select a branch to manage protection rules
+              </p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="rebase">
+          {activeBranchId && targetBranchId ? (
+            <RebaseOperations
+              sourceBranchId={activeBranchId}
+              targetBranchId={targetBranchId}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                Select source and target branches to perform rebase operations
+              </p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="cherry-pick">
+          {selectedBranchId ? (
+            <CherryPick
+              commits={[]} // You'll need to fetch commits and implement the onCherryPick handler
+              onCherryPick={async (commitIds) => {
+                // Implement cherry-pick logic here
+                console.log("Cherry-picking commits:", commitIds);
+              }}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                Select a branch to cherry-pick commits
               </p>
             </div>
           )}
