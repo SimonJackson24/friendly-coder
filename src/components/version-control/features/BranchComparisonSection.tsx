@@ -62,7 +62,7 @@ export function BranchComparisonSection({
         .single();
       
       if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      return data as BranchComparison;
     },
     enabled: !!activeBranchId && !!targetBranchId && !!repositoryId
   });
