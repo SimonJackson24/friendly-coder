@@ -18,7 +18,9 @@ import {
   Smartphone, 
   Globe, 
   ArrowRightLeft, 
-  Code2 
+  Code2,
+  Laptop,
+  Workflow
 } from "lucide-react";
 
 interface CreateProjectDialogProps {
@@ -27,7 +29,7 @@ interface CreateProjectDialogProps {
   userId: string;
 }
 
-type ProjectType = 'web' | 'android' | 'web-to-android' | 'fullstack';
+type ProjectType = 'responsive-website' | 'android' | 'web-to-android' | 'fullstack' | 'pwa';
 
 export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProjectDialogProps) => {
   const { toast } = useToast();
@@ -35,7 +37,7 @@ export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProj
   const [newProject, setNewProject] = useState({ 
     title: "", 
     description: "",
-    type: "web" as ProjectType 
+    type: "responsive-website" as ProjectType 
   });
 
   const createProject = useMutation({
@@ -61,7 +63,7 @@ export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProj
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       onOpenChange(false);
-      setNewProject({ title: "", description: "", type: "web" });
+      setNewProject({ title: "", description: "", type: "responsive-website" });
       toast({
         title: "Success",
         description: "Project created successfully",
@@ -91,7 +93,7 @@ export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProj
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Create New Project</DialogTitle>
         </DialogHeader>
@@ -130,34 +132,67 @@ export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProj
               className="grid grid-cols-2 gap-4"
             >
               <div className="flex items-center space-x-2 rounded-lg border p-4 cursor-pointer hover:bg-accent">
-                <RadioGroupItem value="web" id="web" />
-                <Label htmlFor="web" className="flex items-center gap-2 cursor-pointer">
-                  <Globe className="h-4 w-4" />
-                  Web App
+                <RadioGroupItem value="responsive-website" id="responsive-website" />
+                <Label htmlFor="responsive-website" className="flex-1 cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    <span className="font-medium">Responsive Website</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Create a modern, responsive website that works on all devices
+                  </p>
+                </Label>
+              </div>
+              
+              <div className="flex items-center space-x-2 rounded-lg border p-4 cursor-pointer hover:bg-accent">
+                <RadioGroupItem value="pwa" id="pwa" />
+                <Label htmlFor="pwa" className="flex-1 cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <Laptop className="h-4 w-4" />
+                    <span className="font-medium">Progressive Web App</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Build a PWA that can be installed on any device
+                  </p>
                 </Label>
               </div>
               
               <div className="flex items-center space-x-2 rounded-lg border p-4 cursor-pointer hover:bg-accent">
                 <RadioGroupItem value="android" id="android" />
-                <Label htmlFor="android" className="flex items-center gap-2 cursor-pointer">
-                  <Smartphone className="h-4 w-4" />
-                  Android App
+                <Label htmlFor="android" className="flex-1 cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="h-4 w-4" />
+                    <span className="font-medium">Native Android App</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Develop a native Android application from scratch
+                  </p>
                 </Label>
               </div>
               
               <div className="flex items-center space-x-2 rounded-lg border p-4 cursor-pointer hover:bg-accent">
                 <RadioGroupItem value="web-to-android" id="web-to-android" />
-                <Label htmlFor="web-to-android" className="flex items-center gap-2 cursor-pointer">
-                  <ArrowRightLeft className="h-4 w-4" />
-                  Web to Android
+                <Label htmlFor="web-to-android" className="flex-1 cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <ArrowRightLeft className="h-4 w-4" />
+                    <span className="font-medium">Web to Android</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Convert your web app into a native Android application
+                  </p>
                 </Label>
               </div>
               
-              <div className="flex items-center space-x-2 rounded-lg border p-4 cursor-pointer hover:bg-accent">
+              <div className="col-span-2 flex items-center space-x-2 rounded-lg border p-4 cursor-pointer hover:bg-accent">
                 <RadioGroupItem value="fullstack" id="fullstack" />
-                <Label htmlFor="fullstack" className="flex items-center gap-2 cursor-pointer">
-                  <Code2 className="h-4 w-4" />
-                  Full Stack
+                <Label htmlFor="fullstack" className="flex-1 cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <Workflow className="h-4 w-4" />
+                    <span className="font-medium">Full Stack Application</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Build a complete application with frontend, backend, and database
+                  </p>
                 </Label>
               </div>
             </RadioGroup>
