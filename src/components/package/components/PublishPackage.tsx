@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { PackagePlus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { Package, PublishValidation, PublishStep } from "../types";
+import { PublishValidation, PublishStep } from "../types";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, PackagePlus, AlertTriangle, Check, X } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PublishSteps } from "./publish/PublishSteps";
+import { ValidationSection } from "./publish/ValidationSection";
+import { PublishForm } from "./publish/PublishForm";
 
 export function PublishPackage() {
   const [name, setName] = useState("");
@@ -20,7 +18,6 @@ export function PublishPackage() {
   const [publishSteps, setPublishSteps] = useState<PublishStep[]>([]);
   const { toast } = useToast();
 
-  // Define updateStep function
   const updateStep = (id: string, status: PublishStep['status'], error?: string) => {
     setPublishSteps(steps => 
       steps.map(step => 
@@ -56,7 +53,6 @@ export function PublishPackage() {
         return false;
       }
 
-      // Initialize publish steps
       setPublishSteps([
         {
           id: 'dependencies',
@@ -189,80 +185,23 @@ export function PublishPackage() {
       </h3>
       
       {!publishSteps.length ? (
-        <div className="space-y-3">
-          <Input
-            placeholder="Package name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+        <>
+          <PublishForm
+            name={name}
+            version={version}
+            description={description}
+            isPrivate={isPrivate}
+            isValidating={isValidating}
+            isPublishing={isPublishing}
+            onNameChange={setName}
+            onVersionChange={setVersion}
+            onDescriptionChange={setDescription}
+            onPrivateChange={setIsPrivate}
+            onPublish={handlePublish}
           />
           
-          <Input
-            placeholder="Version (e.g. 1.0.0)"
-            value={version}
-            onChange={(e) => setVersion(e.target.value)}
-          />
-          
-          <Textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-
-          {validation && (
-            <div className="space-y-2">
-              {validation.errors.map((error, i) => (
-                <Alert key={i} variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              ))}
-              
-              {validation.warnings.map((warning, i) => (
-                <Alert key={i} variant="warning">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Warning</AlertTitle>
-                  <AlertDescription>{warning}</AlertDescription>
-                </Alert>
-              ))}
-
-              {validation.dependencies.map((dep, i) => (
-                <Alert key={i} variant={dep.isCompatible ? "default" : "destructive"}>
-                  {dep.isCompatible ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <X className="h-4 w-4" />
-                  )}
-                  <AlertTitle>{dep.name}@{dep.version}</AlertTitle>
-                  {!dep.isCompatible && (
-                    <AlertDescription>
-                      {dep.conflicts.join(", ")}
-                    </AlertDescription>
-                  )}
-                </Alert>
-              ))}
-            </div>
-          )}
-          
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="private"
-              checked={isPrivate}
-              onChange={(e) => setIsPrivate(e.target.checked)}
-            />
-            <label htmlFor="private">Private package</label>
-          </div>
-          
-          <Button 
-            onClick={handlePublish}
-            disabled={!name || !version || isValidating || isPublishing}
-            className="w-full"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            {isValidating ? "Validating..." : isPublishing ? "Publishing..." : "Publish Package"}
-          </Button>
-        </div>
+          <ValidationSection validation={validation} />
+        </>
       ) : (
         <PublishSteps
           steps={publishSteps}
