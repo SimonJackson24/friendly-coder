@@ -9,7 +9,7 @@ import { AdPlatformConnections } from "@/components/ad-creator/AdPlatformConnect
 export default function Ads() {
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-3xl font-bold mb-6">AI Ad Creator</h1>
+      <h1 className="text-3xl font-bold mb-6">AI Ad Studio</h1>
       
       <Tabs defaultValue="creator" className="space-y-4">
         <TabsList>

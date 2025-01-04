@@ -47,7 +47,7 @@ export const Navigation = () => {
               <Link to="/ads">
                 <Button variant="ghost" className="hover:bg-white/10">
                   <Megaphone className="h-5 w-5 mr-2" />
-                  Ad Creator
+                  Ad Studio
                 </Button>
               </Link>
               <Link to="/settings">
