@@ -917,6 +917,39 @@ export type Database = {
           },
         ]
       }
+      dependency_resolutions: {
+        Row: {
+          created_at: string | null
+          id: string
+          package_name: string
+          resolution_date: string | null
+          resolution_strategy: string
+          resolved_version: string | null
+          risk_level: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          package_name: string
+          resolution_date?: string | null
+          resolution_strategy: string
+          resolved_version?: string | null
+          risk_level?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          package_name?: string
+          resolution_date?: string | null
+          resolution_strategy?: string
+          resolved_version?: string | null
+          risk_level?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       deployment_history: {
         Row: {
           completed_at: string | null

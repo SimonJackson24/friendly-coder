@@ -137,7 +137,7 @@ export function usePublishPackage() {
           .insert({
             package_name: packageName,
             resolution_strategy: strategy.action,
-            resolved_version: strategy.action === 'upgrade' ? strategy.version : null,
+            resolved_version: strategy.suggestedVersion,
             risk_level: strategy.risk
           });
 
