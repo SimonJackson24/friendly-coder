@@ -19,11 +19,14 @@ interface InsightContent {
   recommendations: InsightRecommendation[];
   confidenceScore: number;
   impactScore: number;
+  [key: string]: Json; // Add index signature to make it compatible with Json type
 }
 
 // Type guard to check if the content matches InsightContent structure
-function isInsightContent(content: Json): content is InsightContent {
-  const c = content as InsightContent;
+function isInsightContent(content: unknown): content is InsightContent {
+  if (!content || typeof content !== 'object') return false;
+  
+  const c = content as any;
   return (
     Array.isArray(c?.recommendations) &&
     typeof c?.confidenceScore === 'number' &&
