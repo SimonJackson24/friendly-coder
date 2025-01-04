@@ -50,10 +50,18 @@ export function CreateCommitDialog({
 
     setIsLoading(true);
     try {
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
       console.log("Creating commit:", {
         branchId,
         message: commitMessage,
         files: Array.from(selectedFiles),
+        authorId: user.id,
       });
 
       const { data: commit, error: commitError } = await supabase
@@ -61,6 +69,7 @@ export function CreateCommitDialog({
         .insert({
           branch_id: branchId,
           message: commitMessage,
+          author_id: user.id, // Add the author_id field
         })
         .select()
         .single();
