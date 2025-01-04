@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 
 interface ReleaseUser {
   id: string;
-  email: string | null;
+  email: string;
 }
 
 interface Release {

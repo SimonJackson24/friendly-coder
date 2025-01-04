@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, CheckCircle2 } from "lucide-react";
+import { Plus, Calendar } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { CreateMilestoneDialog } from "./CreateMilestoneDialog";
 import { useState } from "react";
@@ -11,14 +11,14 @@ import { Card } from "@/components/ui/card";
 
 interface MilestoneUser {
   id: string;
-  email: string | null;
+  email: string;
 }
 
 interface Milestone {
   id: string;
   title: string;
-  description: string | null;
-  due_date: string | null;
+  description: string;
+  due_date: string;
   status: string;
   created_by: string;
   created_at: string;
@@ -35,7 +35,6 @@ export function MilestoneList({ repositoryId }: MilestoneListProps) {
   const { data: milestones, isLoading } = useQuery({
     queryKey: ["milestones", repositoryId],
     queryFn: async () => {
-      console.log("Fetching milestones for repository:", repositoryId);
       const { data: milestonesData, error: milestonesError } = await supabase
         .from("milestones")
         .select(`
@@ -64,10 +63,7 @@ export function MilestoneList({ repositoryId }: MilestoneListProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Calendar className="w-5 h-5" />
-          <h2 className="text-xl font-semibold">Milestones</h2>
-        </div>
+        <h2 className="text-xl font-semibold">Milestones</h2>
         <Button onClick={() => setIsCreateOpen(true)} size="sm">
           <Plus className="w-4 h-4 mr-2" />
           New Milestone
@@ -85,7 +81,7 @@ export function MilestoneList({ repositoryId }: MilestoneListProps) {
                     {milestone.description}
                   </p>
                 </div>
-                <Badge variant={milestone.status === "open" ? "default" : "secondary"}>
+                <Badge variant={milestone.status === "open" ? "secondary" : "outline"}>
                   {milestone.status}
                 </Badge>
               </div>
@@ -93,12 +89,9 @@ export function MilestoneList({ repositoryId }: MilestoneListProps) {
               <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  <span>Due {milestone.due_date ? formatDistanceToNow(new Date(milestone.due_date), { addSuffix: true }) : 'No due date'}</span>
+                  <span>Due {formatDistanceToNow(new Date(milestone.due_date), { addSuffix: true })}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Created by {milestone.user?.email || 'Unknown user'}</span>
-                </div>
+                <div>Created by {milestone.user?.email || 'Unknown user'}</div>
               </div>
             </Card>
           ))}
