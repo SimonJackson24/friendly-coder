@@ -82,11 +82,7 @@ export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
 
       if (error) throw error;
 
-      // Transform the data to match the BoardColumn interface
-      return data.map((column: any) => ({
-        ...column,
-        board_cards: column.board_cards || []
-      })) as BoardColumn[];
+      return data as BoardColumn[];
     },
     enabled: !!board?.id
   });
@@ -103,7 +99,6 @@ export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
 
       if (error) throw error;
 
-      // Invalidate the columns query to refresh the cards
       queryClient.invalidateQueries({ queryKey: ["board-columns", board?.id] });
     } catch (error) {
       console.error("Error moving card:", error);
@@ -138,10 +133,7 @@ export function KanbanBoard({ repositoryId }: KanbanBoardProps) {
           {columns.map((column) => (
             <KanbanColumn
               key={column.id}
-              column={{
-                ...column,
-                cards: column.board_cards
-              }}
+              column={column}
               onCardMove={handleCardMove}
             />
           ))}

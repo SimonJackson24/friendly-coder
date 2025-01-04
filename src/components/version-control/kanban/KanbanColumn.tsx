@@ -19,8 +19,8 @@ export function KanbanColumn({ column, onCardMove }: KanbanColumnProps) {
     accept: "CARD",
     drop: (item: { id: string, columnId: string }) => {
       if (item.columnId !== column.id) {
-        const newPosition = column.cards.length > 0 
-          ? column.cards[column.cards.length - 1].position + 1 
+        const newPosition = column.board_cards.length > 0 
+          ? column.board_cards[column.board_cards.length - 1].position + 1 
           : 1;
         onCardMove(item.id, newPosition, column.id);
       }
@@ -46,7 +46,7 @@ export function KanbanColumn({ column, onCardMove }: KanbanColumnProps) {
       <Card className={`p-2 ${isOver ? 'bg-accent/50' : ''}`}>
         <ScrollArea className="h-[500px]">
           <div className="space-y-2">
-            {column.cards
+            {column.board_cards
               .sort((a, b) => a.position - b.position)
               .map((card) => (
                 <DraggableCard 

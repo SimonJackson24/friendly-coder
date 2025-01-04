@@ -5,26 +5,11 @@ import { Select } from "@/components/ui/select";
 import { FileDiffViewer } from "../FileDiffViewer";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { BranchComparison, ComparisonData } from "@/types/kanban";
 
 interface BranchComparisonSectionProps {
   repositoryId: string | null;
   activeBranchId: string | null;
-}
-
-interface ComparisonData {
-  source_content: string;
-  target_content: string;
-}
-
-interface BranchComparison {
-  id: string;
-  repository_id: string;
-  source_branch_id: string;
-  target_branch_id: string;
-  comparison_data: ComparisonData;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
 }
 
 export function BranchComparisonSection({ 
@@ -62,7 +47,16 @@ export function BranchComparisonSection({
         .single();
       
       if (error && error.code !== 'PGRST116') throw error;
-      return data as BranchComparison;
+      
+      if (data) {
+        // Ensure the comparison_data matches the ComparisonData type
+        const typedData = {
+          ...data,
+          comparison_data: data.comparison_data as ComparisonData
+        };
+        return typedData as BranchComparison;
+      }
+      return null;
     },
     enabled: !!activeBranchId && !!targetBranchId && !!repositoryId
   });
