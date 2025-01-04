@@ -63,6 +63,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_platform_api_configs: {
+        Row: {
+          access_token: string | null
+          account_id: string | null
+          additional_settings: Json | null
+          api_key_id: string | null
+          api_key_secret: string | null
+          created_at: string | null
+          id: string
+          platform: string
+          refresh_token: string | null
+          token_expires_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          account_id?: string | null
+          additional_settings?: Json | null
+          api_key_id?: string | null
+          api_key_secret?: string | null
+          created_at?: string | null
+          id?: string
+          platform: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          account_id?: string | null
+          additional_settings?: Json | null
+          api_key_id?: string | null
+          api_key_secret?: string | null
+          created_at?: string | null
+          id?: string
+          platform?: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ad_platform_connections: {
         Row: {
           access_token: string | null
