@@ -9,8 +9,22 @@ interface AndroidBuildStatusProps {
   projectId: string;
 }
 
+type AndroidBuild = {
+  apk_url: string | null;
+  build_config: any;
+  build_logs: string[];
+  created_at: string;
+  id: string;
+  package_name: string;
+  project_id: string;
+  status: string;
+  updated_at: string;
+  version_code: number;
+  version_name: string;
+}
+
 export function AndroidBuildStatus({ projectId }: AndroidBuildStatusProps) {
-  const { data: buildData, isLoading } = useQuery({
+  const { data: buildData, isLoading } = useQuery<AndroidBuild | null>({
     queryKey: ["android-build", projectId],
     queryFn: async () => {
       console.log("Fetching latest Android build for project:", projectId);
@@ -29,7 +43,7 @@ export function AndroidBuildStatus({ projectId }: AndroidBuildStatusProps) {
       return data;
     },
     refetchInterval: (query) => {
-      if (!query?.data) return false;
+      if (!query.data) return false;
       return query.data.status === "pending" ? 5000 : false;
     },
   });
