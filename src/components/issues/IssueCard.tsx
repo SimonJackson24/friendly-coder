@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Calendar, User } from "lucide-react";
+import { Avatar } from "@/components/ui/avatar";
+import { MessageCircle, Calendar, User, Tag } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface IssueCardProps {
@@ -44,13 +45,18 @@ export function IssueCard({ issue }: IssueCardProps) {
             </div>
           )}
 
-          <div className="flex gap-1">
-            {issue.labels?.map((label: string) => (
-              <Badge key={label} variant="outline">
-                {label}
-              </Badge>
-            ))}
-          </div>
+          {issue.labels && issue.labels.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Tag className="w-4 h-4" />
+              <div className="flex gap-1">
+                {issue.labels.map((label: string) => (
+                  <Badge key={label} variant="outline" className="text-xs">
+                    {label}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Card>

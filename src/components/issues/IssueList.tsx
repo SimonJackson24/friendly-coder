@@ -3,9 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Plus, MessageCircle, AlertCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, MessageCircle, AlertCircle, Search, Filter } from "lucide-react";
 import { CreateIssueDialog } from "./CreateIssueDialog";
 import { IssueCard } from "./IssueCard";
+import { IssueDetailView } from "./IssueDetailView";
 import { useToast } from "@/components/ui/use-toast";
 
 interface IssueListProps {
@@ -14,13 +17,16 @@ interface IssueListProps {
 
 export function IssueList({ repositoryId }: IssueListProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const { toast } = useToast();
 
   const { data: issues, isLoading } = useQuery({
-    queryKey: ["issues", repositoryId],
+    queryKey: ["issues", repositoryId, searchQuery, statusFilter],
     queryFn: async () => {
       console.log("Fetching issues for repository:", repositoryId);
-      const { data, error } = await supabase
+      let query = supabase
         .from("issues")
         .select(`
           *,
@@ -30,6 +36,16 @@ export function IssueList({ repositoryId }: IssueListProps) {
         `)
         .eq("repository_id", repositoryId)
         .order("created_at", { ascending: false });
+
+      if (searchQuery) {
+        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      }
+
+      if (statusFilter !== "all") {
+        query = query.eq("status", statusFilter);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error("Error fetching issues:", error);
@@ -62,19 +78,57 @@ export function IssueList({ repositoryId }: IssueListProps) {
         </Button>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-200px)]">
-        <div className="space-y-4 p-1">
-          {issues?.map((issue) => (
-            <IssueCard key={issue.id} issue={issue} />
-          ))}
-          {issues?.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <MessageCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>No issues found. Create one to get started!</p>
-            </div>
-          )}
+      <div className="flex gap-4 items-center">
+        <div className="flex-1 relative">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search issues..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
         </div>
-      </ScrollArea>
+        <div className="w-48">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Issues</SelectItem>
+              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="closed">Closed</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {selectedIssueId ? (
+        <IssueDetailView
+          issueId={selectedIssueId}
+          onClose={() => setSelectedIssueId(null)}
+        />
+      ) : (
+        <ScrollArea className="h-[calc(100vh-200px)]">
+          <div className="space-y-4 p-1">
+            {issues?.map((issue) => (
+              <div
+                key={issue.id}
+                onClick={() => setSelectedIssueId(issue.id)}
+                className="cursor-pointer"
+              >
+                <IssueCard issue={issue} />
+              </div>
+            ))}
+            {issues?.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <MessageCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p>No issues found. Create one to get started!</p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      )}
 
       <CreateIssueDialog
         repositoryId={repositoryId}
