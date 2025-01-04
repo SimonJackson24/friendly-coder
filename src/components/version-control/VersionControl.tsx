@@ -1,8 +1,14 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RepositoryList } from "./RepositoryList";
+import { BranchList } from "./BranchList";
+import { CommitHistory } from "./CommitHistory";
 
 export function VersionControl({ projectId }: { projectId: string | null }) {
+  const [selectedRepositoryId, setSelectedRepositoryId] = useState<string | null>(null);
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+
   if (!projectId) {
     return (
       <Card className="p-6">
@@ -26,23 +32,37 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
         </TabsList>
 
         <TabsContent value="repositories">
-          <RepositoryList projectId={projectId} />
+          <RepositoryList 
+            projectId={projectId} 
+            onSelectRepository={setSelectedRepositoryId}
+          />
         </TabsContent>
 
         <TabsContent value="branches">
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">
-              Select a repository to manage branches
-            </p>
-          </div>
+          {selectedRepositoryId ? (
+            <BranchList 
+              repositoryId={selectedRepositoryId}
+              onSelectBranch={setSelectedBranchId}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                Select a repository to manage branches
+              </p>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="commits">
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">
-              Select a repository to view commit history
-            </p>
-          </div>
+          {selectedBranchId ? (
+            <CommitHistory branchId={selectedBranchId} />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">
+                Select a branch to view commit history
+              </p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </Card>

@@ -15,7 +15,12 @@ interface Repository {
   created_at: string;
 }
 
-export function RepositoryList({ projectId }: { projectId: string }) {
+interface RepositoryListProps {
+  projectId: string;
+  onSelectRepository: (id: string) => void;
+}
+
+export function RepositoryList({ projectId, onSelectRepository }: RepositoryListProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -56,7 +61,8 @@ export function RepositoryList({ projectId }: { projectId: string }) {
           {repositories?.map((repo) => (
             <div
               key={repo.id}
-              className="p-4 border rounded-lg hover:bg-accent transition-colors"
+              className="p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
+              onClick={() => onSelectRepository(repo.id)}
             >
               <h3 className="font-semibold">{repo.name}</h3>
               {repo.description && (
