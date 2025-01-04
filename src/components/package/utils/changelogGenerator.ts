@@ -81,12 +81,6 @@ export const analyzeRollbackRisk = async (
     riskLevel = riskLevel === "high" ? "high" : "medium";
   }
 
-  // Check for breaking changes in package data
-  if (currentVersion.package_data?.breakingChanges?.length > 0) {
-    analysis.push("Breaking changes detected in package data");
-    riskLevel = "high";
-  }
-
   return {
     riskLevel,
     analysis: analysis.length ? analysis : ["No significant risks detected"]
