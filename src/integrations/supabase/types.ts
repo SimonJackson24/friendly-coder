@@ -1259,29 +1259,38 @@ export type Database = {
       package_versions: {
         Row: {
           changes: string | null
+          conflict_status: Json | null
           created_at: string | null
+          dependency_tree: Json | null
           id: string
           package_data: Json
           package_id: string
           published_by: string
+          resolved_dependencies: Json | null
           version: string
         }
         Insert: {
           changes?: string | null
+          conflict_status?: Json | null
           created_at?: string | null
+          dependency_tree?: Json | null
           id?: string
           package_data: Json
           package_id: string
           published_by: string
+          resolved_dependencies?: Json | null
           version: string
         }
         Update: {
           changes?: string | null
+          conflict_status?: Json | null
           created_at?: string | null
+          dependency_tree?: Json | null
           id?: string
           package_data?: Json
           package_id?: string
           published_by?: string
+          resolved_dependencies?: Json | null
           version?: string
         }
         Relationships: [
@@ -1550,31 +1559,43 @@ export type Database = {
       }
       release_notes: {
         Row: {
+          affected_components: string[] | null
           breaking_changes: string[] | null
+          changelog_type: string | null
           changes: string[] | null
           created_at: string | null
           description: string | null
           id: string
+          impact_level: string | null
+          migration_steps: Json | null
           package_id: string
           title: string
           version: string
         }
         Insert: {
+          affected_components?: string[] | null
           breaking_changes?: string[] | null
+          changelog_type?: string | null
           changes?: string[] | null
           created_at?: string | null
           description?: string | null
           id?: string
+          impact_level?: string | null
+          migration_steps?: Json | null
           package_id: string
           title: string
           version: string
         }
         Update: {
+          affected_components?: string[] | null
           breaking_changes?: string[] | null
+          changelog_type?: string | null
           changes?: string[] | null
           created_at?: string | null
           description?: string | null
           id?: string
+          impact_level?: string | null
+          migration_steps?: Json | null
           package_id?: string
           title?: string
           version?: string
