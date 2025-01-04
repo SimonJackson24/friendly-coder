@@ -53,14 +53,6 @@ export const LoginForm = () => {
         }}
         providers={[]}
         redirectTo={`${window.location.origin}/`}
-        onError={(error) => {
-          console.error('Auth error:', error);
-          toast({
-            variant: "destructive",
-            title: "Authentication Error",
-            description: error.message || "Failed to authenticate. Please try again.",
-          });
-        }}
         localization={{
           variables: {
             sign_in: {
@@ -70,6 +62,20 @@ export const LoginForm = () => {
               loading_button_label: 'Signing in...',
               social_provider_text: 'Sign in with {{provider}}',
               link_text: "Don't have an account? Sign up",
+            },
+            sign_up: {
+              email_label: 'Email',
+              password_label: 'Password',
+              button_label: 'Sign Up',
+              loading_button_label: 'Signing up...',
+              social_provider_text: 'Sign up with {{provider}}',
+              link_text: "Already have an account? Sign in",
+            },
+            forgotten_password: {
+              link_text: 'Forgot your password?',
+              button_label: 'Send reset instructions',
+              loading_button_label: 'Sending reset instructions...',
+              confirmation_text: 'Check your email for the password reset link',
             },
           },
         }}
