@@ -53,16 +53,18 @@ export function PackageManager() {
       console.log('Analysis results:', packageData);
       setAnalysisResults(packageData);
       
-      // Update installed packages list with proper Package type mapping
       if (packageData?.dependencies) {
         const installed: Package[] = Object.entries(packageData.dependencies).map(([name, version]) => ({
-          id: `${name}@${version}`, // Generate a unique ID
+          id: `${name}@${version}`,
           name,
           version: version as string,
-          description: '', // Default empty description
-          is_private: false, // Default to public
-          author_id: '', // Will be populated when needed
-          package_data: {} // Default empty package data
+          description: '',
+          is_private: false,
+          author_id: '',
+          package_data: {},
+          download_count: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }));
         setInstalledPackages(installed);
       }

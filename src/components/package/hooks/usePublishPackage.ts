@@ -31,11 +31,13 @@ export function usePublishPackage() {
       description,
       is_private: isPrivate,
       author_id: '', // Will be set by RLS
-      package_data: {}
+      package_data: {},
+      download_count: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     try {
-      // Pass name instead of the full package object
       const validationResult = await validatePackage(
         name,
         version,
@@ -44,13 +46,16 @@ export function usePublishPackage() {
       );
       
       setValidation({
-        ...validationResult,
+        valid: validationResult.valid,
+        errors: validationResult.errors,
+        warnings: validationResult.warnings,
         dependencyChecks: [],
         breakingChanges: [],
+        dependencies: [],
         publishSteps: []
       });
 
-      if (!validationResult.isValid) {
+      if (!validationResult.valid) {
         toast({
           title: "Validation Failed",
           description: "Please resolve all validation errors before publishing",

@@ -1,6 +1,6 @@
 import { PackageVersion } from "../types";
 
-export const generateAutomatedChangelog = async (
+export const generateChangelog = async (
   currentVersion: PackageVersion,
   previousVersion?: PackageVersion
 ): Promise<string> => {
@@ -44,38 +44,4 @@ export const generateAutomatedChangelog = async (
     "",
     changes.length ? "## Changes\n\n" + changes.map(c => `- ${c}`).join("\n") : "",
   ].filter(Boolean).join("\n");
-};
-
-export const analyzeRollbackRisk = async (
-  currentVersion: PackageVersion,
-  previousVersion: PackageVersion
-): Promise<{ riskLevel: string; analysis: string[] }> => {
-  const analysis: string[] = [];
-  let riskLevel = "low";
-
-  // Compare dependencies
-  const oldDeps = previousVersion.package_data.dependencies || {};
-  const newDeps = currentVersion.package_data.dependencies || {};
-
-  const addedDeps = Object.keys(newDeps).filter(dep => !oldDeps[dep]);
-  const removedDeps = Object.keys(oldDeps).filter(dep => !newDeps[dep]);
-  const updatedDeps = Object.entries(newDeps)
-    .filter(([dep, version]) => oldDeps[dep] && oldDeps[dep] !== version);
-
-  if (addedDeps.length) {
-    analysis.push(`Rolling back will remove ${addedDeps.length} dependencies`);
-    riskLevel = addedDeps.length > 5 ? "high" : "medium";
-  }
-
-  if (removedDeps.length) {
-    analysis.push(`Rolling back will reintroduce ${removedDeps.length} old dependencies`);
-    riskLevel = removedDeps.length > 5 ? "high" : "medium";
-  }
-
-  if (updatedDeps.length) {
-    analysis.push(`Rolling back will revert ${updatedDeps.length} dependency versions`);
-    riskLevel = updatedDeps.length > 5 ? "high" : "medium";
-  }
-
-  return { riskLevel, analysis };
 };
