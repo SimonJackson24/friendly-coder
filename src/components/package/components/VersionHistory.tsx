@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { History } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { VersionDiffViewer } from "./version/VersionDiffViewer";
-import { ChangelogEditor } from "./changelog/ChangelogEditor";
+import { VersionChangelogDialog } from "./version/VersionChangelogDialog";
 import { VersionList } from "./version/VersionList";
 import { CompareVersions } from "./version/CompareVersions";
 
@@ -75,33 +75,6 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
       }
     } else {
       setSelectedVersions([versionId]);
-    }
-  };
-
-  const handleRollback = async (versionId: string) => {
-    try {
-      const { error } = await supabase.functions.invoke('package-operations', {
-        body: { 
-          operation: 'rollback-version',
-          data: { packageId, versionId }
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Successfully rolled back to previous version",
-      });
-
-      fetchVersions();
-    } catch (error) {
-      console.error('Error rolling back version:', error);
-      toast({
-        title: "Error",
-        description: "Failed to rollback version",
-        variant: "destructive"
-      });
     }
   };
 
@@ -177,7 +150,6 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
             setSelectedVersions([version.id]);
             setShowReleaseNotes(true);
           }}
-          onRollback={handleRollback}
         />
       </ScrollArea>
 
@@ -203,20 +175,15 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showChangelogEditor} onOpenChange={setShowChangelogEditor}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Changelog</DialogTitle>
-          </DialogHeader>
-          {selectedVersions.length === 1 && (
-            <ChangelogEditor
-              version={versions.find(v => v.id === selectedVersions[0])!}
-              previousVersion={versions[versions.findIndex(v => v.id === selectedVersions[0]) + 1]}
-              onSave={handleSaveChangelog}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {showChangelogEditor && selectedVersions.length === 1 && (
+        <VersionChangelogDialog
+          open={showChangelogEditor}
+          onOpenChange={setShowChangelogEditor}
+          currentVersion={versions.find(v => v.id === selectedVersions[0])!}
+          previousVersion={versions[versions.findIndex(v => v.id === selectedVersions[0]) + 1]}
+          onSave={handleSaveChangelog}
+        />
+      )}
 
       <Dialog open={showReleaseNotes} onOpenChange={setShowReleaseNotes}>
         <DialogContent>
