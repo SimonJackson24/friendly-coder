@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useFileSystem, FileNode } from "@/hooks/useFileSystem";
 import { useToast } from "@/components/ui/use-toast";
-import { Preview } from "@/components/Preview";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
-import { FileExplorerSection } from "@/components/assistant/FileExplorerSection";
-import { MainContent } from "@/components/assistant/MainContent";
+import { StudioLayout } from "@/modules/ai-studio/components/layout/StudioLayout";
 
 const Assistant = () => {
   const [searchParams] = useSearchParams();
@@ -86,39 +84,20 @@ const Assistant = () => {
   }
 
   return (
-    <div className="h-screen w-full bg-background">
-      <div className="h-full grid grid-cols-12 gap-4 p-2 md:p-4">
-        <div className="col-span-12 md:col-span-3 h-full">
-          <FileExplorerSection
-            files={files}
-            isLoading={isLoading}
-            onFileSelect={handleFileSelect}
-            onCreateFile={handleCreateFile}
-            onDeleteFile={handleDeleteFile}
-          />
-        </div>
-        
-        <div className="col-span-12 md:col-span-5 h-full">
-          <MainContent
-            projectId={projectId}
-            selectedFile={selectedFile}
-            consoleOutput={consoleOutput}
-            buildErrors={buildErrors}
-            onSaveFile={handleSaveFile}
-            onClearConsole={handleClearConsole}
-            project={project}
-          />
-        </div>
-        
-        <div className="col-span-12 md:col-span-4 h-full">
-          <Preview
-            files={files}
-            onConsoleMessage={(message) => setConsoleOutput(prev => [...prev, message])}
-            onConsoleError={(error) => setBuildErrors(prev => [...prev, error])}
-          />
-        </div>
-      </div>
-    </div>
+    <StudioLayout
+      files={files}
+      isLoading={isLoading}
+      selectedFile={selectedFile}
+      projectId={projectId}
+      consoleOutput={consoleOutput}
+      buildErrors={buildErrors}
+      project={project}
+      onFileSelect={handleFileSelect}
+      onCreateFile={handleCreateFile}
+      onDeleteFile={handleDeleteFile}
+      onSaveFile={handleSaveFile}
+      onClearConsole={handleClearConsole}
+    />
   );
 };
 
