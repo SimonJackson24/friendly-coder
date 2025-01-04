@@ -29,7 +29,8 @@ export function AndroidBuildStatus({ projectId }: AndroidBuildStatusProps) {
       return data;
     },
     refetchInterval: (data) => {
-      return data?.status === "pending" ? 5000 : false;
+      if (!data) return false;
+      return data.status === "pending" ? 5000 : false;
     },
   });
 
