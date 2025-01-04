@@ -15,6 +15,7 @@ export type Database = {
           build_config: Json | null
           build_logs: string[] | null
           created_at: string | null
+          error_context: Json | null
           id: string
           package_name: string
           project_id: string
@@ -28,6 +29,7 @@ export type Database = {
           build_config?: Json | null
           build_logs?: string[] | null
           created_at?: string | null
+          error_context?: Json | null
           id?: string
           package_name: string
           project_id: string
@@ -41,6 +43,7 @@ export type Database = {
           build_config?: Json | null
           build_logs?: string[] | null
           created_at?: string | null
+          error_context?: Json | null
           id?: string
           package_name?: string
           project_id?: string
@@ -52,6 +55,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "android_builds_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      debug_logs: {
+        Row: {
+          context: Json | null
+          created_at: string | null
+          id: string
+          log_type: string
+          message: string
+          project_id: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          severity: string
+          stack_trace: string | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          log_type: string
+          message: string
+          project_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity: string
+          stack_trace?: string | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          log_type?: string
+          message?: string
+          project_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity?: string
+          stack_trace?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debug_logs_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -483,6 +533,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clean_old_debug_logs: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_next_version_number: {
         Args: {
           p_project_id: string
