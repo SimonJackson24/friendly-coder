@@ -1,37 +1,94 @@
-import { PackageAccess, AccessLevel, TeamAccess, AccessRequest } from "../../types";
+import { Json } from "@/integrations/supabase/types";
 
-export interface AccessControlProps {
-  packageId: string;
+export interface Package {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  is_private: boolean;
+  author_id: string;
+  package_data: Record<string, any>;
+  download_count: number;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface UserAccessProps {
-  accessList: PackageAccess[];
-  newUserId: string;
-  accessLevel: AccessLevel;
-  onNewUserIdChange: (value: string) => void;
-  onAccessLevelChange: (value: AccessLevel) => void;
-  onGrantAccess: () => void;
-  onRevokeAccess: (accessId: string) => void;
-  onShowBulkDialog: () => void;
+export interface PackageAccess {
+  id: string;
+  package_id: string;
+  user_id: string;
+  access_level: AccessLevel;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface BulkAccessProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  selectedUsers: string[];
-  setSelectedUsers: (users: string[]) => void;
-  accessLevel: AccessLevel;
-  onBulkAccess: () => void;
+export type AccessLevel = 'read' | 'write' | 'admin';
+
+export interface TeamAccess {
+  id: string;
+  team_id: string;
+  package_id: string;
+  access_level: AccessLevel;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface TeamAccessProps {
-  teamAccess: TeamAccess[];
-  onRevokeAccess: (accessId: string) => void;
+export interface AccessRequest {
+  id: string;
+  user_id: string;
+  package_id: string;
+  requested_level: AccessLevel;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
 }
 
-export interface AccessRequestsProps {
-  accessRequests: AccessRequest[];
-  onHandleRequest: (requestId: string, approve: boolean) => void;
+export interface SearchHistoryItem {
+  id: string;
+  query: string;
+  filters: Record<string, any>;
+  created_at: string;
+}
+
+export interface ReleaseNote {
+  id: string;
+  package_id: string;
+  version: string;
+  title: string;
+  description: string;
+  changes: string[];
+  breaking_changes: string[];
+  changelog_type: string;
+  impact_level: string;
+  affected_components: string[];
+  migration_steps: Record<string, any>;
+  created_at: string;
+}
+
+export interface PublishStep {
+  id: string;
+  name: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'error';
+  message?: string;
+}
+
+export interface PublishValidation {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+export interface DependencyCheck {
+  name: string;
+  version: string;
+  compatible: boolean;
+  message?: string;
+}
+
+export interface PackageValidation {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  dependencyChecks: DependencyCheck[];
 }
 
 export interface PackageVersion {
@@ -45,4 +102,14 @@ export interface PackageVersion {
   dependency_tree: Record<string, any>;
   resolved_dependencies: Record<string, any>;
   conflict_status: Record<string, any>;
+}
+
+export interface PermissionTemplate {
+  id: string;
+  name: string;
+  description: string;
+  permissions: Record<string, any>;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
 }

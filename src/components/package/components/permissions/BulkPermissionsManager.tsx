@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { AccessLevel } from "../../types";
+import { PermissionTemplateSelector } from "./PermissionTemplateSelector";
 
 interface BulkPermissionsManagerProps {
   packageId: string;
@@ -35,6 +36,8 @@ export function BulkPermissionsManager({ packageId, onPermissionsUpdated }: Bulk
 
     setIsLoading(true);
     try {
+      console.log('Granting bulk access to users:', userIds);
+      
       // First, save the permission template
       const { data: template, error: templateError } = await supabase
         .from('permission_templates')

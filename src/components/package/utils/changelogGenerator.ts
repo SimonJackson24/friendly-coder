@@ -1,64 +1,83 @@
 import { PackageVersion } from "../types";
 
-export const generateChangelog = (
-  oldVersion: PackageVersion,
-  newVersion: PackageVersion
+export const generateAutomatedChangelog = (
+  currentVersion: PackageVersion,
+  previousVersion: PackageVersion
 ): string => {
   const changes: string[] = [];
 
   // Compare dependencies
-  const oldDeps = oldVersion.dependency_tree || {};
-  const newDeps = newVersion.dependency_tree || {};
-  
-  // Added dependencies
-  Object.entries(newDeps).forEach(([dep, version]) => {
-    if (!oldDeps[dep]) {
-      changes.push(`- Added dependency: ${dep}@${version}`);
-    } else if (oldDeps[dep] !== version) {
-      changes.push(`- Updated ${dep} from ${oldDeps[dep]} to ${version}`);
+  const currentDeps = currentVersion.dependency_tree;
+  const previousDeps = previousVersion.dependency_tree;
+
+  // Add dependency changes
+  Object.entries(currentDeps).forEach(([name, version]) => {
+    if (!previousDeps[name]) {
+      changes.push(`Added dependency: ${name}@${version}`);
+    } else if (previousDeps[name] !== version) {
+      changes.push(`Updated ${name} from ${previousDeps[name]} to ${version}`);
     }
   });
 
-  // Removed dependencies
-  Object.keys(oldDeps).forEach(dep => {
-    if (!newDeps[dep]) {
-      changes.push(`- Removed dependency: ${dep}`);
+  Object.keys(previousDeps).forEach(name => {
+    if (!currentDeps[name]) {
+      changes.push(`Removed dependency: ${name}`);
     }
   });
 
-  // Add package changes
-  if (newVersion.changes) {
-    changes.push("\nPackage Changes:");
-    changes.push(newVersion.changes);
-  }
+  // Add package data changes
+  const currentData = currentVersion.package_data;
+  const previousData = previousVersion.package_data;
 
-  return changes.join("\n");
+  Object.entries(currentData).forEach(([key, value]) => {
+    if (JSON.stringify(previousData[key]) !== JSON.stringify(value)) {
+      changes.push(`Updated ${key}`);
+    }
+  });
+
+  return changes.join('\n');
 };
 
-export const categorizeChanges = (changes: string): Record<string, string[]> => {
-  const categories = {
-    features: [],
-    fixes: [],
-    breaking: [],
-    dependencies: [],
-    other: []
-  };
+export const analyzeRollbackRisk = (
+  currentVersion: PackageVersion,
+  targetVersion: PackageVersion
+): { riskLevel: 'low' | 'medium' | 'high'; reasons: string[] } => {
+  const reasons: string[] = [];
+  let riskLevel: 'low' | 'medium' | 'high' = 'low';
 
-  const lines = changes.split("\n");
+  // Check for breaking changes in dependencies
+  const currentDeps = currentVersion.dependency_tree;
+  const targetDeps = targetVersion.dependency_tree;
   
-  lines.forEach(line => {
-    if (line.toLowerCase().includes("feat:") || line.toLowerCase().includes("feature:")) {
-      categories.features.push(line);
-    } else if (line.toLowerCase().includes("fix:") || line.toLowerCase().includes("bugfix:")) {
-      categories.fixes.push(line);
-    } else if (line.toLowerCase().includes("breaking:") || line.toLowerCase().includes("!:")) {
-      categories.breaking.push(line);
-    } else if (line.toLowerCase().includes("dependency:") || line.toLowerCase().includes("dep:")) {
-      categories.dependencies.push(line);
-    } else if (line.trim()) {
-      categories.other.push(line);
+  let majorVersionChanges = 0;
+
+  Object.entries(currentDeps).forEach(([name, version]) => {
+    const targetVersion = targetDeps[name];
+    if (!targetVersion) {
+      reasons.push(`Dependency ${name} will be removed`);
+      majorVersionChanges++;
+    } else if (version !== targetVersion) {
+      const [currentMajor] = version.toString().split('.');
+      const [targetMajor] = targetVersion.toString().split('.');
+      if (currentMajor !== targetMajor) {
+        reasons.push(`Major version change in ${name}: ${version} -> ${targetVersion}`);
+        majorVersionChanges++;
+      }
     }
   });
 
-  return categories;
+  // Determine risk level based on changes
+  if (majorVersionChanges > 2) {
+    riskLevel = 'high';
+  } else if (majorVersionChanges > 0) {
+    riskLevel = 'medium';
+  }
+
+  // Check for conflicts
+  if (Object.keys(currentVersion.conflict_status).length > 0) {
+    riskLevel = 'high';
+    reasons.push('Current version has unresolved conflicts');
+  }
+
+  return { riskLevel, reasons };
 };
