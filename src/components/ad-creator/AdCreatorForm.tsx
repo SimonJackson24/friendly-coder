@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdCreatorFormProps {
   onSubmit: (data: AdFormData) => Promise<void>;
@@ -26,6 +28,8 @@ export interface AdFormData {
 
 export function AdCreatorForm({ onSubmit, isLoading, onPlatformChange, initialPlatform }: AdCreatorFormProps) {
   const { toast } = useToast();
+  const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([]);
+  const [isLoadingPlatforms, setIsLoadingPlatforms] = useState(true);
   const [formData, setFormData] = useState<AdFormData>({
     businessName: "",
     productDescription: "",
@@ -35,6 +39,41 @@ export function AdCreatorForm({ onSubmit, isLoading, onPlatformChange, initialPl
     tone: "professional",
     adType: "image",
   });
+
+  useEffect(() => {
+    async function fetchConnectedPlatforms() {
+      try {
+        const { data: connections, error } = await supabase
+          .from('ad_platform_connections')
+          .select('platform')
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+
+        if (error) throw error;
+
+        const platforms = connections?.map(c => c.platform) || [];
+        setConnectedPlatforms(platforms);
+        
+        // If no platform is selected or the selected platform isn't connected,
+        // select the first connected platform or clear the selection
+        if (platforms.length > 0 && (!formData.platform || !platforms.includes(formData.platform))) {
+          const newPlatform = platforms[0];
+          setFormData(prev => ({ ...prev, platform: newPlatform }));
+          onPlatformChange(newPlatform);
+        }
+      } catch (error) {
+        console.error('Error fetching connected platforms:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load connected platforms. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingPlatforms(false);
+      }
+    }
+
+    fetchConnectedPlatforms();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,8 +91,29 @@ export function AdCreatorForm({ onSubmit, isLoading, onPlatformChange, initialPl
   const handlePlatformChange = (value: string) => {
     setFormData({ ...formData, platform: value });
     onPlatformChange(value);
-    console.log("Platform changed to:", value); // Add console log for debugging
+    console.log("Platform changed to:", value);
   };
+
+  if (isLoadingPlatforms) {
+    return (
+      <Card className="p-6 flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </Card>
+    );
+  }
+
+  if (connectedPlatforms.length === 0) {
+    return (
+      <Card className="p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Please connect at least one advertising platform in the Platforms tab before creating ads.
+          </AlertDescription>
+        </Alert>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6 bg-card">
@@ -98,11 +158,11 @@ export function AdCreatorForm({ onSubmit, isLoading, onPlatformChange, initialPl
               <SelectValue placeholder="Select platform" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="facebook">Facebook</SelectItem>
-              <SelectItem value="instagram">Instagram</SelectItem>
-              <SelectItem value="twitter">Twitter</SelectItem>
-              <SelectItem value="google">Google Ads</SelectItem>
-              <SelectItem value="linkedin">LinkedIn</SelectItem>
+              {connectedPlatforms.map((platform) => (
+                <SelectItem key={platform} value={platform}>
+                  {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
