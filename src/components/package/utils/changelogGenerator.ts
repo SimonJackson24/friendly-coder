@@ -1,83 +1,51 @@
 import { PackageVersion } from "../types";
 
-export const generateAutomatedChangelog = (
+export const generateChangelog = (
   currentVersion: PackageVersion,
-  previousVersion: PackageVersion
+  previousVersion?: PackageVersion
 ): string => {
+  if (!previousVersion) {
+    return `# Version ${currentVersion.version}\n\nInitial release`;
+  }
+
   const changes: string[] = [];
+  const breakingChanges: string[] = [];
 
-  // Compare dependencies
-  const currentDeps = currentVersion.dependency_tree;
-  const previousDeps = previousVersion.dependency_tree;
+  // Compare package data to detect changes
+  const oldData = previousVersion.package_data;
+  const newData = currentVersion.package_data;
 
-  // Add dependency changes
-  Object.entries(currentDeps).forEach(([name, version]) => {
-    if (!previousDeps[name]) {
-      changes.push(`Added dependency: ${name}@${version}`);
-    } else if (previousDeps[name] !== version) {
-      changes.push(`Updated ${name} from ${previousDeps[name]} to ${version}`);
+  // Check for dependency changes
+  if (oldData.dependencies !== newData.dependencies) {
+    const addedDeps = Object.keys(newData.dependencies || {})
+      .filter(dep => !oldData.dependencies?.[dep]);
+    
+    const removedDeps = Object.keys(oldData.dependencies || {})
+      .filter(dep => !newData.dependencies?.[dep]);
+    
+    const updatedDeps = Object.entries(newData.dependencies || {})
+      .filter(([dep, version]) => 
+        oldData.dependencies?.[dep] && oldData.dependencies[dep] !== version
+      );
+
+    if (addedDeps.length) {
+      changes.push(`Added dependencies: ${addedDeps.join(", ")}`);
     }
-  });
-
-  Object.keys(previousDeps).forEach(name => {
-    if (!currentDeps[name]) {
-      changes.push(`Removed dependency: ${name}`);
+    if (removedDeps.length) {
+      changes.push(`Removed dependencies: ${removedDeps.join(", ")}`);
     }
-  });
-
-  // Add package data changes
-  const currentData = currentVersion.package_data;
-  const previousData = previousVersion.package_data;
-
-  Object.entries(currentData).forEach(([key, value]) => {
-    if (JSON.stringify(previousData[key]) !== JSON.stringify(value)) {
-      changes.push(`Updated ${key}`);
+    if (updatedDeps.length) {
+      changes.push(`Updated dependencies: ${updatedDeps.map(([dep, version]) => 
+        `${dep} to ${version}`).join(", ")}`);
     }
-  });
-
-  return changes.join('\n');
-};
-
-export const analyzeRollbackRisk = (
-  currentVersion: PackageVersion,
-  targetVersion: PackageVersion
-): { riskLevel: 'low' | 'medium' | 'high'; reasons: string[] } => {
-  const reasons: string[] = [];
-  let riskLevel: 'low' | 'medium' | 'high' = 'low';
-
-  // Check for breaking changes in dependencies
-  const currentDeps = currentVersion.dependency_tree;
-  const targetDeps = targetVersion.dependency_tree;
-  
-  let majorVersionChanges = 0;
-
-  Object.entries(currentDeps).forEach(([name, version]) => {
-    const targetVersion = targetDeps[name];
-    if (!targetVersion) {
-      reasons.push(`Dependency ${name} will be removed`);
-      majorVersionChanges++;
-    } else if (version !== targetVersion) {
-      const [currentMajor] = version.toString().split('.');
-      const [targetMajor] = targetVersion.toString().split('.');
-      if (currentMajor !== targetMajor) {
-        reasons.push(`Major version change in ${name}: ${version} -> ${targetVersion}`);
-        majorVersionChanges++;
-      }
-    }
-  });
-
-  // Determine risk level based on changes
-  if (majorVersionChanges > 2) {
-    riskLevel = 'high';
-  } else if (majorVersionChanges > 0) {
-    riskLevel = 'medium';
   }
 
-  // Check for conflicts
-  if (Object.keys(currentVersion.conflict_status).length > 0) {
-    riskLevel = 'high';
-    reasons.push('Current version has unresolved conflicts');
-  }
-
-  return { riskLevel, reasons };
+  // Format the changelog
+  return [
+    `# Version ${currentVersion.version}`,
+    "",
+    changes.length ? "## Changes\n\n" + changes.map(c => `- ${c}`).join("\n") : "",
+    breakingChanges.length ? "\n## Breaking Changes\n\n" + 
+      breakingChanges.map(c => `- ${c}`).join("\n") : "",
+  ].filter(Boolean).join("\n");
 };

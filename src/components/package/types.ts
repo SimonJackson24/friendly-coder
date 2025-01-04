@@ -67,20 +67,27 @@ export interface ReleaseNote {
 export interface PublishStep {
   id: string;
   name: string;
+  title: string;
+  description: string;
   status: 'pending' | 'in_progress' | 'completed' | 'error';
   message?: string;
+  error?: string;
 }
 
 export interface PublishValidation {
   valid: boolean;
   errors: string[];
   warnings: string[];
+  dependencyChecks: DependencyCheck[];
+  breakingChanges: string[];
 }
 
 export interface DependencyCheck {
   name: string;
   version: string;
   compatible: boolean;
+  conflicts: string[];
+  suggestedVersion?: string;
   message?: string;
 }
 
@@ -88,7 +95,7 @@ export interface PackageValidation {
   isValid: boolean;
   errors: string[];
   warnings: string[];
-  dependencyChecks: DependencyCheck[];
+  dependencies: DependencyCheck[];
 }
 
 export interface PackageVersion {
