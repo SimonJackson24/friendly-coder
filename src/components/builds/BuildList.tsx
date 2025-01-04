@@ -43,8 +43,17 @@ export function BuildList({ builds, selectedBuildId, onBuildSelect }: BuildListP
         .eq("id", buildId)
         .single();
 
-      if (build?.artifacts_urls && Array.isArray(build.artifacts_urls)) {
-        for (const url of build.artifacts_urls) {
+      if (build?.artifacts_urls) {
+        // Ensure artifacts_urls is treated as an array of strings
+        const artifactUrls = Array.isArray(build.artifacts_urls) 
+          ? build.artifacts_urls 
+          : typeof build.artifacts_urls === 'string' 
+            ? [build.artifacts_urls]
+            : [];
+
+        for (const url of artifactUrls) {
+          if (typeof url !== 'string') continue;
+          
           const { data, error } = await supabase.storage
             .from("build_artifacts")
             .download(url);
