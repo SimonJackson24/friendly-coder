@@ -1139,6 +1139,70 @@ export type Database = {
           },
         ]
       }
+      repository_stars: {
+        Row: {
+          created_at: string | null
+          id: string
+          repository_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          repository_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          repository_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repository_stars_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repository_watchers: {
+        Row: {
+          created_at: string | null
+          id: string
+          notification_level: string
+          repository_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          notification_level?: string
+          repository_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          notification_level?: string
+          repository_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repository_watchers_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_comments: {
         Row: {
           content: string
