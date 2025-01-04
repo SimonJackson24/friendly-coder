@@ -8,6 +8,9 @@ import { TeamAccessSection } from "./TeamAccessSection";
 import { AccessRequestsSection } from "./AccessRequestsSection";
 import { BulkAccessDialog } from "./BulkAccessDialog";
 import { UserAccessSection } from "./UserAccessSection";
+import { PermissionVisualization } from "../permissions/PermissionVisualization";
+import { RoleTemplates } from "../roles/RoleTemplates";
+import { AuditLogs } from "../audit/AuditLogs";
 import { AccessControlProps } from "./types";
 
 export function AccessControl({ packageId }: AccessControlProps) {
@@ -210,11 +213,17 @@ export function AccessControl({ packageId }: AccessControlProps) {
         Access Control
       </h3>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <PermissionVisualization packageId={packageId} />
+        <RoleTemplates />
+      </div>
+
       <Tabs defaultValue="users">
         <TabsList className="mb-4">
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="teams">Teams</TabsTrigger>
           <TabsTrigger value="requests">Requests</TabsTrigger>
+          <TabsTrigger value="audit">Audit</TabsTrigger>
         </TabsList>
 
         <TabsContent value="users">
@@ -242,6 +251,10 @@ export function AccessControl({ packageId }: AccessControlProps) {
             accessRequests={accessRequests}
             onHandleRequest={handleAccessRequest}
           />
+        </TabsContent>
+
+        <TabsContent value="audit">
+          <AuditLogs packageId={packageId} />
         </TabsContent>
       </Tabs>
 
