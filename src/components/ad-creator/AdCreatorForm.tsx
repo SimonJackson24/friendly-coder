@@ -19,6 +19,7 @@ export interface AdFormData {
   platform: string;
   goals: string;
   tone: string;
+  adType: string;
 }
 
 export function AdCreatorForm({ onSubmit, isLoading }: AdCreatorFormProps) {
@@ -30,6 +31,7 @@ export function AdCreatorForm({ onSubmit, isLoading }: AdCreatorFormProps) {
     platform: "facebook",
     goals: "",
     tone: "professional",
+    adType: "image",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,6 +95,24 @@ export function AdCreatorForm({ onSubmit, isLoading }: AdCreatorFormProps) {
               <SelectItem value="twitter">Twitter</SelectItem>
               <SelectItem value="google">Google Ads</SelectItem>
               <SelectItem value="linkedin">LinkedIn</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium mb-1 block">Ad Type</label>
+          <Select
+            value={formData.adType}
+            onValueChange={(value) => setFormData({ ...formData, adType: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select ad type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="image">Image Ad</SelectItem>
+              <SelectItem value="video">Video Ad</SelectItem>
+              <SelectItem value="carousel">Carousel Ad</SelectItem>
+              <SelectItem value="story">Story Ad</SelectItem>
             </SelectContent>
           </Select>
         </div>

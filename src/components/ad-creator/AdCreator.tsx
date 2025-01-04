@@ -2,12 +2,14 @@ import { useState } from "react";
 import { AdCreatorForm, AdFormData } from "./AdCreatorForm";
 import { AdPreview } from "./AdPreview";
 import { AdOptimizationPanel } from "./AdOptimizationPanel";
+import { AIRecommendations } from "./AIRecommendations";
 import { generateAdContent } from "@/utils/ad-generator";
 
 export function AdCreator() {
   const [generatedContent, setGeneratedContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState("facebook");
+  const [adType, setAdType] = useState("image");
 
   const handleSubmit = async (data: AdFormData) => {
     setIsLoading(true);
@@ -15,6 +17,7 @@ export function AdCreator() {
       const content = await generateAdContent(data);
       setGeneratedContent(content);
       setSelectedPlatform(data.platform);
+      setAdType(data.adType || "image");
     } catch (error) {
       console.error("Error generating ad content:", error);
     } finally {
@@ -31,6 +34,15 @@ export function AdCreator() {
         </div>
         <div className="lg:col-span-2 space-y-6">
           <AdPreview content={generatedContent} platform={selectedPlatform} />
+          <AIRecommendations 
+            platform={selectedPlatform} 
+            adType={adType}
+            currentPerformance={{
+              impressions: 1000,
+              clicks: 50,
+              conversions: 5
+            }}
+          />
           <AdOptimizationPanel platform={selectedPlatform} />
         </div>
       </div>
