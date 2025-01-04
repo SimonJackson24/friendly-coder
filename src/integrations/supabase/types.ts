@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ad_insights: {
+        Row: {
+          ad_metric_id: string | null
+          confidence_score: number | null
+          content: Json
+          created_at: string | null
+          id: string
+          impact_score: number | null
+          implemented: boolean | null
+          insight_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ad_metric_id?: string | null
+          confidence_score?: number | null
+          content: Json
+          created_at?: string | null
+          id?: string
+          impact_score?: number | null
+          implemented?: boolean | null
+          insight_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ad_metric_id?: string | null
+          confidence_score?: number | null
+          content?: Json
+          created_at?: string | null
+          id?: string
+          impact_score?: number | null
+          implemented?: boolean | null
+          insight_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_insights_ad_metric_id_fkey"
+            columns: ["ad_metric_id"]
+            isOneToOne: false
+            referencedRelation: "ad_metrics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_metrics: {
         Row: {
           clicks: number | null

@@ -10,6 +10,7 @@ import { ConversionMetrics } from "./metrics/ConversionMetrics";
 import { CustomReportBuilder } from "./metrics/CustomReportBuilder";
 import { CrossPlatformInsights } from "./metrics/CrossPlatformInsights";
 import { ROIAnalysis } from "./metrics/ROIAnalysis";
+import { AIInsights } from "./metrics/AIInsights";
 import { useToast } from "@/components/ui/use-toast";
 
 const PLATFORM_COLORS = {
@@ -134,46 +135,53 @@ export function AdMetricsDashboard() {
         />
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="platforms">Platform Breakdown</TabsTrigger>
-          <TabsTrigger value="conversions">Conversion Analytics</TabsTrigger>
-          <TabsTrigger value="custom-reports">Custom Reports</TabsTrigger>
-          <TabsTrigger value="cross-platform">Cross-Platform</TabsTrigger>
-          <TabsTrigger value="roi">ROI Analysis</TabsTrigger>
-        </TabsList>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Tabs defaultValue="overview" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="platforms">Platform Breakdown</TabsTrigger>
+              <TabsTrigger value="conversions">Conversion Analytics</TabsTrigger>
+              <TabsTrigger value="custom-reports">Custom Reports</TabsTrigger>
+              <TabsTrigger value="cross-platform">Cross-Platform</TabsTrigger>
+              <TabsTrigger value="roi">ROI Analysis</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="overview">
-          <PerformanceChart data={metrics || []} />
-        </TabsContent>
+            <TabsContent value="overview">
+              <PerformanceChart data={metrics || []} />
+            </TabsContent>
 
-        <TabsContent value="platforms">
-          <PlatformMetrics data={platformMetrics || []} />
-        </TabsContent>
+            <TabsContent value="platforms">
+              <PlatformMetrics data={platformMetrics || []} />
+            </TabsContent>
 
-        <TabsContent value="conversions">
-          <ConversionMetrics 
-            data={platformMetrics || []} 
-            platformColors={PLATFORM_COLORS}
-          />
-        </TabsContent>
+            <TabsContent value="conversions">
+              <ConversionMetrics 
+                data={platformMetrics || []} 
+                platformColors={PLATFORM_COLORS}
+              />
+            </TabsContent>
 
-        <TabsContent value="custom-reports">
-          <CustomReportBuilder 
-            data={metrics || []}
-            onGenerateReport={handleGenerateReport}
-          />
-        </TabsContent>
+            <TabsContent value="custom-reports">
+              <CustomReportBuilder 
+                data={metrics || []}
+                onGenerateReport={handleGenerateReport}
+              />
+            </TabsContent>
 
-        <TabsContent value="cross-platform">
-          <CrossPlatformInsights data={metrics || []} />
-        </TabsContent>
+            <TabsContent value="cross-platform">
+              <CrossPlatformInsights data={metrics || []} />
+            </TabsContent>
 
-        <TabsContent value="roi">
-          <ROIAnalysis data={metrics || []} />
-        </TabsContent>
-      </Tabs>
+            <TabsContent value="roi">
+              <ROIAnalysis data={metrics || []} />
+            </TabsContent>
+          </Tabs>
+        </div>
+        <div className="lg:col-span-1">
+          <AIInsights />
+        </div>
+      </div>
     </div>
   );
 }
