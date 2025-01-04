@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertTriangle, CheckCircle, Code2 } from "lucide-react";
+import { Loader2, AlertTriangle, CheckCircle, Code2, Bug } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProject } from "@/contexts/ProjectContext";
 import Logger from "@/utils/logger";
@@ -62,6 +62,11 @@ export function AIDebugger() {
       // Parse and display results
       const analysisResults = JSON.parse(response.data.response);
       setDebugResults(analysisResults);
+      
+      toast({
+        title: "Analysis Complete",
+        description: "Debug results have been generated successfully.",
+      });
 
     } catch (error) {
       console.error('Error in AI analysis:', error);
@@ -70,16 +75,39 @@ export function AIDebugger() {
         title: 'Analysis Failed',
         description: 'Failed to complete the AI analysis. Please try again.',
       }]);
+      
+      toast({
+        title: "Analysis Failed",
+        description: "An error occurred during the analysis. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">AI Debugger</h2>
-        <Button onClick={handleAnalyze} disabled={isAnalyzing || !selectedProject}>
+    <div className="space-y-6 p-6 bg-black/75 backdrop-blur-md rounded-lg border border-border/50 shadow-xl animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-full bg-primary/10 text-primary">
+            <Bug className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
+              AI Debugger
+            </h2>
+            <p className="text-white/60">
+              Analyze your application for potential issues
+            </p>
+          </div>
+        </div>
+        <Button 
+          onClick={handleAnalyze} 
+          disabled={isAnalyzing || !selectedProject}
+          size="lg"
+          className="relative group hover:shadow-lg hover:shadow-primary/20 transition-all duration-300"
+        >
           {isAnalyzing ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -87,20 +115,27 @@ export function AIDebugger() {
             </>
           ) : (
             <>
-              <Code2 className="w-4 h-4 mr-2" />
+              <Code2 className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
               Start Analysis
             </>
           )}
         </Button>
       </div>
 
-      <ScrollArea className="h-[500px] border rounded-lg p-4">
-        <div className="space-y-4">
+      <ScrollArea className="h-[500px] rounded-lg">
+        <div className="space-y-4 p-4">
           {debugResults.map((result, index) => (
             <Alert
               key={index}
               variant={result.type === 'error' ? 'destructive' : 'default'}
-              className="relative"
+              className={`relative transition-all duration-300 hover:shadow-lg ${
+                result.type === 'error' 
+                  ? 'hover:shadow-destructive/20' 
+                  : result.type === 'warning'
+                  ? 'hover:shadow-yellow-500/20'
+                  : 'hover:shadow-green-500/20'
+              } animate-fade-in`}
+              style={{ animationDelay: `${index * 150}ms` }}
             >
               <AlertTitle className="flex items-center gap-2">
                 {result.type === 'error' ? (
@@ -113,20 +148,25 @@ export function AIDebugger() {
                 {result.title}
               </AlertTitle>
               <AlertDescription className="mt-2 space-y-2">
-                <p>{result.description}</p>
+                <p className="text-sm text-foreground/80">{result.description}</p>
                 {result.code && (
-                  <pre className="mt-2 p-2 bg-muted rounded-md overflow-x-auto">
-                    <code>{result.code}</code>
+                  <pre className="mt-2 p-4 bg-black/50 rounded-md overflow-x-auto border border-border/50 font-mono text-sm">
+                    <code className="text-primary/90">{result.code}</code>
                   </pre>
                 )}
                 {result.suggestion && (
-                  <p className="mt-2 text-sm text-muted-foreground">
+                  <p className="mt-2 text-sm text-foreground/70 italic">
                     Suggestion: {result.suggestion}
                   </p>
                 )}
               </AlertDescription>
             </Alert>
           ))}
+          {debugResults.length === 0 && !isAnalyzing && (
+            <div className="text-center py-12 text-white/60">
+              Click "Start Analysis" to begin debugging your application
+            </div>
+          )}
         </div>
       </ScrollArea>
     </div>
