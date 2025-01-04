@@ -852,6 +852,101 @@ export type Database = {
           },
         ]
       }
+      deployment_history: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          created_by: string
+          deployment_config: Json
+          error_message: string | null
+          id: string
+          logs: Json | null
+          project_id: string
+          started_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by: string
+          deployment_config: Json
+          error_message?: string | null
+          id?: string
+          logs?: Json | null
+          project_id: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          deployment_config?: Json
+          error_message?: string | null
+          id?: string
+          logs?: Json | null
+          project_id?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deployment_history_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      environment_clones: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          diff_summary: Json | null
+          id: string
+          source_env_id: string
+          target_env_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          diff_summary?: Json | null
+          id?: string
+          source_env_id: string
+          target_env_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          diff_summary?: Json | null
+          id?: string
+          source_env_id?: string
+          target_env_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "environment_clones_source_env_id_fkey"
+            columns: ["source_env_id"]
+            isOneToOne: false
+            referencedRelation: "build_environments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "environment_clones_target_env_id_fkey"
+            columns: ["target_env_id"]
+            isOneToOne: false
+            referencedRelation: "build_environments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       files: {
         Row: {
           build_status: string | null
