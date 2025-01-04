@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { PublishValidation, PublishStep } from "../types";
+import { validatePackage } from "../validation/packageValidation";
 import { supabase } from "@/integrations/supabase/client";
 
 export function usePublishPackage() {
@@ -24,53 +25,33 @@ export function usePublishPackage() {
     );
   };
 
-  const validatePackage = async () => {
+  const validateForm = async () => {
     setIsValidating(true);
     try {
-      console.log('Validating package:', { name, version, description });
+      console.log('Validating package form...');
       
-      const { data: validationData, error } = await supabase.functions.invoke('package-operations', {
-        body: { 
-          operation: 'validate-package',
-          data: { name, version, description }
-        }
+      const validationResult = await validatePackage(
+        name,
+        version,
+        description,
+        {} // Add dependencies when implementing dependency management
+      );
+
+      setValidation({
+        ...validationResult,
+        publishSteps: [],
+        breakingChanges: []
       });
 
-      if (error) throw error;
-      
-      setValidation(validationData);
-      
-      if (!validationData.isValid) {
+      if (!validationResult.isValid) {
         toast({
           title: "Validation Failed",
           description: "Please fix the errors before publishing",
           variant: "destructive",
         });
-        return false;
       }
 
-      setPublishSteps([
-        {
-          id: 'dependencies',
-          title: 'Dependency Resolution',
-          description: 'Checking and resolving package dependencies...',
-          status: 'pending'
-        },
-        {
-          id: 'conflicts',
-          title: 'Version Conflict Check',
-          description: 'Analyzing potential version conflicts...',
-          status: 'pending'
-        },
-        {
-          id: 'publish',
-          title: 'Package Publication',
-          description: 'Publishing package to registry...',
-          status: 'pending'
-        }
-      ]);
-
-      return validationData.isValid;
+      return validationResult.isValid;
     } catch (error) {
       console.error('Error validating package:', error);
       toast({
@@ -85,7 +66,7 @@ export function usePublishPackage() {
   };
 
   const handlePublish = async () => {
-    const isValid = await validatePackage();
+    const isValid = await validateForm();
     if (!isValid) return;
 
     setIsPublishing(true);
@@ -191,6 +172,5 @@ export function usePublishPackage() {
     setIsPrivate,
     handlePublish,
     handleCancel,
-    resetForm
   };
 }
