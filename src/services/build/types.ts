@@ -29,3 +29,15 @@ export interface BuildResult {
   error?: string;
   artifacts?: string[];
 }
+
+export interface BuildStepRecord {
+  build_id: string;
+  step_name: string;
+  step_type: string;
+  status: string;
+  started_at?: string;
+  completed_at?: string;
+  step_logs?: string[];
+  error_message?: string;
+  step_config: Record<string, any>;
+}

@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import Logger from "@/utils/logger";
-import { BuildContext, BuildResult, BuildStep } from "./types";
+import { BuildContext, BuildResult, BuildStep, BuildStepRecord } from "./types";
 
 export class BuildExecutor {
   private context: BuildContext;
@@ -38,16 +38,19 @@ export class BuildExecutor {
     try {
       await this.logBuildMessage(`Starting step: ${step.name}`);
       
-      await supabase
-        .from('build_steps')
-        .insert({
-          build_id: this.context.buildId,
-          step_name: step.name,
-          step_type: step.type,
-          status: 'running',
-          started_at: new Date().toISOString(),
-          step_config: step
-        });
+      const stepRecord: BuildStepRecord = {
+        build_id: this.context.buildId,
+        step_name: step.name,
+        step_type: step.type,
+        status: 'running',
+        started_at: new Date().toISOString(),
+        step_config: {
+          command: step.command,
+          environment: step.environment
+        }
+      };
+
+      await supabase.from('build_steps').insert(stepRecord);
 
       // Execute the step based on its type
       switch (step.type) {
@@ -97,21 +100,33 @@ export class BuildExecutor {
 
   private async executeInstallStep(step: BuildStep) {
     await this.logBuildMessage(`Installing dependencies...`);
+    // Execute npm/yarn install command
+    const command = step.command || 'npm install';
+    console.log('Executing install command:', command);
     // Implementation will be added in the next iteration
   }
 
   private async executeTestStep(step: BuildStep) {
     await this.logBuildMessage(`Running tests...`);
+    // Execute test command
+    const command = step.command || 'npm test';
+    console.log('Executing test command:', command);
     // Implementation will be added in the next iteration
   }
 
   private async executeBuildStep(step: BuildStep) {
     await this.logBuildMessage(`Building project...`);
+    // Execute build command
+    const command = step.command || 'npm run build';
+    console.log('Executing build command:', command);
     // Implementation will be added in the next iteration
   }
 
   private async executeDeployStep(step: BuildStep) {
     await this.logBuildMessage(`Deploying to ${this.context.environment}...`);
+    // Execute deployment command
+    const command = step.command;
+    console.log('Executing deploy command:', command);
     // Implementation will be added in the next iteration
   }
 

@@ -19,12 +19,15 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Build executor function started');
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     const { buildId, projectId, environment, config } = await req.json() as BuildRequest;
+    console.log('Build request received:', { buildId, projectId, environment });
 
     // Validate the build exists and belongs to the user
     const { data: build, error: buildError } = await supabaseClient
@@ -34,6 +37,7 @@ serve(async (req) => {
       .single();
 
     if (buildError || !build) {
+      console.error('Build validation error:', buildError);
       throw new Error('Build not found or unauthorized');
     }
 
@@ -46,8 +50,12 @@ serve(async (req) => {
       })
       .eq('id', buildId);
 
+    console.log('Starting build steps execution');
+
     // Execute build steps
     for (const step of config.steps) {
+      console.log('Executing step:', step.name);
+      
       // Create build step record
       const { error: stepError } = await supabaseClient
         .from('build_steps')
@@ -61,23 +69,60 @@ serve(async (req) => {
         });
 
       if (stepError) {
+        console.error('Step creation error:', stepError);
         throw stepError;
       }
 
-      // TODO: Implement actual step execution logic
-      // For now, we'll simulate step execution with a delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      try {
+        // Execute the step based on its type
+        switch (step.type) {
+          case 'install':
+            console.log('Running install step:', step.command);
+            // Add actual package installation logic here
+            break;
+          case 'test':
+            console.log('Running test step:', step.command);
+            // Add actual test execution logic here
+            break;
+          case 'build':
+            console.log('Running build step:', step.command);
+            // Add actual build execution logic here
+            break;
+          case 'deploy':
+            console.log('Running deploy step:', step.command);
+            // Add actual deployment logic here
+            break;
+        }
 
-      // Update step status
-      await supabaseClient
-        .from('build_steps')
-        .update({
-          status: 'completed',
-          completed_at: new Date().toISOString()
-        })
-        .eq('build_id', buildId)
-        .eq('step_name', step.name);
+        // Update step status to completed
+        await supabaseClient
+          .from('build_steps')
+          .update({
+            status: 'completed',
+            completed_at: new Date().toISOString()
+          })
+          .eq('build_id', buildId)
+          .eq('step_name', step.name);
+
+      } catch (error) {
+        console.error('Step execution error:', error);
+        
+        // Update step status to failed
+        await supabaseClient
+          .from('build_steps')
+          .update({
+            status: 'failed',
+            completed_at: new Date().toISOString(),
+            error_message: error instanceof Error ? error.message : 'Unknown error'
+          })
+          .eq('build_id', buildId)
+          .eq('step_name', step.name);
+
+        throw error;
+      }
     }
+
+    console.log('Build completed successfully');
 
     // Update build status to completed
     await supabaseClient
@@ -96,6 +141,8 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error('Build execution error:', error);
+    
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'Unknown error'
