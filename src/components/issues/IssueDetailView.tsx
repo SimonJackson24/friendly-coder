@@ -16,6 +16,8 @@ export function IssueDetailView({ issueId, onClose }: IssueDetailViewProps) {
   const { data: issue, refetch: refetchIssue } = useQuery({
     queryKey: ["issue", issueId],
     queryFn: async () => {
+      console.log("Fetching issue details for:", issueId);
+      
       const { data, error } = await supabase
         .from("issues")
         .select(`
@@ -30,9 +32,18 @@ export function IssueDetailView({ issueId, onClose }: IssueDetailViewProps) {
           )
         `)
         .eq("id", issueId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching issue:", error);
+        throw error;
+      }
+      
+      if (!data) {
+        throw new Error("Issue not found");
+      }
+
+      console.log("Fetched issue data:", data);
       return data as Issue;
     },
   });
@@ -40,9 +51,22 @@ export function IssueDetailView({ issueId, onClose }: IssueDetailViewProps) {
   const { data: users } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
+      console.log("Fetching users list");
       const { data: { users }, error } = await supabase.auth.admin.listUsers();
-      if (error) throw error;
-      return users;
+      
+      if (error) {
+        console.error("Error fetching users:", error);
+        throw error;
+      }
+
+      // Transform users to match our expected format
+      const formattedUsers = users.map(user => ({
+        id: user.id,
+        email: user.email || ''
+      }));
+
+      console.log("Formatted users:", formattedUsers);
+      return formattedUsers;
     },
   });
 
