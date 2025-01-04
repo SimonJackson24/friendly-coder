@@ -471,6 +471,225 @@ export type Database = {
           },
         ]
       }
+      build_environments: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_production: boolean | null
+          name: string
+          project_id: string
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_production?: boolean | null
+          name: string
+          project_id: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_production?: boolean | null
+          name?: string
+          project_id?: string
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "build_environments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      build_steps: {
+        Row: {
+          build_id: string
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          started_at: string | null
+          status: string
+          step_config: Json | null
+          step_logs: Json | null
+          step_name: string
+          step_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          build_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          step_config?: Json | null
+          step_logs?: Json | null
+          step_name: string
+          step_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          build_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string
+          step_config?: Json | null
+          step_logs?: Json | null
+          step_name?: string
+          step_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "build_steps_build_id_fkey"
+            columns: ["build_id"]
+            isOneToOne: false
+            referencedRelation: "builds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      build_triggers: {
+        Row: {
+          branch_pattern: string | null
+          build_config: Json | null
+          created_at: string | null
+          created_by: string | null
+          environment_id: string | null
+          id: string
+          is_active: boolean | null
+          project_id: string
+          trigger_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          branch_pattern?: string | null
+          build_config?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          environment_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          project_id: string
+          trigger_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          branch_pattern?: string | null
+          build_config?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          environment_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          project_id?: string
+          trigger_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "build_triggers_environment_id_fkey"
+            columns: ["environment_id"]
+            isOneToOne: false
+            referencedRelation: "build_environments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "build_triggers_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      builds: {
+        Row: {
+          artifacts_urls: Json | null
+          branch_name: string | null
+          build_config: Json | null
+          build_logs: Json | null
+          build_number: number
+          commit_sha: string | null
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          environment: string
+          error_message: string | null
+          id: string
+          project_id: string
+          started_at: string | null
+          status: string
+          trigger_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          artifacts_urls?: Json | null
+          branch_name?: string | null
+          build_config?: Json | null
+          build_logs?: Json | null
+          build_number: number
+          commit_sha?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          environment?: string
+          error_message?: string | null
+          id?: string
+          project_id: string
+          started_at?: string | null
+          status?: string
+          trigger_type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          artifacts_urls?: Json | null
+          branch_name?: string | null
+          build_config?: Json | null
+          build_logs?: Json | null
+          build_number?: number
+          commit_sha?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          environment?: string
+          error_message?: string | null
+          id?: string
+          project_id?: string
+          started_at?: string | null
+          status?: string
+          trigger_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "builds_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       code_reviews: {
         Row: {
           comment: string | null
@@ -1629,6 +1848,12 @@ export type Database = {
       clean_old_debug_logs: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      get_next_build_number: {
+        Args: {
+          p_project_id: string
+        }
+        Returns: number
       }
       get_next_version_number: {
         Args: {
