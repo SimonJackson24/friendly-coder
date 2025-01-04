@@ -55,12 +55,15 @@ export function CodeReviewPanel({ pullRequestId, onReviewSubmitted }: CodeReview
 
       if (error) throw error;
 
+      console.log("Fetched review comments:", reviewComments);
+
       // Transform the data to match our ReviewComment interface
       const formattedComments: ReviewComment[] = reviewComments?.map(comment => ({
         id: comment.id,
         content: comment.content,
         created_at: comment.created_at,
         reviewer: {
+          // Safely access nested properties and provide a fallback
           email: comment.review?.reviewer?.email || 'Unknown User'
         }
       })) || [];
