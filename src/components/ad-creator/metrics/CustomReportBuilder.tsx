@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Label } from "@/components/ui/label";
 import { Download } from "lucide-react";
-import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 interface CustomReportBuilderProps {
   data: any[];
@@ -14,13 +14,13 @@ interface CustomReportBuilderProps {
 
 interface ReportConfig {
   metrics: string[];
-  dateRange: { from: Date; to: Date } | undefined;
+  dateRange: DateRange | undefined;
   platforms: string[];
 }
 
 export function CustomReportBuilder({ data, onGenerateReport }: CustomReportBuilderProps) {
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>();
+  const [dateRange, setDateRange] = useState<DateRange>();
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
 
   const metrics = [
