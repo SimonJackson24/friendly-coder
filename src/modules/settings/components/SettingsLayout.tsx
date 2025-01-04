@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SettingsHeader } from "./SettingsHeader";
+import { SettingsHeader } from "@/modules/settings/components/SettingsHeader";
 import { GeneralSettingsContainer } from "./containers/GeneralSettingsContainer";
 import { IntegrationsContainer } from "./containers/IntegrationsContainer";
 import { ModelSettingsContainer } from "./containers/ModelSettingsContainer";
