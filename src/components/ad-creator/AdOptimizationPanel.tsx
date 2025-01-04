@@ -9,11 +9,20 @@ interface AdOptimizationPanelProps {
 }
 
 export function AdOptimizationPanel({ platform }: AdOptimizationPanelProps) {
+  // Add console log to debug platform selection
+  console.log("AdOptimizationPanel - Current platform:", platform);
+  console.log("Available recommendations:", platformRecommendations.map(p => p.platform));
+
   const recommendations = platformRecommendations.find(
     (p) => p.platform === platform
   );
 
-  if (!recommendations) return null;
+  console.log("Found recommendations:", recommendations?.platform);
+
+  if (!recommendations) {
+    console.log("No recommendations found for platform:", platform);
+    return null;
+  }
 
   return (
     <Card className="p-6">

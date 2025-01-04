@@ -10,6 +10,8 @@ import { Loader2 } from "lucide-react";
 interface AdCreatorFormProps {
   onSubmit: (data: AdFormData) => Promise<void>;
   isLoading: boolean;
+  onPlatformChange: (platform: string) => void;
+  initialPlatform: string;
 }
 
 export interface AdFormData {
@@ -22,13 +24,13 @@ export interface AdFormData {
   adType: string;
 }
 
-export function AdCreatorForm({ onSubmit, isLoading }: AdCreatorFormProps) {
+export function AdCreatorForm({ onSubmit, isLoading, onPlatformChange, initialPlatform }: AdCreatorFormProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState<AdFormData>({
     businessName: "",
     productDescription: "",
     targetAudience: "",
-    platform: "facebook",
+    platform: initialPlatform,
     goals: "",
     tone: "professional",
     adType: "image",
@@ -45,6 +47,12 @@ export function AdCreatorForm({ onSubmit, isLoading }: AdCreatorFormProps) {
       return;
     }
     await onSubmit(formData);
+  };
+
+  const handlePlatformChange = (value: string) => {
+    setFormData({ ...formData, platform: value });
+    onPlatformChange(value);
+    console.log("Platform changed to:", value); // Add console log for debugging
   };
 
   return (
@@ -84,7 +92,7 @@ export function AdCreatorForm({ onSubmit, isLoading }: AdCreatorFormProps) {
           <label className="text-sm font-medium mb-1 block">Platform</label>
           <Select
             value={formData.platform}
-            onValueChange={(value) => setFormData({ ...formData, platform: value })}
+            onValueChange={handlePlatformChange}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select platform" />

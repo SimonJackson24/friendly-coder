@@ -48,6 +48,9 @@ export function AdCreator() {
     }
   };
 
+  // Add console log to track platform changes
+  console.log("Current selected platform:", selectedPlatform);
+
   return (
     <div className="container mx-auto p-4 max-w-7xl">
       <h1 className="text-3xl font-bold mb-6">Create New Ad</h1>
@@ -68,7 +71,12 @@ export function AdCreator() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1">
-          <AdCreatorForm onSubmit={handleSubmit} isLoading={isLoading} />
+          <AdCreatorForm 
+            onSubmit={handleSubmit} 
+            isLoading={isLoading}
+            onPlatformChange={(platform) => setSelectedPlatform(platform)}
+            initialPlatform={selectedPlatform}
+          />
         </div>
         <div className="lg:col-span-2 space-y-6">
           <AdPreview content={generatedContent} platform={selectedPlatform} />
