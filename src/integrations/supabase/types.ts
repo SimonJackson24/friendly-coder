@@ -9,6 +9,60 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ad_metrics: {
+        Row: {
+          clicks: number | null
+          conversion_rate: number | null
+          conversions: number | null
+          cpc: number | null
+          created_at: string | null
+          ctr: number | null
+          date: string | null
+          id: string
+          impressions: number | null
+          platform: string
+          revenue: number | null
+          roas: number | null
+          spend: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          clicks?: number | null
+          conversion_rate?: number | null
+          conversions?: number | null
+          cpc?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          date?: string | null
+          id?: string
+          impressions?: number | null
+          platform: string
+          revenue?: number | null
+          roas?: number | null
+          spend?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          clicks?: number | null
+          conversion_rate?: number | null
+          conversions?: number | null
+          cpc?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          date?: string | null
+          id?: string
+          impressions?: number | null
+          platform?: string
+          revenue?: number | null
+          roas?: number | null
+          spend?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ad_platform_connections: {
         Row: {
           access_token: string | null
