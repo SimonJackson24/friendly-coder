@@ -38,11 +38,16 @@ export function CreateIssueDialog({
     console.log("Creating new issue:", { title, description, repositoryId });
 
     try {
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       const { error } = await supabase.from("issues").insert({
         repository_id: repositoryId,
         title: title.trim(),
         description: description.trim(),
         status: "open",
+        created_by: user.id, // Add the user ID as created_by
       });
 
       if (error) throw error;
