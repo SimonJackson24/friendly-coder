@@ -34,7 +34,7 @@ export interface DependencyCheck {
 }
 
 export interface ValidationResult {
-  isValid: boolean;
+  valid: boolean;
   errors: string[];
   warnings: string[];
 }

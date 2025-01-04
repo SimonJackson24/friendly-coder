@@ -1,7 +1,6 @@
 import { PackageVersion } from "../types";
-import semver from 'semver';
 
-export const generateChangelog = async (
+export const generateAutomatedChangelog = async (
   currentVersion: PackageVersion,
   previousVersion?: PackageVersion
 ): Promise<string> => {
@@ -10,9 +9,8 @@ export const generateChangelog = async (
   }
 
   const changes: string[] = [];
-  const breakingChanges: string[] = [];
 
-  // Compare package data to detect changes
+  // Compare package data
   const oldData = previousVersion.package_data;
   const newData = currentVersion.package_data;
 
@@ -41,13 +39,10 @@ export const generateChangelog = async (
     }
   }
 
-  // Format the changelog
   return [
     `# Version ${currentVersion.version}`,
     "",
     changes.length ? "## Changes\n\n" + changes.map(c => `- ${c}`).join("\n") : "",
-    breakingChanges.length ? "\n## Breaking Changes\n\n" + 
-      breakingChanges.map(c => `- ${c}`).join("\n") : "",
   ].filter(Boolean).join("\n");
 };
 
@@ -58,31 +53,29 @@ export const analyzeRollbackRisk = async (
   const analysis: string[] = [];
   let riskLevel = "low";
 
-  // Check version difference
-  const versionDiff = semver.diff(currentVersion.version, previousVersion.version);
-  if (versionDiff === "major") {
-    analysis.push("Major version change detected - high risk of breaking changes");
-    riskLevel = "high";
-  }
-
-  // Check dependency changes
-  const oldDeps = previousVersion.package_data?.dependencies || {};
-  const newDeps = currentVersion.package_data?.dependencies || {};
-
-  const removedDeps = Object.keys(oldDeps).filter(dep => !newDeps[dep]);
-  if (removedDeps.length) {
-    analysis.push(`Removed dependencies: ${removedDeps.join(", ")}`);
-    riskLevel = "high";
-  }
+  // Compare dependencies
+  const oldDeps = previousVersion.package_data.dependencies || {};
+  const newDeps = currentVersion.package_data.dependencies || {};
 
   const addedDeps = Object.keys(newDeps).filter(dep => !oldDeps[dep]);
+  const removedDeps = Object.keys(oldDeps).filter(dep => !newDeps[dep]);
+  const updatedDeps = Object.entries(newDeps)
+    .filter(([dep, version]) => oldDeps[dep] && oldDeps[dep] !== version);
+
   if (addedDeps.length) {
-    analysis.push(`Added dependencies: ${addedDeps.join(", ")}`);
-    riskLevel = riskLevel === "high" ? "high" : "medium";
+    analysis.push(`Rolling back will remove ${addedDeps.length} dependencies`);
+    riskLevel = addedDeps.length > 5 ? "high" : "medium";
   }
 
-  return {
-    riskLevel,
-    analysis: analysis.length ? analysis : ["No significant risks detected"]
-  };
+  if (removedDeps.length) {
+    analysis.push(`Rolling back will reintroduce ${removedDeps.length} old dependencies`);
+    riskLevel = removedDeps.length > 5 ? "high" : "medium";
+  }
+
+  if (updatedDeps.length) {
+    analysis.push(`Rolling back will revert ${updatedDeps.length} dependency versions`);
+    riskLevel = updatedDeps.length > 5 ? "high" : "medium";
+  }
+
+  return { riskLevel, analysis };
 };

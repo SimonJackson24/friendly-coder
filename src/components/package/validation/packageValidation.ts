@@ -1,7 +1,4 @@
-import { ValidationResult } from "../types";
-import { validateDependencies } from "./rules/dependencyValidation";
-import { validateDescription } from "./rules/descriptionValidation";
-import { validateVersion } from "./rules/versionValidation";
+import { ValidationResult, DependencyCheck } from "../types";
 
 export const validatePackage = async (
   name: string,
@@ -21,26 +18,77 @@ export const validatePackage = async (
 
   // Validate version
   const versionResult = validateVersion(version);
-  if (!versionResult.isValid) {
+  if (!versionResult.valid) {
     errors.push(...versionResult.errors);
   }
 
   // Validate description
   const descriptionResult = validateDescription(description);
-  if (!descriptionResult.isValid) {
+  if (!descriptionResult.valid) {
     errors.push(...descriptionResult.errors);
   }
 
   // Validate dependencies
   const dependencyResult = await validateDependencies(dependencies);
-  if (!dependencyResult.isValid) {
-    errors.push(...dependencyResult.errors);
-  }
-  warnings.push(...dependencyResult.warnings);
+  errors.push(...dependencyResult.map(d => d.message || "").filter(Boolean));
+  warnings.push(...dependencyResult.map(d => d.suggestedVersion ? 
+    `Consider updating ${d.name} to ${d.suggestedVersion}` : "").filter(Boolean));
 
   return {
-    isValid: errors.length === 0,
+    valid: errors.length === 0,
     errors,
     warnings
   };
+};
+
+const validateVersion = (version: string): ValidationResult => {
+  const errors: string[] = [];
+  
+  if (!version) {
+    errors.push("Version is required");
+  } else if (!/^\d+\.\d+\.\d+$/.test(version)) {
+    errors.push("Version must be in format x.y.z");
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings: []
+  };
+};
+
+const validateDescription = (description: string): ValidationResult => {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  if (!description) {
+    errors.push("Description is required");
+  } else if (description.length < 10) {
+    warnings.push("Consider adding a more detailed description");
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings
+  };
+};
+
+const validateDependencies = async (
+  dependencies: Record<string, string>
+): Promise<DependencyCheck[]> => {
+  const checks: DependencyCheck[] = [];
+
+  for (const [name, version] of Object.entries(dependencies)) {
+    checks.push({
+      name,
+      version,
+      compatible: true,
+      conflicts: [],
+      suggestedVersion: undefined,
+      message: undefined
+    });
+  }
+
+  return checks;
 };
