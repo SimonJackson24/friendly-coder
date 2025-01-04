@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Package, Bug, Rocket, Database, LayoutDashboard, GitBranch, GitPullRequest, Calendar } from "lucide-react";
 import { CreateCommitDialog } from "./CreateCommitDialog";
 import { BranchProtectionRules } from "./branch-protection/BranchProtectionRules";
 import { RebaseOperations } from "./rebase/RebaseOperations";
@@ -14,6 +15,7 @@ import { BranchSection } from "./features/BranchSection";
 import { CommitSection } from "./features/CommitSection";
 import { PullRequestSection } from "./features/PullRequestSection";
 import { KanbanBoard } from "./kanban/KanbanBoard";
+import { MilestoneSection } from "./features/MilestoneSection";
 
 export function VersionControl({ projectId }: { projectId: string | null }) {
   const [selectedRepositoryId, setSelectedRepositoryId] = useState<string | null>(null);
@@ -88,12 +90,13 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
   return (
     <Card className="p-6 bg-black/75 backdrop-blur-md border-white/10">
       <Tabs defaultValue="repositories" className="space-y-4">
-        <TabsList>
+        <TabsList className="w-full">
           <TabsTrigger value="repositories">Repositories</TabsTrigger>
           <TabsTrigger value="branches">Branches</TabsTrigger>
           <TabsTrigger value="commits">Commits</TabsTrigger>
           <TabsTrigger value="pull-requests">Pull Requests</TabsTrigger>
           <TabsTrigger value="board">Project Board</TabsTrigger>
+          <TabsTrigger value="milestones">Milestones</TabsTrigger>
           <TabsTrigger value="protection">Branch Protection</TabsTrigger>
           <TabsTrigger value="rebase">Rebase</TabsTrigger>
           <TabsTrigger value="cherry-pick">Cherry Pick</TabsTrigger>
@@ -128,15 +131,11 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
         </TabsContent>
 
         <TabsContent value="board">
-          {selectedRepositoryId ? (
-            <KanbanBoard repositoryId={selectedRepositoryId} />
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                Select a repository to view its project board
-              </p>
-            </div>
-          )}
+          <KanbanBoard repositoryId={selectedRepositoryId} />
+        </TabsContent>
+
+        <TabsContent value="milestones">
+          <MilestoneSection repositoryId={selectedRepositoryId} />
         </TabsContent>
 
         <TabsContent value="protection">
