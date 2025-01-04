@@ -22,7 +22,7 @@ interface Milestone {
   status: string;
   created_by: string;
   created_at: string;
-  user: MilestoneUser | null;
+  user: MilestoneUser;
 }
 
 interface MilestoneListProps {
@@ -53,7 +53,7 @@ export function MilestoneList({ repositoryId }: MilestoneListProps) {
         throw milestonesError;
       }
 
-      return milestonesData as Milestone[];
+      return milestonesData as unknown as Milestone[];
     },
   });
 

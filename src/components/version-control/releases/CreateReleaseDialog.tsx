@@ -32,14 +32,16 @@ export function CreateReleaseDialog({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase.from("releases").insert({
-        repository_id: repositoryId,
-        version: version.trim(),
-        name: name.trim(),
-        description: description.trim(),
-        tag_name: tagName.trim(),
-        created_by: user.id,
-      });
+      const { error } = await supabase
+        .from("releases")
+        .insert({
+          repository_id: repositoryId,
+          version: version.trim(),
+          name: name.trim(),
+          description: description.trim(),
+          tag_name: tagName.trim(),
+          created_by: user.id,
+        });
 
       if (error) throw error;
 

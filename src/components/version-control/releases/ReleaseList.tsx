@@ -22,7 +22,7 @@ interface Release {
   tag_name: string;
   created_by: string;
   created_at: string;
-  user: ReleaseUser | null;
+  user: ReleaseUser;
 }
 
 interface ReleaseListProps {
@@ -53,7 +53,7 @@ export function ReleaseList({ repositoryId }: ReleaseListProps) {
         throw releasesError;
       }
 
-      return releasesData as Release[];
+      return releasesData as unknown as Release[];
     },
   });
 
