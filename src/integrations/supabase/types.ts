@@ -755,6 +755,41 @@ export type Database = {
           },
         ]
       }
+      changelog_templates: {
+        Row: {
+          created_at: string | null
+          id: string
+          package_id: string | null
+          template_content: string
+          template_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          package_id?: string | null
+          template_content: string
+          template_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          package_id?: string | null
+          template_content?: string
+          template_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "changelog_templates_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       code_reviews: {
         Row: {
           comment: string | null
@@ -1375,6 +1410,36 @@ export type Database = {
         }
         Relationships: []
       }
+      permission_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          permissions: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          permissions?: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          permissions?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       project_boards: {
         Row: {
           created_at: string | null
@@ -1856,6 +1921,47 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      rollback_analysis: {
+        Row: {
+          created_at: string | null
+          id: string
+          impact_analysis: Json
+          package_id: string | null
+          risk_level: string
+          updated_at: string | null
+          version_from: string
+          version_to: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          impact_analysis?: Json
+          package_id?: string | null
+          risk_level: string
+          updated_at?: string | null
+          version_from: string
+          version_to: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          impact_analysis?: Json
+          package_id?: string | null
+          risk_level?: string
+          updated_at?: string | null
+          version_from?: string
+          version_to?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rollback_analysis_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       search_history: {
         Row: {
