@@ -18,33 +18,60 @@ export function IssueDetailView({ issueId, onClose }: IssueDetailViewProps) {
     queryFn: async () => {
       console.log("Fetching issue details for:", issueId);
       
-      const { data, error } = await supabase
+      // First get the issue details
+      const { data: issueData, error: issueError } = await supabase
         .from("issues")
         .select(`
-          *,
-          created_by_user:created_by(email),
-          assigned_to_user:assigned_to(email),
+          id,
+          title,
+          description,
+          status,
+          labels,
+          created_at,
+          created_by,
+          assigned_to,
           comments:issue_comments(
             id,
             content,
             created_at,
-            created_by(email)
+            created_by
           )
         `)
         .eq("id", issueId)
         .maybeSingle();
 
-      if (error) {
-        console.error("Error fetching issue:", error);
-        throw error;
+      if (issueError) {
+        console.error("Error fetching issue:", issueError);
+        throw issueError;
       }
-      
-      if (!data) {
+
+      if (!issueData) {
         throw new Error("Issue not found");
       }
 
-      console.log("Fetched issue data:", data);
-      return data as Issue;
+      // Then get the user details for created_by and assigned_to
+      const { data: createdByUser } = await supabase.auth.admin.getUserById(issueData.created_by);
+      const assignedToUser = issueData.assigned_to ? 
+        (await supabase.auth.admin.getUserById(issueData.assigned_to)).data : null;
+
+      // Get comment authors
+      const commentUserIds = issueData.comments.map(comment => comment.created_by);
+      const { data: commentUsers } = await supabase.auth.admin.listUsers();
+      const userMap = new Map(commentUsers.users.map(user => [user.id, user]));
+
+      // Transform the data to match our Issue type
+      const transformedIssue: Issue = {
+        ...issueData,
+        created_by_user: { email: createdByUser?.user?.email || 'Unknown' },
+        assigned_to_user: assignedToUser?.user ? { email: assignedToUser.user.email } : null,
+        comments: issueData.comments.map(comment => ({
+          ...comment,
+          created_by: { email: userMap.get(comment.created_by)?.email || 'Unknown' }
+        }))
+      };
+
+      console.log("Transformed issue data:", transformedIssue);
+      return transformedIssue;
     },
   });
 
