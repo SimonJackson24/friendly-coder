@@ -12,9 +12,12 @@ interface PullRequest {
   description: string | null;
   status: 'open' | 'closed' | 'merged' | 'draft';
   created_at: string;
-  author: { email: string };
-  source_branch: { name: string };
-  target_branch: { name: string };
+  author_id: string;
+  source_branch_id: string;
+  target_branch_id: string;
+  author: { email: string } | null;
+  source_branch: { name: string } | null;
+  target_branch: { name: string } | null;
 }
 
 interface PullRequestListProps {
@@ -43,7 +46,13 @@ export function PullRequestList({ repositoryId, onSelectPullRequest }: PullReque
         throw error;
       }
 
-      return data as PullRequest[];
+      // Transform the data to match our PullRequest interface
+      return (data as any[]).map(pr => ({
+        ...pr,
+        author: pr.author || null,
+        source_branch: pr.source_branch || null,
+        target_branch: pr.target_branch || null
+      })) as PullRequest[];
     },
     enabled: !!repositoryId,
   });
