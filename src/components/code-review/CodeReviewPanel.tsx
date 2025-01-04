@@ -46,7 +46,13 @@ export function CodeReviewPanel({ pullRequestId, onReviewSubmitted }: CodeReview
             email
           )
         `)
-        .eq('pull_request_id', pullRequestId);
+        .eq('pull_request_id', pullRequestId)
+        .returns<{
+          id: string;
+          comment: string | null;
+          created_at: string;
+          reviewer: { email: string } | null;
+        }[]>();
 
       if (error) {
         console.error("Error fetching comments:", error);
