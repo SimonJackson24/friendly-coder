@@ -16,10 +16,10 @@ serve(async (req) => {
     const { businessName, productDescription, targetAudience, platform, goals, tone } = await req.json();
 
     const platformGuidelines = {
-      facebook: "Create an engaging social media ad that's visually descriptive and includes a clear call-to-action.",
-      instagram: "Design a visually-focused ad that resonates with Instagram's aesthetic and includes relevant hashtags.",
-      twitter: "Write a concise, punchy ad that works well with Twitter's fast-paced environment.",
-      google: "Develop a keyword-rich ad that focuses on search intent and includes relevant call-to-actions.",
+      facebook: "Create an engaging social media ad that's visually descriptive, includes a clear call-to-action, and follows the 20% text rule for images.",
+      instagram: "Design a visually-focused ad that resonates with Instagram's aesthetic, includes relevant hashtags, and emphasizes lifestyle imagery.",
+      twitter: "Write a concise, punchy ad that works well with Twitter's fast-paced environment and includes relevant hashtags.",
+      google: "Develop a keyword-rich ad that focuses on search intent and includes relevant call-to-actions and extensions.",
       linkedin: "Create a professional, business-focused ad that emphasizes value proposition and industry expertise."
     };
 
@@ -33,14 +33,17 @@ Tone: ${tone}
 
 Platform-Specific Guidelines: ${platformGuidelines[platform] || "Create a compelling ad that follows the platform's best practices."}
 
-Please generate ad copy that includes:
-1. Attention-grabbing headline
-2. Compelling main text
-3. Clear call-to-action
-4. Relevant hashtags or keywords (if applicable)
-5. Platform-specific optimization recommendations
+Please generate comprehensive ad copy that includes:
+1. Primary Headline (attention-grabbing, includes keywords)
+2. Secondary Headlines/Descriptions
+3. Main Ad Copy (optimized for the platform)
+4. Call-to-Action
+5. Relevant Hashtags or Keywords
+6. Image/Video Recommendations
+7. Targeting Recommendations
+8. Compliance Checklist
 
-Format the response in a clear, structured way.`;
+Format the response in a clear, structured way with sections clearly labeled.`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
