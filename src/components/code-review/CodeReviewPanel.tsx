@@ -44,8 +44,8 @@ export function CodeReviewPanel({ pullRequestId, onReviewSubmitted }: CodeReview
           id,
           content,
           created_at,
-          pull_request_id,
-          review:review_id (
+          review_id,
+          review:code_reviews!review_id (
             reviewer:reviewer_id (
               email
             )
@@ -54,21 +54,25 @@ export function CodeReviewPanel({ pullRequestId, onReviewSubmitted }: CodeReview
         .eq('pull_request_id', pullRequestId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching comments:", error);
+        throw error;
+      }
 
       console.log("Fetched review comments:", reviewComments);
 
-      // Transform the data to match our ReviewComment interface
-      const formattedComments: ReviewComment[] = reviewComments?.map(comment => ({
-        id: comment.id,
-        content: comment.content,
-        created_at: comment.created_at,
-        reviewer: {
-          email: comment.review?.reviewer?.email || 'Unknown User'
-        }
-      })) || [];
+      if (reviewComments) {
+        const formattedComments: ReviewComment[] = reviewComments.map(comment => ({
+          id: comment.id,
+          content: comment.content,
+          created_at: comment.created_at,
+          reviewer: {
+            email: comment.review?.reviewer?.email || 'Unknown User'
+          }
+        }));
 
-      setComments(formattedComments);
+        setComments(formattedComments);
+      }
     } catch (error) {
       console.error("Error fetching comments:", error);
       toast({
