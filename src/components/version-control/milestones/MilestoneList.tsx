@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
 interface MilestoneUser {
-  email: string;
+  email: string | null;
 }
 
 interface Milestone {
@@ -19,8 +19,9 @@ interface Milestone {
   description: string | null;
   due_date: string | null;
   status: string;
-  created_by: MilestoneUser;
+  created_by: string;
   created_at: string;
+  user?: MilestoneUser | null;
 }
 
 interface MilestoneListProps {
@@ -34,23 +35,23 @@ export function MilestoneList({ repositoryId }: MilestoneListProps) {
     queryKey: ["milestones", repositoryId],
     queryFn: async () => {
       console.log("Fetching milestones for repository:", repositoryId);
-      const { data, error } = await supabase
+      const { data: milestonesData, error: milestonesError } = await supabase
         .from("milestones")
         .select(`
           *,
-          created_by:created_by(
+          user:created_by(
             email
           )
         `)
         .eq("repository_id", repositoryId)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching milestones:", error);
-        throw error;
+      if (milestonesError) {
+        console.error("Error fetching milestones:", milestonesError);
+        throw milestonesError;
       }
 
-      return data as Milestone[];
+      return milestonesData as Milestone[];
     },
   });
 
@@ -94,7 +95,7 @@ export function MilestoneList({ repositoryId }: MilestoneListProps) {
                 </div>
                 <div className="flex items-center gap-1">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Created by {milestone.created_by?.email || 'Unknown user'}</span>
+                  <span>Created by {milestone.user?.email || 'Unknown user'}</span>
                 </div>
               </div>
             </Card>
