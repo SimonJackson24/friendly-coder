@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdMetricsDashboard } from "@/components/ad-creator/AdMetricsDashboard";
 import { AdTestingPanel } from "@/components/ad-creator/AdTestingPanel";
 import { CampaignManager } from "@/components/ad-creator/CampaignManager";
+import { AdPlatformConnections } from "@/components/ad-creator/AdPlatformConnections";
 
 export default function Ads() {
   return (
@@ -16,6 +17,7 @@ export default function Ads() {
           <TabsTrigger value="metrics">Metrics</TabsTrigger>
           <TabsTrigger value="testing">A/B Testing</TabsTrigger>
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+          <TabsTrigger value="connections">Platforms</TabsTrigger>
         </TabsList>
 
         <TabsContent value="creator">
@@ -39,6 +41,12 @@ export default function Ads() {
         <TabsContent value="campaigns">
           <Card className="p-6">
             <CampaignManager />
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="connections">
+          <Card className="p-6">
+            <AdPlatformConnections />
           </Card>
         </TabsContent>
       </Tabs>
