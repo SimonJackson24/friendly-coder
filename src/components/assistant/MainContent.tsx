@@ -4,7 +4,10 @@ import { FileEditor } from "@/components/FileEditor";
 import { Console } from "@/components/Console";
 import { ProjectSettings } from "@/components/ProjectSettings";
 import { VersionControl } from "@/components/version-control/VersionControl";
+import { IssueList } from "@/components/issues/IssueList";
 import { FileNode } from "@/hooks/useFileSystem";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MainContentProps {
   projectId: string | null;
@@ -25,12 +28,29 @@ export function MainContent({
   onClearConsole,
   project,
 }: MainContentProps) {
+  const { data: repository } = useQuery({
+    queryKey: ["repository", projectId],
+    queryFn: async () => {
+      if (!projectId) return null;
+      const { data, error } = await supabase
+        .from("repositories")
+        .select("*")
+        .eq("project_id", projectId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!projectId,
+  });
+
   return (
     <Tabs defaultValue="chat" className="h-full flex flex-col">
       <TabsList className="w-full">
         <TabsTrigger value="chat">Chat</TabsTrigger>
         <TabsTrigger value="editor">Editor</TabsTrigger>
         <TabsTrigger value="console">Console</TabsTrigger>
+        <TabsTrigger value="issues">Issues</TabsTrigger>
         <TabsTrigger value="settings">Settings</TabsTrigger>
         <TabsTrigger value="version-control">Version Control</TabsTrigger>
       </TabsList>
@@ -54,6 +74,16 @@ export function MainContent({
             errors={buildErrors}
             onClear={onClearConsole} 
           />
+        </TabsContent>
+
+        <TabsContent value="issues" className="h-full m-0 p-4">
+          {repository ? (
+            <IssueList repositoryId={repository.id} />
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              No repository found for this project.
+            </div>
+          )}
         </TabsContent>
         
         <TabsContent value="settings" className="h-full m-0">
