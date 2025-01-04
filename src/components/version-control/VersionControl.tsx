@@ -1,21 +1,18 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { RepositoryList } from "./RepositoryList";
-import { BranchList } from "./BranchList";
-import { CommitHistory } from "./CommitHistory";
 import { CreateCommitDialog } from "./CreateCommitDialog";
-import { PullRequestList } from "./pull-requests/PullRequestList";
-import { CreatePullRequest } from "./pull-requests/CreatePullRequest";
 import { BranchProtectionRules } from "./branch-protection/BranchProtectionRules";
 import { RebaseOperations } from "./rebase/RebaseOperations";
 import { CherryPick } from "./cherry-pick/CherryPick";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { FileNode } from "@/hooks/useFileSystem";
-import { Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { RepositorySection } from "./features/RepositorySection";
+import { BranchSection } from "./features/BranchSection";
+import { CommitSection } from "./features/CommitSection";
+import { PullRequestSection } from "./features/PullRequestSection";
 
 export function VersionControl({ projectId }: { projectId: string | null }) {
   const [selectedRepositoryId, setSelectedRepositoryId] = useState<string | null>(null);
@@ -47,7 +44,6 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
       setActiveBranchId(branchId);
       setSelectedBranchId(branchId);
       
-      // If no target branch is set, set it to the default branch
       if (!targetBranchId) {
         const { data: defaultBranch } = await supabase
           .from("branches")
@@ -102,71 +98,31 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
         </TabsList>
 
         <TabsContent value="repositories">
-          <RepositoryList 
+          <RepositorySection 
             projectId={projectId} 
             onSelectRepository={setSelectedRepositoryId}
           />
         </TabsContent>
 
-        <TabsContent value="branches" className="space-y-4">
-          {selectedRepositoryId ? (
-            <>
-              <div className="flex justify-end">
-                {activeBranchId && (
-                  <Button onClick={() => setIsCommitDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Commit
-                  </Button>
-                )}
-              </div>
-              <BranchList 
-                repositoryId={selectedRepositoryId}
-                onSelectBranch={handleBranchSelect}
-                activeBranchId={activeBranchId}
-              />
-            </>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                Select a repository to manage branches
-              </p>
-            </div>
-          )}
+        <TabsContent value="branches">
+          <BranchSection 
+            repositoryId={selectedRepositoryId}
+            onSelectBranch={handleBranchSelect}
+            activeBranchId={activeBranchId}
+            onCreateCommit={() => setIsCommitDialogOpen(true)}
+          />
         </TabsContent>
 
         <TabsContent value="commits">
-          {selectedBranchId ? (
-            <CommitHistory branchId={selectedBranchId} />
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                Select a branch to view commit history
-              </p>
-            </div>
-          )}
+          <CommitSection branchId={selectedBranchId} />
         </TabsContent>
 
-        <TabsContent value="pull-requests" className="space-y-4">
-          {selectedRepositoryId ? (
-            <>
-              <div className="flex justify-end">
-                {activeBranchId && targetBranchId && (
-                  <CreatePullRequest
-                    repositoryId={selectedRepositoryId}
-                    sourceBranchId={activeBranchId}
-                    targetBranchId={targetBranchId}
-                  />
-                )}
-              </div>
-              <PullRequestList repositoryId={selectedRepositoryId} />
-            </>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                Select a repository to view pull requests
-              </p>
-            </div>
-          )}
+        <TabsContent value="pull-requests">
+          <PullRequestSection 
+            repositoryId={selectedRepositoryId}
+            activeBranchId={activeBranchId}
+            targetBranchId={targetBranchId}
+          />
         </TabsContent>
 
         <TabsContent value="protection">
@@ -202,9 +158,8 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
         <TabsContent value="cherry-pick">
           {selectedBranchId ? (
             <CherryPick
-              commits={[]} // You'll need to fetch commits and implement the onCherryPick handler
+              commits={[]}
               onCherryPick={async (commitIds) => {
-                // Implement cherry-pick logic here
                 console.log("Cherry-picking commits:", commitIds);
               }}
             />
