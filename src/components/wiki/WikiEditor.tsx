@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Save, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@supabase/auth-helpers-react";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface WikiEditorProps {
   repositoryId: string;
@@ -27,7 +27,7 @@ export function WikiEditor({
   const [content, setContent] = useState(initialContent);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  const auth = useAuth();
+  const session = useSession();
 
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) {
@@ -39,7 +39,7 @@ export function WikiEditor({
       return;
     }
 
-    if (!auth?.user?.id) {
+    if (!session?.user?.id) {
       toast({
         title: "Error",
         description: "You must be logged in to save wiki pages",
@@ -70,7 +70,7 @@ export function WikiEditor({
             repository_id: repositoryId,
             title,
             content,
-            created_by: auth.user.id
+            created_by: session.user.id
           });
 
         if (error) throw error;
