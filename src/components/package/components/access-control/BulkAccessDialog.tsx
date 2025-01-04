@@ -22,6 +22,10 @@ export function BulkAccessDialog({
   accessLevel,
   onBulkAccess,
 }: BulkAccessDialogProps) {
+  const handleRemoveUser = (userIdToRemove: string) => {
+    setSelectedUsers(selectedUsers.filter(userId => userId !== userIdToRemove));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -39,7 +43,7 @@ export function BulkAccessDialog({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setSelectedUsers(users => users.filter(u => u !== userId))}
+                  onClick={() => handleRemoveUser(userId)}
                 >
                   <X className="h-4 w-4" />
                 </Button>
