@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Lightbulb, TrendingUp, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 interface InsightRecommendation {
   suggestion?: string;
@@ -18,6 +19,16 @@ interface InsightContent {
   recommendations: InsightRecommendation[];
   confidenceScore: number;
   impactScore: number;
+}
+
+// Type guard to check if the content matches InsightContent structure
+function isInsightContent(content: Json): content is InsightContent {
+  const c = content as InsightContent;
+  return (
+    Array.isArray(c?.recommendations) &&
+    typeof c?.confidenceScore === 'number' &&
+    typeof c?.impactScore === 'number'
+  );
 }
 
 export function AIInsights() {
@@ -57,8 +68,14 @@ export function AIInsights() {
       <h3 className="text-lg font-semibold">AI-Powered Insights</h3>
       <div className="grid gap-4">
         {insights?.map((insight) => {
-          const content = insight.content as InsightContent;
-          const recommendation = content.recommendations?.[0];
+          // Safely parse the content using the type guard
+          const content = isInsightContent(insight.content) ? insight.content : null;
+          if (!content) {
+            console.warn(`Invalid insight content structure for insight ID: ${insight.id}`);
+            return null;
+          }
+
+          const recommendation = content.recommendations[0];
           
           return (
             <Card key={insight.id}>
