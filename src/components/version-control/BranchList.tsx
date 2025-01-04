@@ -15,7 +15,12 @@ interface Branch {
   repository_id: string;
 }
 
-export function BranchList({ repositoryId }: { repositoryId: string }) {
+interface BranchListProps {
+  repositoryId: string;
+  onSelectBranch: (branchId: string) => void;
+}
+
+export function BranchList({ repositoryId, onSelectBranch }: BranchListProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -57,7 +62,8 @@ export function BranchList({ repositoryId }: { repositoryId: string }) {
           {branches?.map((branch) => (
             <div
               key={branch.id}
-              className="p-4 border rounded-lg hover:bg-accent transition-colors"
+              className="p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
+              onClick={() => onSelectBranch(branch.id)}
             >
               <div className="flex items-center justify-between">
                 <div>
