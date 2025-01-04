@@ -12,16 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { 
-  Smartphone, 
-  Globe, 
-  ArrowRightLeft, 
-  Code2,
-  Laptop,
-  Workflow
-} from "lucide-react";
+import { ProjectTypeSelector } from "./ProjectTypeSelector";
 
 interface CreateProjectDialogProps {
   isOpen: boolean;
@@ -29,7 +20,7 @@ interface CreateProjectDialogProps {
   userId: string;
 }
 
-type ProjectType = 'responsive-website' | 'android' | 'web-to-android' | 'fullstack' | 'pwa';
+type ProjectType = 'responsive-pwa' | 'android' | 'web-to-android' | 'fullstack';
 
 export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProjectDialogProps) => {
   const { toast } = useToast();
@@ -37,7 +28,7 @@ export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProj
   const [newProject, setNewProject] = useState({ 
     title: "", 
     description: "",
-    type: "responsive-website" as ProjectType 
+    type: "responsive-pwa" as ProjectType 
   });
 
   const createProject = useMutation({
@@ -63,7 +54,7 @@ export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProj
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       onOpenChange(false);
-      setNewProject({ title: "", description: "", type: "responsive-website" });
+      setNewProject({ title: "", description: "", type: "responsive-pwa" });
       toast({
         title: "Success",
         description: "Project created successfully",
@@ -99,7 +90,6 @@ export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProj
         </DialogHeader>
         <div className="space-y-6 py-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
             <Input
               id="title"
               value={newProject.title}
@@ -111,7 +101,6 @@ export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProj
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={newProject.description}
@@ -122,81 +111,12 @@ export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProj
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Project Type</Label>
-            <RadioGroup
-              value={newProject.type}
-              onValueChange={(value: ProjectType) =>
-                setNewProject((prev) => ({ ...prev, type: value }))
-              }
-              className="grid grid-cols-2 gap-4"
-            >
-              <div className="flex items-center space-x-2 rounded-lg border p-4 cursor-pointer hover:bg-accent">
-                <RadioGroupItem value="responsive-website" id="responsive-website" />
-                <Label htmlFor="responsive-website" className="flex-1 cursor-pointer">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    <span className="font-medium">Responsive Website</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Create a modern, responsive website that works on all devices
-                  </p>
-                </Label>
-              </div>
-              
-              <div className="flex items-center space-x-2 rounded-lg border p-4 cursor-pointer hover:bg-accent">
-                <RadioGroupItem value="pwa" id="pwa" />
-                <Label htmlFor="pwa" className="flex-1 cursor-pointer">
-                  <div className="flex items-center gap-2">
-                    <Laptop className="h-4 w-4" />
-                    <span className="font-medium">Progressive Web App</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Build a PWA that can be installed on any device
-                  </p>
-                </Label>
-              </div>
-              
-              <div className="flex items-center space-x-2 rounded-lg border p-4 cursor-pointer hover:bg-accent">
-                <RadioGroupItem value="android" id="android" />
-                <Label htmlFor="android" className="flex-1 cursor-pointer">
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="h-4 w-4" />
-                    <span className="font-medium">Native Android App</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Develop a native Android application from scratch
-                  </p>
-                </Label>
-              </div>
-              
-              <div className="flex items-center space-x-2 rounded-lg border p-4 cursor-pointer hover:bg-accent">
-                <RadioGroupItem value="web-to-android" id="web-to-android" />
-                <Label htmlFor="web-to-android" className="flex-1 cursor-pointer">
-                  <div className="flex items-center gap-2">
-                    <ArrowRightLeft className="h-4 w-4" />
-                    <span className="font-medium">Web to Android</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Convert your web app into a native Android application
-                  </p>
-                </Label>
-              </div>
-              
-              <div className="col-span-2 flex items-center space-x-2 rounded-lg border p-4 cursor-pointer hover:bg-accent">
-                <RadioGroupItem value="fullstack" id="fullstack" />
-                <Label htmlFor="fullstack" className="flex-1 cursor-pointer">
-                  <div className="flex items-center gap-2">
-                    <Workflow className="h-4 w-4" />
-                    <span className="font-medium">Full Stack Application</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Build a complete application with frontend, backend, and database
-                  </p>
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
+          <ProjectTypeSelector
+            value={newProject.type}
+            onValueChange={(value: ProjectType) =>
+              setNewProject((prev) => ({ ...prev, type: value }))
+            }
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
