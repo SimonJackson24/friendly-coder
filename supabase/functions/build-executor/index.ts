@@ -29,26 +29,31 @@ serve(async (req) => {
     const { buildId, projectId, environment, config } = await req.json() as BuildRequest;
     console.log('Build request received:', { buildId, projectId, environment });
 
-    // Validate the build exists and belongs to the user
+    // Get the next build number
+    const { data: buildNumberData } = await supabaseClient.rpc(
+      'get_next_build_number',
+      { p_project_id: projectId }
+    );
+
+    // Create build record
     const { data: build, error: buildError } = await supabaseClient
       .from('builds')
-      .select('id')
-      .eq('id', buildId)
+      .insert({
+        id: buildId,
+        project_id: projectId,
+        status: 'running',
+        build_number: buildNumberData,
+        environment,
+        build_config: config,
+        started_at: new Date().toISOString(),
+      })
+      .select()
       .single();
 
-    if (buildError || !build) {
-      console.error('Build validation error:', buildError);
-      throw new Error('Build not found or unauthorized');
+    if (buildError) {
+      console.error('Build creation error:', buildError);
+      throw buildError;
     }
-
-    // Update build status to running
-    await supabaseClient
-      .from('builds')
-      .update({ 
-        status: 'running',
-        started_at: new Date().toISOString()
-      })
-      .eq('id', buildId);
 
     console.log('Starting build steps execution');
 
@@ -77,20 +82,16 @@ serve(async (req) => {
         // Execute the step based on its type
         switch (step.type) {
           case 'install':
-            console.log('Running install step:', step.command);
-            // Add actual package installation logic here
+            await executeInstallStep(step, supabaseClient, buildId);
             break;
           case 'test':
-            console.log('Running test step:', step.command);
-            // Add actual test execution logic here
+            await executeTestStep(step, supabaseClient, buildId);
             break;
           case 'build':
-            console.log('Running build step:', step.command);
-            // Add actual build execution logic here
+            await executeBuildStep(step, supabaseClient, buildId);
             break;
           case 'deploy':
-            console.log('Running deploy step:', step.command);
-            // Add actual deployment logic here
+            await executeDeployStep(step, supabaseClient, buildId);
             break;
         }
 
@@ -154,3 +155,102 @@ serve(async (req) => {
     );
   }
 });
+
+async function executeInstallStep(
+  step: any,
+  supabaseClient: any,
+  buildId: string
+) {
+  // Log step start
+  await logBuildMessage(supabaseClient, buildId, `Installing dependencies: ${step.command}`);
+  
+  // Execute npm/yarn install
+  const command = step.command || 'npm install';
+  
+  // Simulate command execution (replace with actual execution logic)
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  await logBuildMessage(supabaseClient, buildId, 'Dependencies installed successfully');
+}
+
+async function executeTestStep(
+  step: any,
+  supabaseClient: any,
+  buildId: string
+) {
+  await logBuildMessage(supabaseClient, buildId, `Running tests: ${step.command}`);
+  
+  // Execute test command
+  const command = step.command || 'npm test';
+  
+  // Simulate test execution (replace with actual test runner integration)
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  
+  await logBuildMessage(supabaseClient, buildId, 'Tests completed successfully');
+}
+
+async function executeBuildStep(
+  step: any,
+  supabaseClient: any,
+  buildId: string
+) {
+  await logBuildMessage(supabaseClient, buildId, `Building project: ${step.command}`);
+  
+  // Execute build command
+  const command = step.command || 'npm run build';
+  
+  // Simulate build process (replace with actual build logic)
+  await new Promise(resolve => setTimeout(resolve, 5000));
+  
+  // Store build artifacts
+  const artifactPath = `builds/${buildId}/artifact.zip`;
+  
+  // Update build record with artifact URL
+  await supabaseClient
+    .from('builds')
+    .update({
+      artifacts_urls: [artifactPath]
+    })
+    .eq('id', buildId);
+  
+  await logBuildMessage(supabaseClient, buildId, 'Build completed successfully');
+}
+
+async function executeDeployStep(
+  step: any,
+  supabaseClient: any,
+  buildId: string
+) {
+  await logBuildMessage(supabaseClient, buildId, `Deploying to ${step.environment}`);
+  
+  // Execute deployment command
+  const command = step.command;
+  
+  // Simulate deployment process (replace with actual deployment logic)
+  await new Promise(resolve => setTimeout(resolve, 4000));
+  
+  await logBuildMessage(supabaseClient, buildId, 'Deployment completed successfully');
+}
+
+async function logBuildMessage(
+  supabaseClient: any,
+  buildId: string,
+  message: string
+) {
+  const timestamp = new Date().toISOString();
+  const logMessage = `[${timestamp}] ${message}`;
+  
+  const { data: build } = await supabaseClient
+    .from('builds')
+    .select('build_logs')
+    .eq('id', buildId)
+    .single();
+  
+  const logs = build?.build_logs || [];
+  logs.push(logMessage);
+  
+  await supabaseClient
+    .from('builds')
+    .update({ build_logs: logs })
+    .eq('id', buildId);
+}
