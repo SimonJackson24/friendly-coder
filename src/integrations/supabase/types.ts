@@ -762,6 +762,86 @@ export type Database = {
           },
         ]
       }
+      milestone_issues: {
+        Row: {
+          created_at: string | null
+          id: string
+          issue_id: string
+          milestone_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          issue_id: string
+          milestone_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          issue_id?: string
+          milestone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestone_issues_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "issues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "milestone_issues_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      milestones: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          description: string | null
+          due_date: string | null
+          id: string
+          repository_id: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          repository_id: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          repository_id?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestones_repository_id_fkey"
+            columns: ["repository_id"]
+            isOneToOne: false
+            referencedRelation: "repositories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_boards: {
         Row: {
           created_at: string | null
