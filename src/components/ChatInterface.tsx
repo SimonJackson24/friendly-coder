@@ -94,11 +94,11 @@ ${userMessage}`;
   const context = Logger.getContextSummary();
 
   return (
-    <div className="h-full flex flex-col bg-background/50 backdrop-blur-sm rounded-lg border shadow-lg">
+    <div className="h-full flex flex-col bg-background/50 backdrop-blur-lg rounded-lg border border-border/50 shadow-xl animate-fade-in">
       <ContextAlerts context={context} />
 
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-6">
+      <ScrollArea className="flex-1 p-4 space-y-6">
+        <div className="space-y-6 pb-4">
           {messages.map((message, index) => (
             <ChatMessage key={index} {...message} />
           ))}

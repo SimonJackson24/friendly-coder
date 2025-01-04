@@ -18,11 +18,11 @@ export function ContextAlerts({ context }: ContextAlertsProps) {
   if (!hasRecentIssues) return null;
 
   return (
-    <div className="space-y-2 p-4">
+    <div className="space-y-2 p-4 animate-fade-in">
       {context.buildErrorCount > 0 && (
-        <Alert variant="destructive" className="animate-fade-in">
+        <Alert variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20 animate-slide-in-right">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Build Errors</AlertTitle>
+          <AlertTitle className="font-semibold">Build Errors</AlertTitle>
           <AlertDescription>
             There are {context.buildErrorCount} recent build errors that might affect the AI's responses.
           </AlertDescription>
@@ -30,9 +30,9 @@ export function ContextAlerts({ context }: ContextAlertsProps) {
       )}
       
       {context.schemaChangeCount > 0 && (
-        <Alert className="animate-fade-in">
-          <Database className="h-4 w-4" />
-          <AlertTitle>Schema Changes</AlertTitle>
+        <Alert className="bg-primary/5 border-primary/20 animate-slide-in-right">
+          <Database className="h-4 w-4 text-primary" />
+          <AlertTitle className="font-semibold">Schema Changes</AlertTitle>
           <AlertDescription>
             {context.schemaChangeCount} recent database schema changes detected.
           </AlertDescription>
@@ -40,9 +40,9 @@ export function ContextAlerts({ context }: ContextAlertsProps) {
       )}
       
       {context.packageOperationCount > 0 && (
-        <Alert className="animate-fade-in">
-          <Package className="h-4 w-4" />
-          <AlertTitle>Package Changes</AlertTitle>
+        <Alert className="bg-primary/5 border-primary/20 animate-slide-in-right">
+          <Package className="h-4 w-4 text-primary" />
+          <AlertTitle className="font-semibold">Package Changes</AlertTitle>
           <AlertDescription>
             {context.packageOperationCount} recent package operations performed.
           </AlertDescription>
@@ -50,9 +50,9 @@ export function ContextAlerts({ context }: ContextAlertsProps) {
       )}
 
       {context.fileOperationCount > 0 && (
-        <Alert className="animate-fade-in">
-          <FileCode className="h-4 w-4" />
-          <AlertTitle>File System Changes</AlertTitle>
+        <Alert className="bg-primary/5 border-primary/20 animate-slide-in-right">
+          <FileCode className="h-4 w-4 text-primary" />
+          <AlertTitle className="font-semibold">File System Changes</AlertTitle>
           <AlertDescription>
             {context.fileOperationCount} recent file operations performed.
           </AlertDescription>

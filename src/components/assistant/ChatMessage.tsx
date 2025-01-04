@@ -16,19 +16,19 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
       )}
     >
       {role === "assistant" && (
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center ring-1 ring-primary/20">
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center ring-1 ring-primary/20 shadow-lg animate-scale-in">
           <Bot className="w-4 h-4 text-primary" />
         </div>
       )}
       <div
         className={cn(
-          "max-w-[85%] md:max-w-[75%] rounded-lg p-4 shadow-lg transition-colors",
+          "max-w-[85%] md:max-w-[75%] rounded-lg p-4 shadow-lg transition-all duration-200 hover:shadow-xl",
           role === "assistant" 
-            ? "bg-card/50 text-card-foreground backdrop-blur-sm" 
+            ? "bg-card/80 text-card-foreground backdrop-blur-md border border-border/50" 
             : "bg-primary text-primary-foreground"
         )}
       >
-        <div className="text-xs opacity-70 mb-2">
+        <div className="text-xs opacity-70 mb-2 font-medium">
           {new Date(timestamp).toLocaleTimeString()}
         </div>
         <div className="whitespace-pre-wrap prose prose-sm dark:prose-invert">
@@ -36,7 +36,7 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
         </div>
       </div>
       {role === "user" && (
-        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-lg animate-scale-in">
           <User className="w-4 h-4 text-primary-foreground" />
         </div>
       )}
