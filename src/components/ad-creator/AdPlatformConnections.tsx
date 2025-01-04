@@ -22,7 +22,7 @@ export function AdPlatformConnections() {
   const platforms = [
     { 
       id: 'facebook', 
-      name: 'Facebook Ads',
+      name: 'Facebook & Instagram Ads',
       description: 'Connect to manage Facebook and Instagram ad campaigns'
     },
     { 
