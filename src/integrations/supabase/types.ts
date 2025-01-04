@@ -1156,6 +1156,118 @@ export type Database = {
           },
         ]
       }
+      package_access: {
+        Row: {
+          access_level: string
+          created_at: string | null
+          id: string
+          package_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_level: string
+          created_at?: string | null
+          id?: string
+          package_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_level?: string
+          created_at?: string | null
+          id?: string
+          package_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_access_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      package_versions: {
+        Row: {
+          changes: string | null
+          created_at: string | null
+          id: string
+          package_data: Json
+          package_id: string
+          published_by: string
+          version: string
+        }
+        Insert: {
+          changes?: string | null
+          created_at?: string | null
+          id?: string
+          package_data: Json
+          package_id: string
+          published_by: string
+          version: string
+        }
+        Update: {
+          changes?: string | null
+          created_at?: string | null
+          id?: string
+          package_data?: Json
+          package_id?: string
+          published_by?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_versions_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packages: {
+        Row: {
+          author_id: string
+          created_at: string | null
+          description: string | null
+          download_count: number | null
+          id: string
+          is_private: boolean | null
+          name: string
+          package_data: Json
+          updated_at: string | null
+          version: string
+        }
+        Insert: {
+          author_id: string
+          created_at?: string | null
+          description?: string | null
+          download_count?: number | null
+          id?: string
+          is_private?: boolean | null
+          name: string
+          package_data: Json
+          updated_at?: string | null
+          version: string
+        }
+        Update: {
+          author_id?: string
+          created_at?: string | null
+          description?: string | null
+          download_count?: number | null
+          id?: string
+          is_private?: boolean | null
+          name?: string
+          package_data?: Json
+          updated_at?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
       project_boards: {
         Row: {
           created_at: string | null
@@ -1554,6 +1666,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      search_history: {
+        Row: {
+          created_at: string | null
+          filters: Json | null
+          id: string
+          query: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          filters?: Json | null
+          id?: string
+          query: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          filters?: Json | null
+          id?: string
+          query?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       settings: {
         Row: {
