@@ -1,8 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
-import { importFromGithub, exportToGithub } from './github.ts';
-import { analyzeDependencies } from './dependencies.ts';
-import { handleDeployment } from './deployment.ts';
+import { handleGithubOperations } from './handlers/github-handler.ts';
+import { handleDependencyOperations } from './handlers/dependency-handler.ts';
+import { handleDeploymentOperations } from './handlers/deployment-handler.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,49 +24,20 @@ serve(async (req) => {
 
     console.log(`Processing ${operation} operation with data:`, data);
 
-    switch (operation) {
-      case 'github-import': {
-        const { repoUrl, projectId } = data;
-        const githubToken = Deno.env.get('GITHUB_ACCESS_TOKEN');
-        if (!githubToken) {
-          throw new Error('GitHub token not configured');
-        }
-        const result = await importFromGithub(repoUrl, projectId, githubToken, supabase);
-        return new Response(JSON.stringify(result), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      case 'analyze-dependencies': {
-        const analysis = await analyzeDependencies(data);
-        return new Response(JSON.stringify(analysis), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      case 'deploy': {
-        const { platform, config } = data;
-        const result = await handleDeployment(platform, config);
-        return new Response(JSON.stringify(result), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      case 'github-export': {
-        const { repoName, isPrivate } = data;
-        const githubToken = Deno.env.get('GITHUB_ACCESS_TOKEN');
-        if (!githubToken) {
-          throw new Error('GitHub token not configured');
-        }
-        const result = await exportToGithub(repoName, isPrivate, githubToken);
-        return new Response(JSON.stringify(result), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      default:
-        throw new Error(`Unknown operation: ${operation}`);
+    let result;
+    if (operation.startsWith('github-')) {
+      result = await handleGithubOperations(operation, data, supabase);
+    } else if (operation === 'analyze-dependencies') {
+      result = await handleDependencyOperations(operation, data);
+    } else if (operation === 'deploy') {
+      result = await handleDeploymentOperations(operation, data);
+    } else {
+      throw new Error(`Unknown operation: ${operation}`);
     }
+
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error("Error in project operations:", error);
     return new Response(JSON.stringify({ error: error.message }), {
