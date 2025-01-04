@@ -49,12 +49,28 @@ export function BranchComparisonSection({
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
-        // Ensure the comparison_data matches the ComparisonData type
-        const typedData = {
+        // Type guard to validate the comparison_data structure
+        const isValidComparisonData = (data: any): data is ComparisonData => {
+          return (
+            typeof data === 'object' &&
+            data !== null &&
+            'source_content' in data &&
+            'target_content' in data &&
+            typeof data.source_content === 'string' &&
+            typeof data.target_content === 'string'
+          );
+        };
+
+        // Validate the comparison_data before casting
+        if (!isValidComparisonData(data.comparison_data)) {
+          console.error('Invalid comparison data structure:', data.comparison_data);
+          return null;
+        }
+
+        return {
           ...data,
           comparison_data: data.comparison_data as ComparisonData
-        };
-        return typedData as BranchComparison;
+        } as BranchComparison;
       }
       return null;
     },
