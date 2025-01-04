@@ -28,13 +28,16 @@ export function AndroidBuildSection({ projectId }: AndroidBuildSectionProps) {
         .eq('project_id', projectId)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        console.error("Error fetching Android build:", error);
+        throw error;
+      }
       return data;
     },
     refetchInterval: (data) => {
-      // Refetch every 5 seconds if build is pending
+      // Refetch every 5 seconds if build exists and is pending
       return data?.status === 'pending' ? 5000 : false;
     },
   });
