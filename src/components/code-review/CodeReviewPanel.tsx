@@ -44,6 +44,7 @@ export function CodeReviewPanel({ pullRequestId, onReviewSubmitted }: CodeReview
           id,
           content,
           created_at,
+          pull_request_id,
           review:review_id (
             reviewer:reviewer_id (
               email
@@ -63,7 +64,6 @@ export function CodeReviewPanel({ pullRequestId, onReviewSubmitted }: CodeReview
         content: comment.content,
         created_at: comment.created_at,
         reviewer: {
-          // Safely access nested properties and provide a fallback
           email: comment.review?.reviewer?.email || 'Unknown User'
         }
       })) || [];
