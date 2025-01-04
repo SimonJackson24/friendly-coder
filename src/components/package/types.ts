@@ -12,9 +12,11 @@ export interface PackageVersion {
   created_at: string;
 }
 
+export type AccessLevel = "read" | "write" | "admin";
+
 export interface PackageAccess {
   id: string;
   package_id: string;
   user_id: string;
-  access_level: 'read' | 'write' | 'admin';
+  access_level: AccessLevel;
 }

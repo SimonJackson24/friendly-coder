@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { PackageAccess } from "../types";
+import { PackageAccess, AccessLevel } from "../types";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, UserPlus, Shield } from "lucide-react";
 
@@ -13,12 +13,16 @@ interface AccessControlProps {
 export function AccessControl({ packageId }: AccessControlProps) {
   const [accessList, setAccessList] = useState<PackageAccess[]>([]);
   const [newUserId, setNewUserId] = useState("");
-  const [accessLevel, setAccessLevel] = useState<"read" | "write" | "admin">("read");
+  const [accessLevel, setAccessLevel] = useState<AccessLevel>("read");
   const { toast } = useToast();
 
   useEffect(() => {
     fetchAccessList();
   }, [packageId]);
+
+  const isValidAccessLevel = (level: string): level is AccessLevel => {
+    return ["read", "write", "admin"].includes(level);
+  };
 
   const fetchAccessList = async () => {
     try {
@@ -28,7 +32,17 @@ export function AccessControl({ packageId }: AccessControlProps) {
         .eq("package_id", packageId);
 
       if (error) throw error;
-      setAccessList(data || []);
+
+      // Validate and transform the access levels
+      const validatedData = (data || []).map(item => {
+        if (!isValidAccessLevel(item.access_level)) {
+          console.warn(`Invalid access level found: ${item.access_level}, defaulting to "read"`);
+          return { ...item, access_level: "read" as AccessLevel };
+        }
+        return { ...item, access_level: item.access_level as AccessLevel };
+      });
+
+      setAccessList(validatedData);
     } catch (error) {
       console.error('Error fetching access list:', error);
     }
@@ -107,7 +121,7 @@ export function AccessControl({ packageId }: AccessControlProps) {
           <select
             className="border rounded px-2"
             value={accessLevel}
-            onChange={(e) => setAccessLevel(e.target.value as "read" | "write" | "admin")}
+            onChange={(e) => setAccessLevel(e.target.value as AccessLevel)}
           >
             <option value="read">Read</option>
             <option value="write">Write</option>
