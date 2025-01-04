@@ -6,22 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Search, History, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SearchHistoryItem } from "../types";
 
 interface PackageSearchProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   selectedPackage: string | null;
   onInstall: () => void;
-}
-
-interface SearchHistoryItem {
-  id: string;
-  query: string;
-  filters: {
-    category?: string;
-    tags?: string[];
-  };
-  created_at: string;
 }
 
 export function PackageSearch({ 
@@ -69,7 +60,14 @@ export function PackageSearch({
         .limit(5);
 
       if (error) throw error;
-      setSearchHistory(historyData || []);
+      
+      // Transform the data to match SearchHistoryItem type
+      const transformedData = (historyData || []).map(item => ({
+        ...item,
+        filters: item.filters as { category?: string; tags?: string[] }
+      }));
+      
+      setSearchHistory(transformedData);
     } catch (error) {
       console.error('Error fetching search history:', error);
     }

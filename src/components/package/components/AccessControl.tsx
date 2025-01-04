@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { PackageAccess, AccessLevel, TeamAccess, AccessRequest } from "../types";
-import { supabase } from "@/integrations/supabase/client";
-import { Users, UserPlus, Shield, UserCog, Building } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Users, UserPlus, Shield } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { PackageAccess, AccessLevel, TeamAccess, AccessRequest } from "../types";
+import { TeamAccessSection } from "./access-control/TeamAccessSection";
+import { AccessRequestsSection } from "./access-control/AccessRequestsSection";
+import { BulkAccessDialog } from "./access-control/BulkAccessDialog";
 
 interface AccessControlProps {
   packageId: string;
@@ -24,14 +26,12 @@ export function AccessControl({ packageId }: AccessControlProps) {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchAccessList();
-    fetchTeamAccess();
-    fetchAccessRequests();
+    if (packageId) {
+      fetchAccessList();
+      fetchTeamAccess();
+      fetchAccessRequests();
+    }
   }, [packageId]);
-
-  const isValidAccessLevel = (level: string): level is AccessLevel => {
-    return ["read", "write", "admin"].includes(level);
-  };
 
   const fetchAccessList = async () => {
     try {
@@ -41,16 +41,7 @@ export function AccessControl({ packageId }: AccessControlProps) {
         .eq("package_id", packageId);
 
       if (error) throw error;
-
-      const validatedData = (data || []).map(item => {
-        if (!isValidAccessLevel(item.access_level)) {
-          console.warn(`Invalid access level found: ${item.access_level}, defaulting to "read"`);
-          return { ...item, access_level: "read" as AccessLevel };
-        }
-        return { ...item, access_level: item.access_level as AccessLevel };
-      });
-
-      setAccessList(validatedData);
+      setAccessList(data as PackageAccess[]);
     } catch (error) {
       console.error('Error fetching access list:', error);
       toast({
@@ -69,7 +60,7 @@ export function AccessControl({ packageId }: AccessControlProps) {
         .eq("package_id", packageId);
 
       if (error) throw error;
-      setTeamAccess(data || []);
+      setTeamAccess(data as TeamAccess[]);
     } catch (error) {
       console.error('Error fetching team access:', error);
     }
@@ -84,7 +75,7 @@ export function AccessControl({ packageId }: AccessControlProps) {
         .eq("status", "pending");
 
       if (error) throw error;
-      setAccessRequests(data || []);
+      setAccessRequests(data as AccessRequest[]);
     } catch (error) {
       console.error('Error fetching access requests:', error);
     }
@@ -284,114 +275,28 @@ export function AccessControl({ packageId }: AccessControlProps) {
         </TabsContent>
 
         <TabsContent value="teams">
-          <div className="space-y-2">
-            {teamAccess.map((access) => (
-              <div
-                key={access.id}
-                className="flex justify-between items-center p-2 rounded hover:bg-accent"
-              >
-                <div>
-                  <div className="font-medium flex items-center gap-2">
-                    <Building className="w-4 h-4" />
-                    {access.team_id}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {access.access_level}
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRevokeAccess(access.id)}
-                >
-                  Revoke
-                </Button>
-              </div>
-            ))}
-          </div>
+          <TeamAccessSection
+            teamAccess={teamAccess}
+            onRevokeAccess={handleRevokeAccess}
+          />
         </TabsContent>
 
         <TabsContent value="requests">
-          <div className="space-y-2">
-            {accessRequests.map((request) => (
-              <div
-                key={request.id}
-                className="flex justify-between items-center p-2 rounded hover:bg-accent"
-              >
-                <div>
-                  <div className="font-medium">{request.user_id}</div>
-                  <div className="text-sm text-muted-foreground">
-                    Requested: {request.requested_level}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => handleAccessRequest(request.id, true)}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleAccessRequest(request.id, false)}
-                  >
-                    Reject
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <AccessRequestsSection
+            accessRequests={accessRequests}
+            onHandleRequest={handleAccessRequest}
+          />
         </TabsContent>
       </Tabs>
 
-      <Dialog open={showBulkDialog} onOpenChange={setShowBulkDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Bulk Access Management</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              {selectedUsers.map((userId) => (
-                <div
-                  key={userId}
-                  className="flex justify-between items-center p-2 bg-accent rounded"
-                >
-                  <span>{userId}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedUsers(users => users.filter(u => u !== userId))}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-            </div>
-            <Input
-              placeholder="Add user ID"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  const input = e.currentTarget;
-                  if (input.value && !selectedUsers.includes(input.value)) {
-                    setSelectedUsers([...selectedUsers, input.value]);
-                    input.value = '';
-                  }
-                }
-              }}
-            />
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowBulkDialog(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleBulkAccess} disabled={selectedUsers.length === 0}>
-                Grant Access to {selectedUsers.length} Users
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <BulkAccessDialog
+        open={showBulkDialog}
+        onOpenChange={setShowBulkDialog}
+        selectedUsers={selectedUsers}
+        setSelectedUsers={setSelectedUsers}
+        accessLevel={accessLevel}
+        onBulkAccess={handleBulkAccess}
+      />
     </div>
   );
 }

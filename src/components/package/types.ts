@@ -4,6 +4,8 @@ export interface Package {
   description?: string;
 }
 
+export type AccessLevel = "read" | "write" | "admin";
+
 export interface PackageVersion {
   id: string;
   version: string;
@@ -26,8 +28,6 @@ export interface DependencyCheck {
   conflicts: string[];
 }
 
-export type AccessLevel = "read" | "write" | "admin";
-
 export interface PackageAccess {
   id: string;
   package_id: string;
@@ -40,6 +40,8 @@ export interface TeamAccess {
   team_id: string;
   package_id: string;
   access_level: AccessLevel;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface AccessRequest {
@@ -57,5 +59,15 @@ export interface ReleaseNote {
   description: string;
   changes: string[];
   breaking_changes: string[];
+  created_at: string;
+}
+
+export interface SearchHistoryItem {
+  id: string;
+  query: string;
+  filters: {
+    category?: string;
+    tags?: string[];
+  };
   created_at: string;
 }
