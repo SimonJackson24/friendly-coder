@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      access_requests: {
+        Row: {
+          created_at: string | null
+          id: string
+          package_id: string
+          requested_level: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          package_id: string
+          requested_level: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          package_id?: string
+          requested_level?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_requests_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_insights: {
         Row: {
           ad_metric_id: string | null
@@ -1483,6 +1518,47 @@ export type Database = {
           },
         ]
       }
+      release_notes: {
+        Row: {
+          breaking_changes: string[] | null
+          changes: string[] | null
+          created_at: string | null
+          description: string | null
+          id: string
+          package_id: string
+          title: string
+          version: string
+        }
+        Insert: {
+          breaking_changes?: string[] | null
+          changes?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          package_id: string
+          title: string
+          version: string
+        }
+        Update: {
+          breaking_changes?: string[] | null
+          changes?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          package_id?: string
+          title?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "release_notes_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       releases: {
         Row: {
           created_at: string | null
@@ -1813,6 +1889,48 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      team_access: {
+        Row: {
+          access_level: string
+          created_at: string | null
+          id: string
+          package_id: string
+          team_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_level: string
+          created_at?: string | null
+          id?: string
+          package_id: string
+          team_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_level?: string
+          created_at?: string | null
+          id?: string
+          package_id?: string
+          team_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_access_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_access_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_members: {
         Row: {
