@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, Bug, Rocket, Database, LayoutDashboard, GitBranch, GitPullRequest, Calendar } from "lucide-react";
+import { Package, Bug, Rocket, Database, LayoutDashboard, GitBranch, GitPullRequest, Calendar, Tag } from "lucide-react";
 import { CreateCommitDialog } from "./CreateCommitDialog";
 import { BranchProtectionRules } from "./branch-protection/BranchProtectionRules";
 import { RebaseOperations } from "./rebase/RebaseOperations";
@@ -16,6 +16,7 @@ import { CommitSection } from "./features/CommitSection";
 import { PullRequestSection } from "./features/PullRequestSection";
 import { KanbanBoard } from "./kanban/KanbanBoard";
 import { MilestoneSection } from "./features/MilestoneSection";
+import { ReleaseSection } from "./features/ReleaseSection";
 
 export function VersionControl({ projectId }: { projectId: string | null }) {
   const [selectedRepositoryId, setSelectedRepositoryId] = useState<string | null>(null);
@@ -97,6 +98,7 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
           <TabsTrigger value="pull-requests">Pull Requests</TabsTrigger>
           <TabsTrigger value="board">Project Board</TabsTrigger>
           <TabsTrigger value="milestones">Milestones</TabsTrigger>
+          <TabsTrigger value="releases">Releases</TabsTrigger>
           <TabsTrigger value="protection">Branch Protection</TabsTrigger>
           <TabsTrigger value="rebase">Rebase</TabsTrigger>
           <TabsTrigger value="cherry-pick">Cherry Pick</TabsTrigger>
@@ -136,6 +138,10 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
 
         <TabsContent value="milestones">
           <MilestoneSection repositoryId={selectedRepositoryId} />
+        </TabsContent>
+
+        <TabsContent value="releases">
+          <ReleaseSection repositoryId={selectedRepositoryId} />
         </TabsContent>
 
         <TabsContent value="protection">
