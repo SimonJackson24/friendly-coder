@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { CreateBranchDialog } from "./CreateBranchDialog";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 interface Branch {
   id: string;
@@ -18,9 +19,10 @@ interface Branch {
 interface BranchListProps {
   repositoryId: string;
   onSelectBranch: (branchId: string) => void;
+  activeBranchId: string | null;
 }
 
-export function BranchList({ repositoryId, onSelectBranch }: BranchListProps) {
+export function BranchList({ repositoryId, onSelectBranch, activeBranchId }: BranchListProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -62,7 +64,10 @@ export function BranchList({ repositoryId, onSelectBranch }: BranchListProps) {
           {branches?.map((branch) => (
             <div
               key={branch.id}
-              className="p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
+              className={cn(
+                "p-4 border rounded-lg hover:bg-accent transition-colors cursor-pointer",
+                activeBranchId === branch.id && "bg-accent"
+              )}
               onClick={() => onSelectBranch(branch.id)}
             >
               <div className="flex items-center justify-between">
@@ -70,6 +75,9 @@ export function BranchList({ repositoryId, onSelectBranch }: BranchListProps) {
                   <h3 className="font-semibold">{branch.name}</h3>
                   {branch.is_default && (
                     <span className="text-sm text-muted-foreground">Default branch</span>
+                  )}
+                  {activeBranchId === branch.id && (
+                    <span className="text-sm text-green-500 ml-2">Current</span>
                   )}
                 </div>
                 <span className="text-sm text-muted-foreground">
