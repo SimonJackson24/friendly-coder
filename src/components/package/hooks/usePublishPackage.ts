@@ -35,9 +35,9 @@ export function usePublishPackage() {
     };
 
     try {
-      // Pass all required arguments to validatePackage
+      // Pass name instead of the full package object
       const validationResult = await validatePackage(
-        pkg,
+        name,
         version,
         isPrivate,
         description
