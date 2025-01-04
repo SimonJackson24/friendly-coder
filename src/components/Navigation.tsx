@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useNavigate } from "react-router-dom";
-import { BrainCog, Settings, LogOut } from "lucide-react";
+import { BrainCog, Settings, LogOut, Megaphone } from "lucide-react";
 import { handleSignOut } from "@/services/auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -43,6 +43,12 @@ export const Navigation = () => {
             <>
               <Link to="/assistant">
                 <Button variant="ghost" className="hover:bg-white/10">Assistant</Button>
+              </Link>
+              <Link to="/ads">
+                <Button variant="ghost" className="hover:bg-white/10">
+                  <Megaphone className="h-5 w-5 mr-2" />
+                  Ad Creator
+                </Button>
               </Link>
               <Link to="/settings">
                 <Button variant="ghost" size="icon" className="hover:bg-white/10">
