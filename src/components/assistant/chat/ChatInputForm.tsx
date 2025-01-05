@@ -49,8 +49,8 @@ Recent File Operations: ${JSON.stringify(context.recentFileOperations)}
 
 ${userMessage}`;
 
-      // Remove any trailing colons from the base URL
-      const baseUrl = window.location.origin.replace(/:\/?$/, '');
+      // Get the base URL without any trailing slashes or colons
+      const baseUrl = window.location.origin.replace(/[:\/]+$/, '');
       const response = await generateResponse(contextEnhancedPrompt, baseUrl);
       Logger.log('info', 'Received response from assistant', { response });
       

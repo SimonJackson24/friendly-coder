@@ -2,14 +2,13 @@ import Logger from "./logger";
 
 export async function generateResponse(prompt: string, baseUrl?: string): Promise<string> {
   try {
-    // Use the provided baseUrl or fallback to window.location.origin
-    const url = baseUrl || window.location.origin;
-    // Ensure there are no trailing colons and the path is properly formatted
-    const cleanUrl = `${url.replace(/:\/?$/, '')}/api/generate`;
+    // Clean the base URL by removing any trailing slashes and colons
+    const cleanBaseUrl = (baseUrl || window.location.origin).replace(/[:\/]+$/, '');
+    const url = `${cleanBaseUrl}/api/generate`;
     
-    Logger.log('info', 'Making request to assistant API', { url: cleanUrl });
+    Logger.log('info', 'Making request to assistant API', { url });
     
-    const response = await fetch(cleanUrl, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
