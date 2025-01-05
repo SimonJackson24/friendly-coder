@@ -1,15 +1,18 @@
-export interface LearningPath {
-  id: string;
+import { Json } from "@/integrations/supabase/types/database";
+
+export interface TutorialQuiz {
+  question: string;
+  options: string[];
+  correct: number;
+}
+
+export interface TutorialStep {
+  index: number;
   title: string;
-  description: string | null;
-  difficulty_level: string;
-  category: string;
-  created_by: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-  is_published: boolean;
-  estimated_duration: number | null;
-  prerequisites: any[];
+  content: string;
+  type: 'reading' | 'exercise' | 'challenge';
+  duration: number;
+  quiz?: TutorialQuiz;
 }
 
 export interface Tutorial {
@@ -18,12 +21,12 @@ export interface Tutorial {
   content: string;
   difficulty_level: string;
   category: string;
-  created_at: string | null;
-  updated_at: string | null;
-  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
   is_published: boolean;
-  steps: any[];
+  steps: TutorialStep[];
   has_interactive_elements: boolean;
-  estimated_duration: number;
-  prerequisites: any[];
+  estimated_duration?: number;
+  prerequisites?: Json[];
 }

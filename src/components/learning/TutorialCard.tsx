@@ -1,17 +1,3 @@
-/**
- * Copyright (c) 2024. All Rights Reserved.
- * 
- * This file is part of the proprietary software developed by the copyright holder.
- * 
- * This software uses the following open source packages under their respective licenses:
- * - shadcn/ui components: MIT License (https://github.com/shadcn/ui/blob/main/LICENSE.md)
- * - React Router: MIT License (https://github.com/remix-run/react-router/blob/main/LICENSE.md)
- * - Lucide Icons: MIT License (https://github.com/lucide-icons/lucide/blob/main/LICENSE)
- * 
- * While these dependencies are open source, this file and its contents remain proprietary
- * and may not be copied, modified, or distributed without explicit permission.
- */
-
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

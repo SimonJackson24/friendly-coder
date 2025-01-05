@@ -1,18 +1,3 @@
-/**
- * Copyright (c) 2024. All Rights Reserved.
- * 
- * This file is part of the proprietary software developed by the copyright holder.
- * 
- * This software uses the following open source packages under their respective licenses:
- * - shadcn/ui components: MIT License (https://github.com/shadcn/ui/blob/main/LICENSE.md)
- * - React Router: MIT License (https://github.com/remix-run/react-router/blob/main/LICENSE.md)
- * - Lucide Icons: MIT License (https://github.com/lucide-icons/lucide/blob/main/LICENSE)
- * - React Query: MIT License (https://github.com/TanStack/query/blob/main/LICENSE)
- * 
- * While these dependencies are open source, this file and its contents remain proprietary
- * and may not be copied, modified, or distributed without explicit permission.
- */
-
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
@@ -23,26 +8,9 @@ import { ArrowLeft } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useToast } from "@/hooks/use-toast";
-import { Tutorial, TutorialResponse, TutorialStep } from "@/types/tutorial";
+import { Tutorial } from "@/types/tutorial";
 import { TutorialStepContent } from "./TutorialStepContent";
 import { TutorialStepNavigation } from "./TutorialStepNavigation";
-
-const transformTutorialResponse = (response: TutorialResponse): Tutorial => {
-  return {
-    ...response,
-    steps: (response.steps as any[] || []).map((step: any): TutorialStep => ({
-      index: step.index,
-      title: step.title,
-      content: step.content,
-      type: step.type,
-      duration: step.duration,
-      quiz: step.quiz
-    })),
-    prerequisites: Array.isArray(response.prerequisites) 
-      ? response.prerequisites.map(p => String(p))
-      : []
-  };
-};
 
 export function TutorialDetail() {
   const { id } = useParams();
@@ -62,7 +30,7 @@ export function TutorialDetail() {
         .single();
       
       if (error) throw error;
-      return transformTutorialResponse(data as TutorialResponse);
+      return data as Tutorial;
     }
   });
 
@@ -133,7 +101,7 @@ export function TutorialDetail() {
   }
 
   const steps = tutorial.steps || [];
-  const currentStep = steps[currentStepIndex] || {} as TutorialStep;
+  const currentStep = steps[currentStepIndex] || {};
   const isStepCompleted = (index: number) => 
     stepProgress?.some(p => p.step_index === index && p.completed) || false;
 
