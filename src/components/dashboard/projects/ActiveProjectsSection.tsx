@@ -4,23 +4,40 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 export function ActiveProjectsSection() {
-  const { data: projects, isLoading, error } = useQuery({
+  const { toast } = useToast();
+
+  const { data: projects, isLoading, error, refetch } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
       console.log("Fetching user projects");
-      const { data: projects, error } = await supabase
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false });
+      try {
+        const { data: projects, error } = await supabase
+          .from('projects')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error("Error fetching projects:", error);
-        throw error;
+        if (error) {
+          console.error("Error fetching projects:", error);
+          throw error;
+        }
+
+        console.log("Successfully fetched projects:", projects);
+        return projects;
+      } catch (err) {
+        console.error("Failed to fetch projects:", err);
+        toast({
+          title: "Connection Error",
+          description: "Failed to load projects. Please try again.",
+          variant: "destructive",
+        });
+        throw err;
       }
-      return projects;
-    }
+    },
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   });
 
   const renderContent = () => {
@@ -36,7 +53,7 @@ export function ActiveProjectsSection() {
       return (
         <div className="text-center p-8">
           <p className="text-red-500 mb-4">Failed to load projects</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
+          <Button variant="outline" onClick={() => refetch()}>
             Retry
           </Button>
         </div>
