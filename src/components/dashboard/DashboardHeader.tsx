@@ -19,7 +19,7 @@ export function DashboardHeader({ userEmail }: DashboardHeaderProps) {
         <Button asChild variant="outline">
           <Link to="/version-control">
             <GitBranch className="mr-2 h-4 w-4" />
-            Version Control
+            AI Studio VCS
           </Link>
         </Button>
         <Button asChild>

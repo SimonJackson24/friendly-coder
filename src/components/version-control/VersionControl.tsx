@@ -81,7 +81,7 @@ export function VersionControl({ projectId }: { projectId: string | null }) {
         <div className="text-center">
           <h2 className="text-xl font-semibold">No Project Selected</h2>
           <p className="text-muted-foreground">
-            Please select a project to manage version control.
+            Please select a project to manage AI Studio version control.
           </p>
         </div>
       </Card>
