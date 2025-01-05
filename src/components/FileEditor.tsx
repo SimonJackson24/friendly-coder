@@ -14,12 +14,12 @@
 
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MonacoEditor } from "react-monaco-editor";
+import Editor from "@monaco-editor/react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface FileEditorProps {
-  file: { id: string; content: string } | null;
+  file: { id: string; content?: string } | null;
   onSave: (id: string, content: string) => void;
   projectId: string | null;
 }
@@ -39,19 +39,20 @@ export function FileEditor({ file, onSave, projectId }: FileEditorProps) {
         .single();
 
       if (error) throw error;
-      return data.content;
+      return data.content || "";
     },
     enabled: !!file,
   });
 
-  useEffect(() => {
-    if (editorRef.current && fileContent) {
-      editorRef.current.setValue(fileContent);
+  function handleEditorDidMount(editor: any) {
+    editorRef.current = editor;
+    if (fileContent) {
+      editor.setValue(fileContent);
     }
-  }, [fileContent]);
+  }
 
   const handleSave = () => {
-    if (file) {
+    if (file && editorRef.current) {
       const content = editorRef.current.getValue();
       onSave(file.id, content);
       toast({
@@ -66,15 +67,16 @@ export function FileEditor({ file, onSave, projectId }: FileEditorProps) {
       {isLoading ? (
         <div>Loading...</div>
       ) : (
-        <MonacoEditor
-          ref={editorRef}
-          language="javascript"
+        <Editor
+          height="100%"
+          defaultLanguage="javascript"
           theme="vs-dark"
+          onMount={handleEditorDidMount}
+          onChange={handleSave}
           options={{
             selectOnLineNumbers: true,
             automaticLayout: true,
           }}
-          onChange={handleSave}
         />
       )}
     </div>
