@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
-import StudioLayout from '@/components/layout/StudioLayout';
-import ProjectSettings from '@/components/ProjectSettings';
-import { Project } from '@/integrations/supabase/types/tables';
+import { StudioLayout } from '@/modules/ai-studio/components/layout/StudioLayout';
+import { ProjectSettings } from '@/components/ProjectSettings';
+import { ProjectsTable } from '@/integrations/supabase/types/tables';
 
 export const router = createBrowserRouter([
   {
@@ -12,7 +12,14 @@ export const router = createBrowserRouter([
         isLoading={false}
         selectedFile={null}
         projectId=""
+        consoleOutput={[]}
+        buildErrors={[]}
+        project={null}
         onFileSelect={() => {}}
+        onCreateFile={() => {}}
+        onDeleteFile={() => {}}
+        onSaveFile={() => {}}
+        onClearConsole={() => {}}
       />
     ),
   },
@@ -25,6 +32,6 @@ export const router = createBrowserRouter([
       user_id: '',
       status: 'active',
       project_type: 'web'
-    } as Project} />,
+    } as ProjectsTable['Row']} />,
   },
 ]);

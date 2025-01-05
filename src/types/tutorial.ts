@@ -1,28 +1,15 @@
-/**
- * Copyright (c) 2024. All Rights Reserved.
- * 
- * This file is part of the proprietary software developed by the copyright holder.
- * Contains type definitions for the tutorial system.
- * 
- * All rights reserved. No part of this software may be reproduced, distributed, or
- * transmitted in any form or by any means without explicit permission.
- */
-
-import { Json } from "@/integrations/supabase/types/database";
-
-export interface TutorialQuiz {
-  question: string;
-  options: string[];
-  correct: number;
-}
-
-export interface TutorialStep {
-  index: number;
+export interface LearningPath {
+  id: string;
   title: string;
-  content: string;
-  type: 'reading' | 'exercise' | 'challenge';
-  duration: number;
-  quiz?: TutorialQuiz;
+  description: string | null;
+  difficulty_level: string;
+  category: string;
+  created_by: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  is_published: boolean;
+  estimated_duration: number | null;
+  prerequisites: any[];
 }
 
 export interface Tutorial {
@@ -31,28 +18,12 @@ export interface Tutorial {
   content: string;
   difficulty_level: string;
   category: string;
-  created_at: string;
-  updated_at: string;
-  created_by?: string;
+  created_at: string | null;
+  updated_at: string | null;
+  created_by: string | null;
   is_published: boolean;
-  steps: TutorialStep[];
+  steps: any[];
   has_interactive_elements: boolean;
-  estimated_duration?: number;
-  prerequisites?: string[];
-}
-
-export interface TutorialResponse {
-  id: string;
-  title: string;
-  content: string;
-  difficulty_level: string;
-  category: string;
-  created_at: string;
-  updated_at: string;
-  created_by?: string;
-  is_published: boolean;
-  steps: Json;
-  has_interactive_elements: boolean;
-  estimated_duration?: number;
-  prerequisites?: Json;
+  estimated_duration: number;
+  prerequisites: any[];
 }
