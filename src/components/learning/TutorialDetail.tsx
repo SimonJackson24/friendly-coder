@@ -1,13 +1,16 @@
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import { ArrowLeft } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useToast } from "@/hooks/use-toast";
+import { Tutorial } from "@/types/tutorial";
+import { TutorialStepContent } from "./TutorialStepContent";
+import { TutorialStepNavigation } from "./TutorialStepNavigation";
 
 export function TutorialDetail() {
   const { id } = useParams();
@@ -15,9 +18,8 @@ export function TutorialDetail() {
   const session = useSession();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [currentStepIndex, setCurrentStepIndex] = React.useState(0);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
-  // Fetch tutorial data
   const { data: tutorial, isLoading: isTutorialLoading } = useQuery({
     queryKey: ['tutorial', id],
     queryFn: async () => {
@@ -28,11 +30,10 @@ export function TutorialDetail() {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as Tutorial;
     }
   });
 
-  // Fetch step progress
   const { data: stepProgress, isLoading: isProgressLoading } = useQuery({
     queryKey: ['tutorial-step-progress', id, session?.user?.id],
     queryFn: async () => {
@@ -49,7 +50,6 @@ export function TutorialDetail() {
     enabled: !!session?.user?.id && !!id
   });
 
-  // Update step progress mutation
   const updateStepProgress = useMutation({
     mutationFn: async ({ stepIndex, completed }: { stepIndex: number, completed: boolean }) => {
       if (!session?.user?.id) throw new Error("User not authenticated");
@@ -175,74 +175,22 @@ export function TutorialDetail() {
           </div>
         )}
 
-        <div className="prose prose-gray dark:prose-invert max-w-none">
-          {currentStep.title && (
-            <h2 className="flex items-center gap-2">
-              {currentStep.title}
-              {isStepCompleted(currentStepIndex) && (
-                <CheckCircle2 className="text-green-500 h-5 w-5" />
-              )}
-            </h2>
-          )}
-          <ReactMarkdown>{currentStep.content || tutorial.content}</ReactMarkdown>
-
-          {currentStep.quiz && (
-            <div className="bg-card p-4 rounded-lg mt-4">
-              <h3 className="text-lg font-semibold mb-3">Quiz</h3>
-              <p className="mb-4">{currentStep.quiz.question}</p>
-              <div className="space-y-2">
-                {currentStep.quiz.options.map((option: string, index: number) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => {
-                      if (index === currentStep.quiz.correct) {
-                        handleCompleteStep();
-                        toast({
-                          title: "Correct!",
-                          description: "You can now move to the next step.",
-                        });
-                      } else {
-                        toast({
-                          title: "Try again",
-                          description: "That wasn't the correct answer.",
-                          variant: "destructive",
-                        });
-                      }
-                    }}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <TutorialStepContent
+          step={currentStep}
+          isCompleted={isStepCompleted(currentStepIndex)}
+          onComplete={handleCompleteStep}
+        />
 
         {steps.length > 0 && (
-          <div className="flex justify-between items-center pt-4">
-            <Button
-              variant="outline"
-              onClick={handlePreviousStep}
-              disabled={currentStepIndex === 0}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" /> Previous
-            </Button>
-            <div className="flex gap-2">
-              {!isStepCompleted(currentStepIndex) && session && (
-                <Button onClick={handleCompleteStep}>
-                  Mark as Complete
-                </Button>
-              )}
-              <Button
-                onClick={handleNextStep}
-                disabled={currentStepIndex === steps.length - 1}
-              >
-                Next <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          <TutorialStepNavigation
+            currentStepIndex={currentStepIndex}
+            totalSteps={steps.length}
+            isCurrentStepCompleted={isStepCompleted(currentStepIndex)}
+            onPrevious={handlePreviousStep}
+            onNext={handleNextStep}
+            onComplete={handleCompleteStep}
+            isAuthenticated={!!session}
+          />
         )}
       </div>
     </div>
