@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
-import { Award, ArrowRight, Code, Smartphone, Rocket, Shield, Database, ChartBarIcon } from "lucide-react";
+import { Award, ArrowRight, Code, Shield, Database, ChartBarIcon } from "lucide-react";
 
 export function HeroSection() {
   const navigate = useNavigate();
@@ -52,34 +52,34 @@ export function HeroSection() {
   ];
 
   return (
-    <section className="relative min-h-screen flex items-center">
+    <section className="relative min-h-screen">
       {/* Hero Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-background to-background/50 pointer-events-none" />
 
       {/* Main Hero Content */}
-      <div className="container mx-auto px-4 pt-24 pb-16 relative">
-        <div className="text-center max-w-5xl mx-auto space-y-6">
+      <div className="container mx-auto px-4 py-32 relative">
+        <div className="max-w-5xl mx-auto space-y-8">
           {/* Award Badge */}
-          <div className="flex items-center justify-center gap-3 mb-8 animate-fade-in">
+          <div className="flex items-center justify-center gap-3 mb-12">
             <Award className="h-8 w-8 text-primary" />
-            <span className="text-primary font-semibold bg-primary/10 px-4 py-2 rounded-full">
+            <span className="text-primary font-semibold bg-primary/10 px-6 py-2 rounded-full">
               World's Most Advanced AI Development Platform
             </span>
           </div>
           
           {/* Main Headline */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary/80 mb-6 leading-tight">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary/80 leading-tight">
             Build Enterprise Applications with Advanced AI Technology
           </h1>
           
           {/* Subheadline */}
-          <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-gray-300 text-center max-w-3xl mx-auto">
             The only platform that combines Claude-3 Opus AI, enterprise-grade version control, 
             advanced package management, and bank-grade security in one powerful solution.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center my-16">
             <Button 
               size="lg" 
               onClick={handleGetStarted}
@@ -99,9 +99,9 @@ export function HeroSection() {
           </div>
 
           {/* Platform Capabilities */}
-          <div className="text-center mb-12">
-            <h2 className="text-2xl font-semibold mb-6">Enterprise-Grade Development Platform</h2>
-            <div className="flex flex-wrap justify-center gap-4">
+          <div className="text-center mb-16">
+            <h2 className="text-2xl font-semibold mb-8">Enterprise-Grade Development Platform</h2>
+            <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
               {capabilities.map((capability, index) => (
                 <span
                   key={index}
@@ -114,10 +114,10 @@ export function HeroSection() {
           </div>
 
           {/* Statistics Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {stats.map((stat, index) => (
-              <div key={index} className="p-6 glass rounded-lg hover:scale-105 transition-transform">
-                <div className="text-3xl font-bold text-primary mb-2">{stat.value}</div>
+              <div key={index} className="p-8 glass rounded-lg hover:scale-105 transition-transform">
+                <div className="text-4xl font-bold text-primary mb-2">{stat.value}</div>
                 <div className="text-lg font-semibold mb-1">{stat.label}</div>
                 <div className="text-sm text-gray-400">{stat.description}</div>
               </div>
@@ -127,8 +127,8 @@ export function HeroSection() {
       </div>
 
       {/* Trust Indicators */}
-      <div className="container mx-auto px-4 py-12 border-t border-gray-800">
-        <div className="flex flex-wrap justify-center items-center gap-8">
+      <div className="container mx-auto px-4 py-8 border-t border-gray-800">
+        <div className="flex flex-wrap justify-center items-center gap-12">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
             <span className="text-sm">Bank-Grade Security</span>
