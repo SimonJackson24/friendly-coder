@@ -2,19 +2,15 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tutorial, TutorialStep } from "@/types/tutorial";
-import { TutorialStepContent } from "./TutorialStepContent";
 import { TutorialStepNavigation } from "./TutorialStepNavigation";
+import { TutorialContent } from "./TutorialContent";
+import { TutorialHeader } from "./TutorialHeader";
 
 export function TutorialDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const session = useSession();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -23,6 +19,7 @@ export function TutorialDetail() {
   const { data: tutorial, isLoading: isTutorialLoading } = useQuery({
     queryKey: ['tutorial', id],
     queryFn: async () => {
+      console.log("Fetching tutorial:", id);
       const { data, error } = await supabase
         .from('tutorials')
         .select('*')
@@ -44,6 +41,7 @@ export function TutorialDetail() {
         }))
       } as Tutorial;
       
+      console.log("Parsed tutorial:", parsedTutorial);
       return parsedTutorial;
     }
   });
@@ -59,6 +57,7 @@ export function TutorialDetail() {
         .eq('user_id', session.user.id);
       
       if (error) throw error;
+      console.log("Step progress:", data);
       return data;
     },
     enabled: !!session?.user?.id && !!id
@@ -105,10 +104,9 @@ export function TutorialDetail() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Tutorial not found</h1>
-          <Button onClick={() => navigate('/learning')} className="mt-4">
-            <ArrowLeft className="mr-2" />
+          <button onClick={() => navigate('/learning')}>
             Back to Learning Hub
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -138,59 +136,20 @@ export function TutorialDetail() {
     });
   };
 
-  const getDifficultyColor = (level: string) => {
-    switch (level.toLowerCase()) {
-      case 'beginner':
-        return 'bg-green-500/10 text-green-500';
-      case 'intermediate':
-        return 'bg-yellow-500/10 text-yellow-500';
-      case 'advanced':
-        return 'bg-red-500/10 text-red-500';
-      default:
-        return 'bg-gray-500/10 text-gray-500';
-    }
-  };
-
   const completedSteps = steps.filter((_, index) => isStepCompleted(index)).length;
-  const progressPercentage = (completedSteps / steps.length) * 100;
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Button 
-        variant="ghost" 
-        onClick={() => navigate('/learning')}
-        className="mb-6"
-      >
-        <ArrowLeft className="mr-2" />
-        Back to Learning Hub
-      </Button>
+      <TutorialHeader 
+        tutorial={tutorial}
+        completedSteps={completedSteps}
+        totalSteps={steps.length}
+        showProgress={!!session}
+      />
 
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Badge variant="secondary" className={getDifficultyColor(tutorial.difficulty_level)}>
-            {tutorial.difficulty_level}
-          </Badge>
-          <Badge variant="outline">{tutorial.category}</Badge>
-          {tutorial.estimated_duration && (
-            <Badge variant="outline">
-              {tutorial.estimated_duration} min
-            </Badge>
-          )}
-        </div>
-
-        <h1 className="text-3xl font-bold tracking-tight">{tutorial.title}</h1>
-
-        {session && steps.length > 0 && (
-          <div className="space-y-2">
-            <Progress value={progressPercentage} className="h-2" />
-            <p className="text-sm text-muted-foreground">
-              {completedSteps} of {steps.length} steps completed ({Math.round(progressPercentage)}%)
-            </p>
-          </div>
-        )}
-
-        <TutorialStepContent
-          step={currentStep}
+        <TutorialContent
+          currentStep={currentStep}
           isCompleted={isStepCompleted(currentStepIndex)}
           onComplete={handleCompleteStep}
         />
