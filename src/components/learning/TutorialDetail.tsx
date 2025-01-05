@@ -8,7 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useToast } from "@/hooks/use-toast";
-import { Tutorial } from "@/types/tutorial";
+import { Tutorial, TutorialStep } from "@/types/tutorial";
 import { TutorialStepContent } from "./TutorialStepContent";
 import { TutorialStepNavigation } from "./TutorialStepNavigation";
 
@@ -30,7 +30,21 @@ export function TutorialDetail() {
         .single();
       
       if (error) throw error;
-      return data as Tutorial;
+      
+      // Convert the steps from JSON to proper TutorialStep array
+      const parsedTutorial = {
+        ...data,
+        steps: (data.steps as any[]).map((step: any): TutorialStep => ({
+          index: step.index,
+          title: step.title,
+          content: step.content,
+          type: step.type,
+          duration: step.duration,
+          quiz: step.quiz
+        }))
+      } as Tutorial;
+      
+      return parsedTutorial;
     }
   });
 
@@ -101,7 +115,7 @@ export function TutorialDetail() {
   }
 
   const steps = tutorial.steps || [];
-  const currentStep = steps[currentStepIndex] || {};
+  const currentStep = steps[currentStepIndex] || {} as TutorialStep;
   const isStepCompleted = (index: number) => 
     stepProgress?.some(p => p.step_index === index && p.completed) || false;
 
