@@ -1,28 +1,30 @@
-import { supabase } from "@/integrations/supabase/client";
-import Logger from "@/utils/logger";
+import Logger from "./logger";
 
-export async function generateResponse(prompt: string): Promise<string> {
-  Logger.log('info', 'Generating response for prompt:', { prompt });
-  
+export async function generateResponse(prompt: string, baseUrl?: string): Promise<string> {
   try {
-    const { data, error } = await supabase.functions.invoke('generate-claude-response', {
-      body: { prompt }
+    // Use the provided baseUrl or fallback to window.location.origin
+    const url = baseUrl || window.location.origin;
+    // Ensure there are no trailing colons and the path is properly formatted
+    const cleanUrl = `${url.replace(/:\/?$/, '')}/api/generate`;
+    
+    Logger.log('info', 'Making request to assistant API', { url: cleanUrl });
+    
+    const response = await fetch(cleanUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt }),
     });
 
-    if (error) {
-      Logger.log('error', 'Error calling Edge Function:', { error });
-      throw new Error(error.message || "Failed to generate response");
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    if (!data || !data.response) {
-      Logger.log('error', 'Invalid response format:', { data });
-      throw new Error("Invalid response format from Claude");
-    }
-
-    Logger.log('info', 'Received response from Claude:', { response: data.response });
+    const data = await response.json();
     return data.response;
   } catch (error) {
-    Logger.log('error', 'Error generating response:', { error });
+    Logger.log('error', 'Failed to generate response', { error });
     throw error;
   }
 }

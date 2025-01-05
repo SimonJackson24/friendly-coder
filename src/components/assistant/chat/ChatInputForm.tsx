@@ -26,7 +26,7 @@ export function ChatInputForm() {
     });
     
     setIsLoading(true);
-    Logger.log('info', 'Sending prompt to Claude', { prompt: userMessage });
+    Logger.log('info', 'Sending prompt to assistant', { prompt: userMessage });
 
     try {
       const context = Logger.getContextSummary();
@@ -49,8 +49,10 @@ Recent File Operations: ${JSON.stringify(context.recentFileOperations)}
 
 ${userMessage}`;
 
-      const response = await generateResponse(contextEnhancedPrompt);
-      Logger.log('info', 'Received response from Claude', { response });
+      // Remove any trailing colons from the base URL
+      const baseUrl = window.location.origin.replace(/:\/?$/, '');
+      const response = await generateResponse(contextEnhancedPrompt, baseUrl);
+      Logger.log('info', 'Received response from assistant', { response });
       
       addMessage({ 
         role: "assistant", 
