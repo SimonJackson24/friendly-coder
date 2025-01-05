@@ -25,21 +25,26 @@ export function RepoContributors({ repositoryId }: RepoContributorsProps) {
     queryFn: async () => {
       console.log("Fetching repository contributors:", repositoryId);
       
+      // Join with auth.users table to get author email
       const { data: commits, error } = await supabase
         .from("commits")
         .select(`
-          author_id,
           author:author_id (
             email
           )
         `)
         .eq("branch_id", repositoryId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching commits:", error);
+        throw error;
+      }
+
+      console.log("Fetched commits:", commits);
 
       // Get unique contributors and count their commits
       const contributorMap = new Map<string, Contributor>();
-      (commits as CommitWithAuthor[]).forEach((commit) => {
+      commits.forEach((commit: any) => {
         const email = commit.author?.email || 'Unknown';
         if (!contributorMap.has(email)) {
           contributorMap.set(email, {
