@@ -2,13 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TutorialCard } from "@/components/learning/TutorialCard";
 import { TutorialProgress } from "@/components/learning/TutorialProgress";
-import { Loader2, BookOpen, Code, Rocket, Settings, Package, Git, Bot } from "lucide-react";
+import { Loader2, BookOpen, Code, Rocket, Settings, Package, GitBranch, Bot } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const categories = [
   { id: "getting-started", label: "Getting Started", icon: BookOpen },
   { id: "ai-development", label: "AI Development", icon: Bot },
-  { id: "version-control", label: "Version Control", icon: Git },
+  { id: "version-control", label: "Version Control", icon: GitBranch },
   { id: "package-management", label: "Package Management", icon: Package },
   { id: "deployment", label: "Deployment", icon: Rocket },
   { id: "advanced", label: "Advanced Features", icon: Code },
