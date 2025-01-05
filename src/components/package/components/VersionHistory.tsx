@@ -37,7 +37,16 @@ export function VersionHistory({ packageId }: VersionHistoryProps) {
 
       if (error) throw error;
 
-      setVersions(data || []);
+      // Transform the data to ensure package_data is Record<string, any>
+      const transformedData = (data || []).map(version => ({
+        ...version,
+        package_data: version.package_data as Record<string, any>,
+        dependency_tree: version.dependency_tree as Record<string, any>,
+        resolved_dependencies: version.resolved_dependencies as Record<string, any>,
+        conflict_status: version.conflict_status as Record<string, any>
+      }));
+
+      setVersions(transformedData);
     } catch (error) {
       console.error("Error fetching versions:", error);
       toast({

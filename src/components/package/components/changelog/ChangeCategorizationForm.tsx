@@ -13,10 +13,10 @@ interface ChangeCategorizationFormProps {
 
 export function ChangeCategorizationForm({ onCategorize }: ChangeCategorizationFormProps) {
   const [changes, setChanges] = useState<ChangeCategory[]>([]);
-  const [currentChange, setCurrentChange] = useState({
+  const [currentChange, setCurrentChange] = useState<Omit<ChangeCategory, 'id'>>({
     name: "",
     description: "",
-    severity: "low" as const,
+    severity: "low",
     requires_approval: false
   });
 
@@ -41,6 +41,17 @@ export function ChangeCategorizationForm({ onCategorize }: ChangeCategorizationF
     onCategorize(changes);
   };
 
+  const getSeverityVariant = (severity: ChangeCategory['severity']) => {
+    switch (severity) {
+      case 'high':
+        return 'destructive';
+      case 'medium':
+        return 'secondary';
+      default:
+        return 'default';
+    }
+  };
+
   return (
     <Card className="p-4 space-y-4">
       <div className="flex items-center gap-2">
@@ -57,7 +68,9 @@ export function ChangeCategorizationForm({ onCategorize }: ChangeCategorizationF
           />
           <Select
             value={currentChange.severity}
-            onValueChange={(value) => setCurrentChange({ ...currentChange, severity: value as "low" | "medium" | "high" })}
+            onValueChange={(value: ChangeCategory['severity']) => 
+              setCurrentChange({ ...currentChange, severity: value })
+            }
           >
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Severity" />
@@ -79,11 +92,7 @@ export function ChangeCategorizationForm({ onCategorize }: ChangeCategorizationF
             <div key={change.id} className="flex items-center justify-between p-2 border rounded">
               <div className="flex items-center gap-2">
                 <span>{change.name}</span>
-                <Badge variant={
-                  change.severity === "high" ? "destructive" :
-                  change.severity === "medium" ? "warning" :
-                  "default"
-                }>
+                <Badge variant={getSeverityVariant(change.severity)}>
                   {change.severity}
                 </Badge>
               </div>

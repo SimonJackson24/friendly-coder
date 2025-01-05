@@ -31,7 +31,14 @@ export function PermissionTemplateSelector({ onSelect }: PermissionTemplateSelec
         .select("*");
 
       if (error) throw error;
-      setTemplates(data);
+      
+      // Transform the data to ensure permissions is Record<string, any>
+      const transformedData = (data || []).map(template => ({
+        ...template,
+        permissions: template.permissions as Record<string, any>
+      }));
+      
+      setTemplates(transformedData);
     } catch (error) {
       console.error("Error fetching permission templates:", error);
       toast({
