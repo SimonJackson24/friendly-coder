@@ -2,21 +2,11 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, DollarSign, Users, Activity, Clock, Target, Wallet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Campaign } from "./types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Campaign } from "./types/campaign";
+import { CampaignOverview } from "./components/CampaignOverview";
+import { CampaignEditDialog } from "./components/CampaignEditDialog";
 
 export function CampaignManager() {
   const { toast } = useToast();
@@ -24,12 +14,13 @@ export function CampaignManager() {
     {
       id: "1",
       name: "Summer Sale Campaign",
+      description: null,
       status: "active",
       budget: 1000,
       spent: 450,
       reach: 15000,
-      startDate: "2024-03-01",
-      endDate: "2024-03-31",
+      start_date: "2024-03-01",
+      end_date: "2024-03-31",
       targeting: {
         locations: ["New York", "Los Angeles"],
         ageRange: { min: 18, max: 65 },
@@ -41,7 +32,7 @@ export function CampaignManager() {
         dayParting: ["9:00-17:00"],
         timeZone: "America/New_York",
       },
-      budgetAllocation: {
+      budget_allocation: {
         daily: 50,
         total: 1000,
         platforms: {
@@ -49,13 +40,16 @@ export function CampaignManager() {
           instagram: 60,
         },
       },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      user_id: "1",
     },
   ]);
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
 
-  const handleStatusChange = (campaignId: string, newStatus: "active" | "paused" | "completed") => {
+  const handleStatusChange = (campaignId: string, newStatus: string) => {
     setCampaigns(campaigns.map(campaign => 
       campaign.id === campaignId 
         ? { ...campaign, status: newStatus }
@@ -142,41 +136,7 @@ export function CampaignManager() {
               </TabsList>
 
               <TabsContent value="overview" className="mt-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Budget</p>
-                      <p className="font-medium">${campaign.budget}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Spent</p>
-                      <p className="font-medium">${campaign.spent}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Reach</p>
-                      <p className="font-medium">{campaign.reach.toLocaleString()}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Duration</p>
-                      <p className="font-medium">
-                        {new Date(campaign.startDate).toLocaleDateString()} - {new Date(campaign.endDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <CampaignOverview campaign={campaign} />
               </TabsContent>
 
               <TabsContent value="targeting" className="mt-4">
@@ -229,12 +189,12 @@ export function CampaignManager() {
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-medium mb-2">Daily Budget</h4>
-                    <p>${campaign.budgetAllocation.daily}</p>
+                    <p>${campaign.budget_allocation.daily}</p>
                   </div>
                   <div>
                     <h4 className="font-medium mb-2">Platform Distribution</h4>
                     <div className="space-y-2">
-                      {Object.entries(campaign.budgetAllocation.platforms).map(([platform, percentage]) => (
+                      {Object.entries(campaign.budget_allocation.platforms).map(([platform, percentage]) => (
                         <div key={platform} className="flex items-center justify-between">
                           <span className="capitalize">{platform}</span>
                           <span>{percentage}%</span>
@@ -249,88 +209,13 @@ export function CampaignManager() {
         ))}
       </div>
 
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Campaign</DialogTitle>
-            <DialogDescription>
-              Modify your campaign settings below
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedCampaign && (
-            <div className="space-y-6">
-              <div>
-                <Label>Campaign Name</Label>
-                <Input 
-                  value={selectedCampaign.name}
-                  onChange={(e) => setSelectedCampaign({
-                    ...selectedCampaign,
-                    name: e.target.value
-                  })}
-                />
-              </div>
-
-              <div>
-                <Label>Daily Budget</Label>
-                <div className="flex items-center gap-2">
-                  <span>$</span>
-                  <Input 
-                    type="number"
-                    value={selectedCampaign.budgetAllocation.daily}
-                    onChange={(e) => setSelectedCampaign({
-                      ...selectedCampaign,
-                      budgetAllocation: {
-                        ...selectedCampaign.budgetAllocation,
-                        daily: Number(e.target.value)
-                      }
-                    })}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Platform Budget Distribution</Label>
-                {Object.entries(selectedCampaign.budgetAllocation.platforms).map(([platform, percentage]) => (
-                  <div key={platform} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="capitalize">{platform}</span>
-                      <span>{percentage}%</span>
-                    </div>
-                    <Slider
-                      value={[percentage]}
-                      min={0}
-                      max={100}
-                      step={1}
-                      onValueChange={([value]) => {
-                        setSelectedCampaign({
-                          ...selectedCampaign,
-                          budgetAllocation: {
-                            ...selectedCampaign.budgetAllocation,
-                            platforms: {
-                              ...selectedCampaign.budgetAllocation.platforms,
-                              [platform]: value
-                            }
-                          }
-                        });
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => handleSaveChanges(selectedCampaign)}>
-                  Save Changes
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <CampaignEditDialog
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        campaign={selectedCampaign}
+        onSave={handleSaveChanges}
+        setCampaign={setSelectedCampaign}
+      />
     </div>
   );
 }
