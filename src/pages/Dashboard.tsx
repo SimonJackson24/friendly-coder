@@ -11,15 +11,63 @@ import {
   Package, 
   Users,
   Settings,
-  Boxes
+  Activity,
+  Clock,
+  Star
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Dashboard() {
   const session = useSession();
   const { toast } = useToast();
 
-  // Redirect to login if not authenticated
+  // Fetch recent activity
+  const { data: recentActivity, isLoading: isLoadingActivity } = useQuery({
+    queryKey: ['recent-activity'],
+    queryFn: async () => {
+      console.log("Fetching recent activity");
+      const { data: activity, error } = await supabase
+        .from('version_history')
+        .select(`
+          id,
+          created_at,
+          commit_message,
+          files!inner(name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error("Error fetching activity:", error);
+        throw error;
+      }
+
+      return activity;
+    }
+  });
+
+  // Fetch user's projects
+  const { data: projects, isLoading: isLoadingProjects } = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      console.log("Fetching user projects");
+      const { data: projects, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error("Error fetching projects:", error);
+        throw error;
+      }
+
+      return projects;
+    }
+  });
+
   if (!session) {
     console.log("No session found, redirecting to login");
     return <Navigate to="/login" />;
@@ -70,6 +118,17 @@ export default function Dashboard() {
     }
   ];
 
+  const renderActivityIcon = (type: string) => {
+    switch (type) {
+      case 'commit':
+        return <GitBranch className="h-4 w-4" />;
+      case 'build':
+        return <Package className="h-4 w-4" />;
+      default:
+        return <Activity className="h-4 w-4" />;
+    }
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="flex items-center justify-between mb-8">
@@ -87,7 +146,37 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Card className="p-6">
+          <div className="flex items-center space-x-2">
+            <Star className="h-5 w-5 text-yellow-500" />
+            <h3 className="font-semibold">Active Projects</h3>
+          </div>
+          <p className="text-2xl font-bold mt-2">
+            {isLoadingProjects ? "..." : projects?.length || 0}
+          </p>
+        </Card>
+        <Card className="p-6">
+          <div className="flex items-center space-x-2">
+            <Clock className="h-5 w-5 text-blue-500" />
+            <h3 className="font-semibold">Recent Updates</h3>
+          </div>
+          <p className="text-2xl font-bold mt-2">
+            {isLoadingActivity ? "..." : recentActivity?.length || 0}
+          </p>
+        </Card>
+        <Card className="p-6">
+          <div className="flex items-center space-x-2">
+            <Users className="h-5 w-5 text-green-500" />
+            <h3 className="font-semibold">Team Members</h3>
+          </div>
+          <p className="text-2xl font-bold mt-2">-</p>
+        </Card>
+      </div>
+
+      {/* Feature Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {features.map((feature) => (
           <Link key={feature.title} to={feature.href}>
             <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer group">
@@ -107,37 +196,30 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="mt-12">
+      {/* Recent Activity */}
+      <div className="mt-8">
         <h2 className="text-2xl font-semibold mb-6">Recent Activity</h2>
         <Card className="p-6">
           <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <div className="p-2 rounded-full bg-purple-100 text-purple-500">
-                <BrainCog className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="font-medium">New AI Project Created</p>
-                <p className="text-sm text-muted-foreground">2 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="p-2 rounded-full bg-blue-100 text-blue-500">
-                <Megaphone className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="font-medium">Ad Campaign Updated</p>
-                <p className="text-sm text-muted-foreground">5 hours ago</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="p-2 rounded-full bg-green-100 text-green-500">
-                <GitBranch className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="font-medium">New Branch Created</p>
-                <p className="text-sm text-muted-foreground">Yesterday</p>
-              </div>
-            </div>
+            {isLoadingActivity ? (
+              <p>Loading activity...</p>
+            ) : recentActivity && recentActivity.length > 0 ? (
+              recentActivity.map((activity: any) => (
+                <div key={activity.id} className="flex items-center space-x-4">
+                  <div className="p-2 rounded-full bg-purple-100 text-purple-500">
+                    {renderActivityIcon(activity.type)}
+                  </div>
+                  <div>
+                    <p className="font-medium">{activity.commit_message || 'File updated'}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(activity.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>No recent activity</p>
+            )}
           </div>
         </Card>
       </div>
