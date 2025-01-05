@@ -1,50 +1,98 @@
-import { RadioGroup } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Globe, Workflow, Smartphone, ArrowRightLeft } from "lucide-react";
-import { ProjectTypeOption } from "./ProjectTypeOption";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ProjectType } from "@/types/project";
+import { Laptop, Smartphone, Globe, Code, ArrowRightLeft } from "lucide-react";
 
-interface ProjectTypeSelectorProps {
-  value: string;
-  onValueChange: (value: string) => void;
+interface ProjectTypeOptionProps {
+  type: ProjectType;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  isSelected: boolean;
+  onSelect: (type: ProjectType) => void;
 }
 
-export function ProjectTypeSelector({ value, onValueChange }: ProjectTypeSelectorProps) {
+const ProjectTypeOption = ({
+  type,
+  title,
+  description,
+  icon,
+  isSelected,
+  onSelect,
+}: ProjectTypeOptionProps) => (
+  <Card
+    className={`p-4 cursor-pointer transition-all ${
+      isSelected ? "border-primary" : "border-border hover:border-primary/50"
+    }`}
+    onClick={() => onSelect(type)}
+  >
+    <div className="flex items-start space-x-4">
+      <div className="mt-1">{icon}</div>
+      <div>
+        <h3 className="font-medium">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  </Card>
+);
+
+interface ProjectTypeSelectorProps {
+  selectedType: ProjectType;
+  onSelect: (type: ProjectType) => void;
+}
+
+export function ProjectTypeSelector({
+  selectedType,
+  onSelect,
+}: ProjectTypeSelectorProps) {
+  const projectTypes: Array<{
+    type: ProjectType;
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+  }> = [
+    {
+      type: "web",
+      title: "Web Application",
+      description: "Create a standard web application",
+      icon: <Globe className="w-5 h-5" />,
+    },
+    {
+      type: "responsive-pwa",
+      title: "Responsive PWA",
+      description: "Build a progressive web app with responsive design",
+      icon: <Laptop className="w-5 h-5" />,
+    },
+    {
+      type: "android",
+      title: "Android App",
+      description: "Develop a native Android application",
+      icon: <Smartphone className="w-5 h-5" />,
+    },
+    {
+      type: "fullstack",
+      title: "Full Stack",
+      description: "Create a full stack application with backend",
+      icon: <Code className="w-5 h-5" />,
+    },
+    {
+      type: "web-to-android",
+      title: "Web to Android",
+      description: "Convert a web app to Android application",
+      icon: <ArrowRightLeft className="w-5 h-5" />,
+    },
+  ];
+
   return (
-    <div className="space-y-2">
-      <Label>Project Type</Label>
-      <RadioGroup
-        value={value}
-        onValueChange={onValueChange}
-        className="grid grid-cols-2 gap-4"
-      >
+    <div className="space-y-3">
+      {projectTypes.map((projectType) => (
         <ProjectTypeOption
-          value="responsive-pwa"
-          icon={Globe}
-          title="Responsive Website with PWA"
-          description="Create a modern, responsive website with Progressive Web App capabilities"
+          key={projectType.type}
+          {...projectType}
+          isSelected={selectedType === projectType.type}
+          onSelect={onSelect}
         />
-        
-        <ProjectTypeOption
-          value="fullstack"
-          icon={Workflow}
-          title="Full Stack Web Application"
-          description="Build a complete application with frontend, backend, and database"
-        />
-        
-        <ProjectTypeOption
-          value="android"
-          icon={Smartphone}
-          title="Android App"
-          description="Develop a native Android application from scratch"
-        />
-        
-        <ProjectTypeOption
-          value="web-to-android"
-          icon={ArrowRightLeft}
-          title="Convert Web App to Android"
-          description="Convert your web application into a native Android app"
-        />
-      </RadioGroup>
+      ))}
     </div>
   );
 }

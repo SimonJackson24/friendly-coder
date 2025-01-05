@@ -1,19 +1,13 @@
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ProjectTypeSelector } from "./ProjectTypeSelector";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import type { ProjectType } from "@/types/project";
 
 interface CreateProjectDialogProps {
   isOpen: boolean;
@@ -21,114 +15,99 @@ interface CreateProjectDialogProps {
   userId: string;
 }
 
-type ProjectType = 'responsive-pwa' | 'fullstack' | 'android' | 'web-to-android';
-
-export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProjectDialogProps) => {
+export function CreateProjectDialog({ isOpen, onOpenChange, userId }: CreateProjectDialogProps) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [projectType, setProjectType] = useState<ProjectType>("web");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [newProject, setNewProject] = useState({ 
-    title: "", 
-    description: "",
-    type: "responsive-pwa" as ProjectType 
-  });
 
-  const createProject = useMutation({
-    mutationFn: async (projectData: typeof newProject) => {
-      console.log("Creating project:", projectData);
-      const { data, error } = await supabase.from("projects").insert([
-        {
-          title: projectData.title,
-          description: projectData.description,
-          status: "active",
-          user_id: userId,
-          project_type: projectData.type,
-        },
-      ]).select();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-      if (error) {
-        console.error("Error creating project:", error);
-        throw error;
-      }
+    try {
+      const { error } = await supabase.from("projects").insert({
+        title,
+        description,
+        user_id: userId,
+        project_type: projectType,
+        status: "active"
+      });
 
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      onOpenChange(false);
-      setNewProject({ title: "", description: "", type: "responsive-pwa" });
+      if (error) throw error;
+
       toast({
         title: "Success",
         description: "Project created successfully",
       });
-    },
-    onError: (error) => {
-      console.error("Project creation error:", error);
+      
+      onOpenChange(false);
+      setTitle("");
+      setDescription("");
+      setProjectType("web");
+    } catch (error) {
+      console.error("Error creating project:", error);
       toast({
         title: "Error",
         description: "Failed to create project. Please try again.",
         variant: "destructive",
       });
-    },
-  });
-
-  const handleSubmitProject = () => {
-    if (!newProject.title.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Project title is required",
-        variant: "destructive",
-      });
-      return;
+    } finally {
+      setIsLoading(false);
     }
-    createProject.mutate(newProject);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Project</DialogTitle>
           <DialogDescription>
-            Fill in the details below to create a new project.
+            Create a new project to start building your application.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6 py-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
+            <Label htmlFor="title">Project Title</Label>
             <Input
               id="title"
-              value={newProject.title}
-              onChange={(e) =>
-                setNewProject((prev) => ({ ...prev, title: e.target.value }))
-              }
-              placeholder="Enter project title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="My Awesome Project"
+              required
             />
           </div>
-          
           <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
-              value={newProject.description}
-              onChange={(e) =>
-                setNewProject((prev) => ({ ...prev, description: e.target.value }))
-              }
-              placeholder="Enter project description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe your project..."
             />
           </div>
-
-          <ProjectTypeSelector
-            value={newProject.type}
-            onValueChange={(value: ProjectType) =>
-              setNewProject((prev) => ({ ...prev, type: value }))
-            }
-          />
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmitProject}>Create Project</Button>
-        </DialogFooter>
+          <div className="space-y-2">
+            <Label>Project Type</Label>
+            <ProjectTypeSelector
+              selectedType={projectType}
+              onSelect={setProjectType}
+            />
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Creating..." : "Create Project"}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
-};
+}
