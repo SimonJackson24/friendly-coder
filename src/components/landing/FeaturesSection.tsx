@@ -13,109 +13,139 @@ import {
   Share2,
   Search,
   BarChart3,
-  Bot
+  Bot,
+  GitBranch,
+  History,
+  Lock,
+  PackageCheck,
+  Users,
+  Zap
 } from "lucide-react";
 
-export function FeaturesSection() {
-  const features = [
-    {
-      icon: BrainCog,
-      title: "Advanced AI Development",
-      description: "Enterprise-grade AI that understands your business needs. Generate full-stack applications with real-time preview and intelligent code optimization.",
-      benefits: [
-        "Full-stack web apps with real-time preview",
-        "Intelligent code optimization & debugging",
-        "AI-powered component generation",
-        "Custom API integrations",
-        "Automated testing & validation"
-      ]
-    },
-    {
-      icon: Smartphone,
-      title: "Native Android Apps",
-      description: "Transform your web apps into high-performance native Android applications with automated build process and Play Store deployment.",
-      benefits: [
-        "Native Android performance",
-        "Automated build pipeline",
-        "Play Store deployment",
-        "Cross-platform compatibility",
-        "Real-time testing environment"
-      ]
-    },
-    {
-      icon: Bot,
-      title: "Claude AI Integration",
-      description: "Powered by Claude-3 Opus, the most advanced AI model for understanding and generating human-like content and code.",
-      benefits: [
-        "Advanced context understanding",
-        "Natural language processing",
-        "Code generation & analysis",
-        "Intelligent debugging",
-        "Automated documentation"
-      ]
-    },
-    {
-      icon: Database,
-      title: "Enterprise Database",
-      description: "Built-in Supabase integration for powerful backend capabilities, including real-time data, authentication, and file storage.",
-      benefits: [
-        "Real-time database operations",
-        "User authentication & management",
-        "Secure file storage",
-        "Row-level security",
-        "Automated backups"
-      ]
-    },
-    {
-      icon: Shield,
-      title: "Enterprise Security",
-      description: "Bank-grade security with advanced authentication, encryption, and compliance features built into every aspect.",
-      benefits: [
-        "End-to-end encryption",
-        "Role-based access control",
-        "Compliance ready",
-        "Security auditing",
-        "Automated vulnerability scanning"
-      ]
-    },
-    {
-      icon: Cloud,
-      title: "Automated DevOps",
-      description: "Streamlined deployment and scaling with integrated CI/CD pipeline and cloud infrastructure management.",
-      benefits: [
-        "One-click deployment",
-        "Automated scaling",
-        "Performance monitoring",
-        "Infrastructure as code",
-        "Zero-downtime updates"
-      ]
-    },
-    {
-      icon: Workflow,
-      title: "Version Control",
-      description: "Advanced version control system with automated changelog generation and rollback capabilities.",
-      benefits: [
-        "Automated changelogs",
-        "Impact analysis",
-        "Safe rollbacks",
-        "Branch management",
-        "Conflict resolution"
-      ]
-    },
-    {
-      icon: BarChart3,
-      title: "Analytics Dashboard",
-      description: "Comprehensive analytics with customizable dashboards, user tracking, and performance metrics.",
-      benefits: [
-        "Real-time metrics",
-        "Custom reports",
-        "User behavior tracking",
-        "Performance analysis",
-        "Data visualization"
-      ]
-    }
-  ];
+const features = [
+  {
+    icon: BrainCog,
+    title: "Advanced AI Development",
+    description: "Enterprise-grade AI that understands your business needs. Generate full-stack applications with real-time preview and intelligent code optimization.",
+    benefits: [
+      "Full-stack web apps with real-time preview",
+      "Intelligent code optimization & debugging",
+      "AI-powered component generation",
+      "Custom API integrations",
+      "Automated testing & validation"
+    ]
+  },
+  {
+    icon: Bot,
+    title: "Claude-3 Opus Integration",
+    description: "Powered by the latest Claude-3 Opus model, offering unparalleled understanding of complex development requirements and natural language processing.",
+    benefits: [
+      "Advanced context understanding",
+      "Sophisticated code generation",
+      "Intelligent debugging assistance",
+      "Natural language requirements processing",
+      "Automated documentation generation"
+    ]
+  },
+  {
+    icon: GitBranch,
+    title: "Advanced Version Control",
+    description: "Enterprise-grade version control with automated changelog generation, smart conflict resolution, and comprehensive code review systems.",
+    benefits: [
+      "Automated changelog generation",
+      "Smart merge conflict resolution",
+      "Pull request management",
+      "Code review workflow",
+      "Branch protection rules"
+    ]
+  },
+  {
+    icon: History,
+    title: "Rollback & Recovery",
+    description: "Comprehensive rollback capabilities with impact analysis and automated validation to ensure system stability during version changes.",
+    benefits: [
+      "One-click rollbacks",
+      "Impact analysis visualization",
+      "Automated validation checks",
+      "Version comparison tools",
+      "Recovery automation"
+    ]
+  },
+  {
+    icon: Lock,
+    title: "Enterprise Permissions",
+    description: "Sophisticated permission management system with visual hierarchy, template-based controls, and bulk operations support.",
+    benefits: [
+      "Visual permission hierarchy",
+      "Role-based access control",
+      "Permission templates",
+      "Bulk operations",
+      "Audit logging"
+    ]
+  },
+  {
+    icon: PackageCheck,
+    title: "Package Management",
+    description: "Advanced package management with dependency resolution, automated publishing workflows, and comprehensive version tracking.",
+    benefits: [
+      "Automated dependency resolution",
+      "Smart version management",
+      "Publishing workflows",
+      "Package security scanning",
+      "Distribution controls"
+    ]
+  },
+  {
+    icon: Shield,
+    title: "Enterprise Security",
+    description: "Bank-grade security with advanced authentication, encryption, and compliance features built into every aspect of the platform.",
+    benefits: [
+      "End-to-end encryption",
+      "Role-based access control",
+      "Compliance ready",
+      "Security auditing",
+      "Vulnerability scanning"
+    ]
+  },
+  {
+    icon: Cloud,
+    title: "Automated DevOps",
+    description: "Streamlined deployment and scaling with integrated CI/CD pipeline and intelligent infrastructure management.",
+    benefits: [
+      "One-click deployment",
+      "Automated scaling",
+      "Performance monitoring",
+      "Infrastructure as code",
+      "Zero-downtime updates"
+    ]
+  },
+  {
+    icon: Users,
+    title: "Team Collaboration",
+    description: "Enhanced team collaboration features with real-time updates, commenting systems, and integrated communication tools.",
+    benefits: [
+      "Real-time collaboration",
+      "Team permissions",
+      "Comment threads",
+      "Activity tracking",
+      "Team analytics"
+    ]
+  },
+  {
+    icon: Zap,
+    title: "Performance Optimization",
+    description: "Built-in performance optimization tools with automated analysis and recommendations for improving application speed.",
+    benefits: [
+      "Automated performance analysis",
+      "Optimization recommendations",
+      "Load testing tools",
+      "Performance monitoring",
+      "Resource optimization"
+    ]
+  }
+];
 
+export function FeaturesSection() {
   return (
     <section className="bg-black/40 backdrop-blur-sm py-20">
       <div className="container mx-auto px-4">
@@ -132,7 +162,7 @@ export function FeaturesSection() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {features.map((feature, index) => (
-            <Card key={index} className="glass p-8 rounded-lg space-y-4 hover:scale-105 transition-transform">
+            <Card key={index} className="glass p-8 rounded-lg space-y-4 hover:scale-105 transition-transform duration-300">
               <feature.icon className="w-12 h-12 text-primary mb-4" />
               <h3 className="text-xl font-semibold">{feature.title}</h3>
               <p className="text-gray-300 text-sm">{feature.description}</p>

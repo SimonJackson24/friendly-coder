@@ -19,7 +19,7 @@ export function HeroSection() {
     {
       value: "100%",
       label: "AI-Powered",
-      description: "Full AI automation"
+      description: "Claude-3 Opus integration"
     },
     {
       value: "10x",
@@ -27,30 +27,32 @@ export function HeroSection() {
       description: "Than traditional methods"
     },
     {
-      value: "24/7",
-      label: "Intelligent Optimization",
-      description: "Continuous improvement"
+      value: "99.9%",
+      label: "Uptime",
+      description: "Enterprise reliability"
     },
     {
-      value: "100+",
+      value: "500+",
       label: "Enterprise Features",
       description: "Built-in capabilities"
     }
   ];
 
   const capabilities = [
-    "Full-stack web applications",
-    "Native Android apps",
-    "AI-powered marketing",
-    "Real-time analytics",
-    "Enterprise security",
-    "Automated deployment",
-    "Version control",
-    "Team collaboration"
+    "Full-stack Applications",
+    "Native Android Apps",
+    "Enterprise Security",
+    "Advanced Version Control",
+    "Package Management",
+    "Team Collaboration",
+    "Automated DevOps",
+    "Performance Optimization",
+    "Real-time Analytics",
+    "AI-powered Development"
   ];
 
   return (
-    <section className="relative">
+    <section className="relative min-h-screen flex items-center">
       {/* Hero Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-background to-background/50 pointer-events-none" />
 
@@ -67,13 +69,13 @@ export function HeroSection() {
           
           {/* Main Headline */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary/80 mb-6 leading-tight">
-            Build Enterprise-Grade Applications with Advanced AI Technology
+            Build Enterprise Applications with Advanced AI Technology
           </h1>
           
           {/* Subheadline */}
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
-            The only platform that combines AI-powered development, native Android apps, 
-            intelligent marketing automation, and enterprise-grade security in one powerful solution.
+            The only platform that combines Claude-3 Opus AI, enterprise-grade version control, 
+            advanced package management, and bank-grade security in one powerful solution.
           </p>
 
           {/* CTA Buttons */}
@@ -98,7 +100,7 @@ export function HeroSection() {
 
           {/* Platform Capabilities */}
           <div className="text-center mb-12">
-            <h2 className="text-2xl font-semibold mb-6">Build Anything You Can Imagine</h2>
+            <h2 className="text-2xl font-semibold mb-6">Enterprise-Grade Development Platform</h2>
             <div className="flex flex-wrap justify-center gap-4">
               {capabilities.map((capability, index) => (
                 <span
@@ -129,15 +131,15 @@ export function HeroSection() {
         <div className="flex flex-wrap justify-center items-center gap-8">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
-            <span className="text-sm">Enterprise-Grade Security</span>
+            <span className="text-sm">Bank-Grade Security</span>
           </div>
           <div className="flex items-center gap-2">
             <Database className="h-6 w-6 text-primary" />
-            <span className="text-sm">Scalable Infrastructure</span>
+            <span className="text-sm">Enterprise Infrastructure</span>
           </div>
           <div className="flex items-center gap-2">
             <Code className="h-6 w-6 text-primary" />
-            <span className="text-sm">Clean Code Generation</span>
+            <span className="text-sm">Advanced Version Control</span>
           </div>
           <div className="flex items-center gap-2">
             <ChartBarIcon className="h-6 w-6 text-primary" />
