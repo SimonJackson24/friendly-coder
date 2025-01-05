@@ -1,11 +1,12 @@
 import { useSession } from "@supabase/auth-helpers-react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { QuickStats } from "@/components/dashboard/QuickStats";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { QuickActions } from "@/components/dashboard/QuickActions";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
   const session = useSession();
