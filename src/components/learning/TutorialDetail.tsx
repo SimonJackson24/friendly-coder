@@ -38,7 +38,9 @@ const transformTutorialResponse = (response: TutorialResponse): Tutorial => {
       duration: step.duration,
       quiz: step.quiz
     })),
-    prerequisites: Array.isArray(response.prerequisites) ? response.prerequisites : []
+    prerequisites: Array.isArray(response.prerequisites) 
+      ? response.prerequisites.map(p => String(p))
+      : []
   };
 };
 
