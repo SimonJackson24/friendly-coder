@@ -2,11 +2,16 @@ import Logger from "./logger";
 
 export async function generateResponse(prompt: string, baseUrl?: string): Promise<string> {
   try {
-    // Clean the base URL by removing trailing slashes
-    const cleanBaseUrl = (baseUrl || window.location.origin).replace(/\/+$/, '');
+    // Get the base URL, defaulting to window.location.origin if not provided
+    const origin = baseUrl || window.location.origin;
+    
+    // Clean the URL by removing any trailing slashes and ensuring no trailing colon
+    const cleanBaseUrl = origin.replace(/[:\/]+$/, '').replace(/:$/, '');
+    
+    // Construct the full API URL
     const url = `${cleanBaseUrl}/api/generate`;
     
-    Logger.log('info', 'Making request to assistant API', { url });
+    Logger.log('info', 'Making request to assistant API', { url, prompt });
     
     const response = await fetch(url, {
       method: 'POST',
