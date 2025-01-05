@@ -2,19 +2,15 @@ import Logger from "./logger";
 
 export async function generateResponse(prompt: string, baseUrl?: string): Promise<string> {
   try {
-    // Get the base URL, defaulting to window.location.origin if not provided
-    const origin = baseUrl || window.location.origin;
+    // Get the base URL, removing any trailing slashes
+    const origin = (baseUrl || window.location.origin).replace(/\/+$/, '');
     
-    // Create a proper URL object and ensure path is correctly joined
-    const url = new URL('/api/generate', origin);
-    
-    Logger.log('info', 'Making request to assistant API', { 
-      url: url.toString(), 
+    Logger.log('info', 'Generating response', { 
       prompt,
-      originalUrl: origin 
+      baseUrl: origin
     });
-    
-    const response = await fetch(url, {
+
+    const response = await fetch(`${origin}/api/generate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -23,10 +19,15 @@ export async function generateResponse(prompt: string, baseUrl?: string): Promis
     });
 
     if (!response.ok) {
+      Logger.log('error', 'Failed to generate response', { 
+        status: response.status,
+        statusText: response.statusText 
+      });
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
+    Logger.log('info', 'Successfully generated response');
     return data.response;
   } catch (error) {
     Logger.log('error', 'Failed to generate response', { error });
