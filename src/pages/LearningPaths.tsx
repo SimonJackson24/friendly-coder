@@ -26,6 +26,16 @@ const categories = [
 const difficultyLevels = ["all", "beginner", "intermediate", "advanced"];
 const sortOptions = ["newest", "oldest", "title-asc", "title-desc"];
 
+interface LearningPath {
+  id: string;
+  title: string;
+  description: string;
+  difficulty_level: string;
+  category: string;
+  estimated_duration?: number;
+  tutorials?: any[];
+}
+
 export default function LearningPaths() {
   const session = useSession();
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,7 +52,7 @@ export default function LearningPaths() {
         .order('created_at', { ascending: sortBy === 'oldest' });
       
       if (error) throw error;
-      return data || [];
+      return (data || []) as LearningPath[];
     }
   });
 
@@ -57,8 +67,8 @@ export default function LearningPaths() {
         .eq('user_id', session.user.id)
         .is('completed_at', null);
       
-      if (error) throw error;
-      return (data || []).map(progress => progress.learning_path);
+      if (error) return [];
+      return (data || []).map(progress => progress.learning_path) as LearningPath[];
     },
     enabled: !!session?.user?.id
   });
