@@ -2,9 +2,21 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useSession } from "@supabase/auth-helpers-react";
 
 export const LoginForm = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const session = useSession();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (session) {
+      navigate("/dashboard");
+    }
+  }, [session, navigate]);
 
   return (
     <div className="w-full max-w-md mx-auto bg-card rounded-xl shadow-lg p-8 space-y-6">
@@ -52,7 +64,7 @@ export const LoginForm = () => {
           },
         }}
         providers={[]}
-        redirectTo={`${window.location.origin}/`}
+        redirectTo={`${window.location.origin}/dashboard`}
         localization={{
           variables: {
             sign_in: {
