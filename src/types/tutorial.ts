@@ -40,3 +40,19 @@ export interface Tutorial {
   estimated_duration?: number;
   prerequisites?: string[];
 }
+
+export interface TutorialResponse {
+  id: string;
+  title: string;
+  content: string;
+  difficulty_level: string;
+  category: string;
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  is_published: boolean;
+  steps: Json;
+  has_interactive_elements: boolean;
+  estimated_duration?: number;
+  prerequisites?: Json;
+}
