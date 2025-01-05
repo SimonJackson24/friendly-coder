@@ -1,3 +1,13 @@
+/**
+ * Copyright (c) 2024. All Rights Reserved.
+ * 
+ * This file is part of the proprietary software developed by the copyright holder.
+ * Contains type definitions for the tutorial system.
+ * 
+ * All rights reserved. No part of this software may be reproduced, distributed, or
+ * transmitted in any form or by any means without explicit permission.
+ */
+
 import { Json } from "@/integrations/supabase/types/database";
 
 export interface TutorialQuiz {
@@ -28,5 +38,5 @@ export interface Tutorial {
   steps: TutorialStep[];
   has_interactive_elements: boolean;
   estimated_duration?: number;
-  prerequisites?: Json[];
+  prerequisites?: string[];
 }
