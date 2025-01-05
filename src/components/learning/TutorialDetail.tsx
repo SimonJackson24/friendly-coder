@@ -11,6 +11,7 @@ import { TutorialHeader } from "./TutorialHeader";
 
 export function TutorialDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const session = useSession();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -150,7 +151,7 @@ export function TutorialDetail() {
       <div className="space-y-6">
         <TutorialContent
           currentStep={currentStep}
-          isCompleted={isStepCompleted(currentStepIndex)}
+          isStepCompleted={isStepCompleted(currentStepIndex)}
           onComplete={handleCompleteStep}
         />
 
