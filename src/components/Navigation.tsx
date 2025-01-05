@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSession } from "@supabase/auth-helpers-react";
 import { useNavigate } from "react-router-dom";
-import { BrainCog, Settings, LogOut, Megaphone, LayoutDashboard, MessageSquare } from "lucide-react";
+import { BrainCog, Settings, LogOut, Megaphone, LayoutDashboard, MessageSquare, GraduationCap } from "lucide-react";
 import { handleSignOut } from "@/services/auth";
 import { useToast } from "@/hooks/use-toast";
 
@@ -57,6 +57,12 @@ export const Navigation = () => {
                 <Button variant="ghost" className="hover:bg-white/10">
                   <Megaphone className="h-5 w-5 mr-2" />
                   AI Studio Ads
+                </Button>
+              </Link>
+              <Link to="/learning">
+                <Button variant="ghost" className="hover:bg-white/10">
+                  <GraduationCap className="h-5 w-5 mr-2" />
+                  Learning Hub
                 </Button>
               </Link>
               <Link to="/settings">

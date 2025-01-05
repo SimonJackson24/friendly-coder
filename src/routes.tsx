@@ -5,6 +5,7 @@ import Dashboard from "@/pages/Dashboard";
 import Assistant from "@/pages/Assistant";
 import Ads from "@/pages/Ads";
 import Settings from "@/pages/Settings";
+import LearningHub from "@/pages/LearningHub";
 import { Layout } from "@/components/Layout";
 import { VersionControl } from "@/components/version-control/VersionControl";
 import { PackageManager } from "@/components/package/PackageManager";
@@ -37,6 +38,10 @@ export const router = createBrowserRouter([
       {
         path: "/settings",
         element: <Settings />,
+      },
+      {
+        path: "/learning",
+        element: <LearningHub />,
       },
       {
         path: "/version-control",
