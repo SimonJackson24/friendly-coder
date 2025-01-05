@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Trees, Clock, BookOpen } from "lucide-react";
+import { Tree, Clock, BookOpen } from "lucide-react";
 import { TutorialCard } from '../TutorialCard';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -48,8 +48,6 @@ export function LearningPathDetail() {
     return <div>Learning path not found</div>;
   }
 
-  const prerequisites = Array.isArray(learningPath.prerequisites) ? learningPath.prerequisites : [];
-
   return (
     <div className="space-y-8">
       <Card>
@@ -82,14 +80,14 @@ export function LearningPathDetail() {
               <Badge variant="outline">{learningPath.category}</Badge>
             </div>
 
-            {prerequisites.length > 0 && (
+            {learningPath.prerequisites?.length > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Trees className="h-4 w-4" />
+                  <Tree className="h-4 w-4" />
                   <span className="font-medium">Prerequisites:</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {prerequisites.map((prereq: string, index: number) => (
+                  {learningPath.prerequisites.map((prereq: string, index: number) => (
                     <Badge key={index} variant="secondary">{prereq}</Badge>
                   ))}
                 </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Trees, Clock, BookOpen } from "lucide-react";
+import { Tree, Clock, BookOpen } from "lucide-react";
 
 interface LearningPathCardProps {
   title: string;
@@ -57,7 +57,7 @@ export function LearningPathCard({
           {prerequisites.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
-                <Trees className="h-4 w-4" />
+                <Tree className="h-4 w-4" />
                 <span>Prerequisites:</span>
               </div>
               <div className="flex flex-wrap gap-2">
