@@ -29,7 +29,7 @@ export function ChatInput({ input, isLoading, onInputChange, onSubmit }: ChatInp
           type="submit" 
           size="icon"
           disabled={isLoading || !input.trim()}
-          className="h-[60px] w-[60px] bg-primary hover:bg-primary/90 transition-colors duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 rounded-xl"
+          className="h-[60px] w-[60px] bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 rounded-xl"
         >
           {isLoading ? (
             <Loader2 className="h-5 w-5 animate-spin" />

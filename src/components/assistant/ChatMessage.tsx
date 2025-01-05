@@ -25,7 +25,7 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
           "max-w-[85%] md:max-w-[75%] rounded-2xl p-4 shadow-lg transition-all duration-200 hover:shadow-xl",
           role === "assistant" 
             ? "bg-card/90 text-card-foreground backdrop-blur-md border border-border/50" 
-            : "bg-primary text-primary-foreground"
+            : "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground"
         )}
       >
         <div className="text-xs opacity-70 mb-2 font-medium">
