@@ -1,3 +1,16 @@
+/**
+ * Copyright (c) 2024 AI Studio. All rights reserved.
+ * 
+ * This file is part of the proprietary software developed by the copyright holder.
+ * 
+ * This software uses the following open source packages under their respective licenses:
+ * - React Router: MIT License (https://github.com/remix-run/react-router/blob/main/LICENSE.md)
+ * - Lucide Icons: MIT License (https://github.com/lucide-icons/lucide/blob/main/LICENSE)
+ * 
+ * While these dependencies are open source, this file and its contents remain proprietary
+ * and may not be copied, modified, or distributed without explicit permission.
+ */
+
 import { Outlet } from "react-router-dom";
 import { Navigation } from "./Navigation";
 import { Suspense } from "react";

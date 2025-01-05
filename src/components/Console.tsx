@@ -1,37 +1,57 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card } from "@/components/ui/card";
+/**
+ * Copyright (c) 2024 AI Studio. All rights reserved.
+ * 
+ * This file is part of the proprietary software developed by the copyright holder.
+ * 
+ * This software uses the following open source packages under their respective licenses:
+ * - shadcn/ui components: MIT License (https://github.com/shadcn/ui/blob/main/LICENSE.md)
+ * - Lucide Icons: MIT License (https://github.com/lucide-icons/lucide/blob/main/LICENSE)
+ * 
+ * While these dependencies are open source, this file and its contents remain proprietary
+ * and may not be copied, modified, or distributed without explicit permission.
+ */
+
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ConsoleProps {
   logs: string[];
   errors: string[];
-  onClear?: () => void;
+  onClear: () => void;
 }
 
 export function Console({ logs, errors, onClear }: ConsoleProps) {
+  useEffect(() => {
+    const consoleElement = document.getElementById("console");
+    if (consoleElement) {
+      consoleElement.scrollTop = consoleElement.scrollHeight;
+    }
+  }, [logs, errors]);
+
   return (
-    <Card className="relative">
-      <div className="flex justify-between items-center p-4 border-b">
-        <h3 className="font-semibold">Console Output</h3>
-        {onClear && (
-          <Button variant="ghost" size="sm" onClick={onClear}>
-            <Trash className="h-4 w-4" />
-          </Button>
-        )}
+    <div className="h-full flex flex-col">
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div id="console" className="p-4 space-y-2">
+            {logs.map((log, index) => (
+              <div key={index} className="text-gray-200">
+                {log}
+              </div>
+            ))}
+            {errors.map((error, index) => (
+              <div key={index} className="text-red-500">
+                {error}
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
       </div>
-      <ScrollArea className="h-[600px] p-4">
-        {errors.map((error, index) => (
-          <div key={`error-${index}`} className="text-red-500 font-mono mb-2">
-            [Error] {error}
-          </div>
-        ))}
-        {logs.map((log, index) => (
-          <div key={`log-${index}`} className="font-mono mb-2">
-            {log}
-          </div>
-        ))}
-      </ScrollArea>
-    </Card>
+      <div className="p-4">
+        <Button onClick={onClear} variant="outline" className="w-full">
+          Clear Console
+        </Button>
+      </div>
+    </div>
   );
 }

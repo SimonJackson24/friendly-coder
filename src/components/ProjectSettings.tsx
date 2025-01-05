@@ -1,45 +1,78 @@
+/**
+ * Copyright (c) 2024 AI Studio. All rights reserved.
+ * 
+ * This file is part of the proprietary software developed by the copyright holder.
+ * 
+ * This software uses the following open source packages under their respective licenses:
+ * - shadcn/ui components: MIT License (https://github.com/shadcn/ui/blob/main/LICENSE.md)
+ * - React Query: MIT License (https://github.com/TanStack/query/blob/main/LICENSE)
+ * - @supabase/auth-helpers-react: MIT License (https://github.com/supabase/auth-helpers/blob/main/LICENSE)
+ * 
+ * While these dependencies are open source, this file and its contents remain proprietary
+ * and may not be copied, modified, or distributed without explicit permission.
+ */
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { useSession } from "@supabase/auth-helpers-react";
-import { BrainCog } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Project {
+  id: string;
+  title: string;
+  description?: string;
+}
 
 interface ProjectSettingsProps {
-  project: {
-    id: string;
-    title: string;
-    description?: string;
-  };
+  project: Project;
 }
 
 export function ProjectSettings({ project }: ProjectSettingsProps) {
+  const { toast } = useToast();
+  const [title, setTitle] = useState(project.title);
+  const [description, setDescription] = useState(project.description || "");
+
+  const handleSave = async () => {
+    const { error } = await supabase
+      .from("projects")
+      .update({ title, description })
+      .eq("id", project.id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update project settings. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Project settings updated successfully.",
+      });
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">AI Studio Project Settings</h2>
+    <div className="space-y-4">
+      <h2 className="text-2xl font-semibold">Project Settings</h2>
+      <div>
+        <label className="block text-sm font-medium">Title</label>
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Project Title"
+        />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex flex-col">
-          <label className="text-sm font-medium">Project Name</label>
-          <input 
-            type="text" 
-            className="mt-1 p-2 border rounded" 
-            placeholder="Enter project name"
-            defaultValue={project.title}
-          />
-        </div>
-        <div className="flex flex-col">
-          <label className="text-sm font-medium">Description</label>
-          <textarea 
-            className="mt-1 p-2 border rounded" 
-            placeholder="Enter project description" 
-            rows={3}
-            defaultValue={project.description}
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium">Description</label>
+        <Input
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Project Description"
+        />
       </div>
-      <div className="flex justify-end">
-        <Button variant="default">Save Changes</Button>
-      </div>
+      <Button onClick={handleSave}>Save Changes</Button>
     </div>
   );
 }
