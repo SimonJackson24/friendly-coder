@@ -24,7 +24,9 @@ export function ProjectCard({ id, title, description, status, onEdit, onDelete }
 
   const handleOpenProject = () => {
     console.log("Opening project:", id);
-    navigate(`/assistant?projectId=${id}`);
+    // Remove any trailing colons and ensure proper URL formatting
+    const projectUrl = `/assistant?projectId=${id}`;
+    navigate(projectUrl);
   };
 
   const forkProject = useMutation({
@@ -57,10 +59,9 @@ export function ProjectCard({ id, title, description, status, onEdit, onDelete }
           status: "active",
           forked_from: id,
           user_id: session.user.id,
-          // Preserve AI context by copying relevant fields
           github_url: projectData.github_url,
           supabase_url: projectData.supabase_url,
-          is_template: false // Forks are never templates
+          is_template: false
         })
         .select()
         .single();
@@ -86,7 +87,7 @@ export function ProjectCard({ id, title, description, status, onEdit, onDelete }
       if (originalFiles.length > 0) {
         const newFiles = originalFiles.map(file => ({
           ...file,
-          id: undefined, // Let Supabase generate new IDs
+          id: undefined,
           project_id: newProject.id,
           created_at: undefined,
           updated_at: undefined
