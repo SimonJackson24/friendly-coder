@@ -26,9 +26,6 @@ const routes = [
               selectedFile={null}
               projectId=""
               onFileSelect={() => {}}
-              onFileCreate={() => {}}
-              onFileDelete={() => {}}
-              onFileRename={() => {}}
               onFileSave={() => {}}
               onBuild={() => {}}
               onDeploy={() => {}}
@@ -40,7 +37,6 @@ const routes = [
               id: "",
               title: "",
               description: "",
-              status: "active",
               user_id: "",
               created_at: "",
               updated_at: "",

@@ -42,23 +42,23 @@ export default function LearningPaths() {
         .order('created_at', { ascending: sortBy === 'oldest' });
       
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
-  const { data: inProgressPaths } = useQuery({
+  const { data: inProgressPaths = [] } = useQuery({
     queryKey: ['in-progress-paths', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return [];
       
       const { data, error } = await supabase
         .from('user_progress')
-        .select('*, learning_path:learning_paths(*)')
+        .select('learning_path:learning_paths(*)')
         .eq('user_id', session.user.id)
         .is('completed_at', null);
       
       if (error) throw error;
-      return data;
+      return (data || []).map(progress => progress.learning_path);
     },
     enabled: !!session?.user?.id
   });
@@ -94,14 +94,14 @@ export default function LearningPaths() {
           </p>
         </div>
 
-        {session && inProgressPaths?.length > 0 && (
+        {session && inProgressPaths.length > 0 && (
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold">Continue Learning</h2>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {inProgressPaths.map((progress) => (
+              {inProgressPaths.map((path) => (
                 <LearningPathCard 
-                  key={progress.learning_path.id} 
-                  path={progress.learning_path}
+                  key={path.id} 
+                  path={path}
                   inProgress={true}
                 />
               ))}
