@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +21,7 @@ interface CreateProjectDialogProps {
   userId: string;
 }
 
-type ProjectType = 'responsive-pwa' | 'android' | 'web-to-android' | 'fullstack';
+type ProjectType = 'responsive-pwa' | 'fullstack' | 'android' | 'web-to-android';
 
 export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProjectDialogProps) => {
   const { toast } = useToast();
@@ -42,7 +43,7 @@ export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProj
           user_id: userId,
           project_type: projectData.type,
         },
-      ]);
+      ]).select();
 
       if (error) {
         console.error("Error creating project:", error);
@@ -87,6 +88,9 @@ export const CreateProjectDialog = ({ isOpen, onOpenChange, userId }: CreateProj
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Create New Project</DialogTitle>
+          <DialogDescription>
+            Fill in the details below to create a new project.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-6 py-4">
           <div className="space-y-2">
