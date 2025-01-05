@@ -2241,6 +2241,47 @@ export type Database = {
         }
         Relationships: []
       }
+      tutorial_step_progress: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          id: string
+          notes: string | null
+          started_at: string | null
+          step_index: number
+          tutorial_id: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          id?: string
+          notes?: string | null
+          started_at?: string | null
+          step_index: number
+          tutorial_id: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          id?: string
+          notes?: string | null
+          started_at?: string | null
+          step_index?: number
+          tutorial_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutorial_step_progress_tutorial_id_fkey"
+            columns: ["tutorial_id"]
+            isOneToOne: false
+            referencedRelation: "tutorials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tutorials: {
         Row: {
           category: string
@@ -2248,8 +2289,12 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           difficulty_level: string
+          estimated_duration: number | null
+          has_interactive_elements: boolean | null
           id: string
           is_published: boolean | null
+          prerequisites: Json | null
+          steps: Json | null
           title: string
           updated_at: string | null
         }
@@ -2259,8 +2304,12 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           difficulty_level: string
+          estimated_duration?: number | null
+          has_interactive_elements?: boolean | null
           id?: string
           is_published?: boolean | null
+          prerequisites?: Json | null
+          steps?: Json | null
           title: string
           updated_at?: string | null
         }
@@ -2270,8 +2319,12 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           difficulty_level?: string
+          estimated_duration?: number | null
+          has_interactive_elements?: boolean | null
           id?: string
           is_published?: boolean | null
+          prerequisites?: Json | null
+          steps?: Json | null
           title?: string
           updated_at?: string | null
         }
