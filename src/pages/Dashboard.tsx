@@ -31,7 +31,7 @@ export default function Dashboard() {
           id,
           created_at,
           commit_message,
-          files!inner(name)
+          files(name)
         `)
         .order('created_at', { ascending: false })
         .limit(5);
@@ -41,7 +41,12 @@ export default function Dashboard() {
         throw error;
       }
 
-      return activity;
+      // Transform the data to include the required type field
+      return activity.map(item => ({
+        ...item,
+        type: 'commit',
+        files: Array.isArray(item.files) ? item.files : [item.files]
+      }));
     }
   });
 

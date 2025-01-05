@@ -1,23 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
 
-interface Contributor {
-  author: {
-    email: string;
-  } | null;
-  commit_count: number;
+interface RepoContributorsProps {
+  repositoryId: string;
 }
 
-export function RepoContributors({ repositoryId }: { repositoryId: string }) {
-  const { data: contributors } = useQuery({
-    queryKey: ["repo-contributors", repositoryId],
+export function RepoContributors({ repositoryId }: RepoContributorsProps) {
+  const { data: contributors, isLoading } = useQuery({
+    queryKey: ["repository-contributors", repositoryId],
     queryFn: async () => {
       console.log("Fetching repository contributors:", repositoryId);
       
       const { data: commits, error } = await supabase
         .from("commits")
         .select(`
+          author_id,
           author:author_id (
             email
           )
@@ -26,40 +24,41 @@ export function RepoContributors({ repositoryId }: { repositoryId: string }) {
 
       if (error) throw error;
 
-      // Then manually count contributions
-      const contributorMap = new Map<string, number>();
-      commits.forEach(commit => {
-        if (commit.author?.email) {
-          const count = contributorMap.get(commit.author.email) || 0;
-          contributorMap.set(commit.author.email, count + 1);
+      // Get unique contributors and count their commits
+      const contributorMap = new Map();
+      commits.forEach((commit) => {
+        const email = commit.author?.email || 'Unknown';
+        if (!contributorMap.has(email)) {
+          contributorMap.set(email, {
+            email: email,
+            commitCount: 1
+          });
+        } else {
+          contributorMap.get(email).commitCount++;
         }
       });
 
-      // Convert to array format
-      return Array.from(contributorMap.entries()).map(([email, count]) => ({
-        author: { email },
-        commit_count: count
-      }));
+      return Array.from(contributorMap.values());
     },
   });
 
-  if (!contributors?.length) {
-    return <div className="text-muted-foreground">No contributors yet</div>;
+  if (isLoading) {
+    return <div>Loading contributors...</div>;
   }
 
   return (
-    <div className="flex flex-wrap gap-4">
-      {contributors.map((contributor) => (
-        <div key={contributor.author?.email} className="flex items-center gap-2">
-          <Avatar className="h-8 w-8">
+    <div className="space-y-4">
+      {contributors?.map((contributor) => (
+        <div key={contributor.email} className="flex items-center gap-4">
+          <Avatar>
             <AvatarFallback>
-              {contributor.author?.email?.charAt(0).toUpperCase()}
+              {contributor.email.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-medium">{contributor.author?.email}</p>
+            <p className="text-sm font-medium">{contributor.email}</p>
             <p className="text-xs text-muted-foreground">
-              {contributor.commit_count} commits
+              {contributor.commitCount} commits
             </p>
           </div>
         </div>
