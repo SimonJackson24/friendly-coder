@@ -2,13 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TutorialCard } from "@/components/learning/TutorialCard";
 import { TutorialProgress } from "@/components/learning/TutorialProgress";
+import { TutorialRecommendations } from "@/components/learning/TutorialRecommendations";
 import { Loader2, BookOpen, Code, Rocket, Settings, Package, GitBranch, Bot, Search } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 
 const categories = [
   { id: "getting-started", label: "Getting Started", icon: BookOpen },
@@ -93,19 +93,25 @@ export default function LearningHub() {
 
         <TutorialProgress />
 
-        {session && inProgressTutorials?.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">Continue Learning</h2>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {inProgressTutorials.map((progress) => (
-                <TutorialCard 
-                  key={progress.tutorial.id} 
-                  tutorial={progress.tutorial}
-                  inProgress={true}
-                />
-              ))}
-            </div>
-          </div>
+        {session && (
+          <>
+            {inProgressTutorials?.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-2xl font-semibold">Continue Learning</h2>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {inProgressTutorials.map((progress) => (
+                    <TutorialCard 
+                      key={progress.tutorial.id} 
+                      tutorial={progress.tutorial}
+                      inProgress={true}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <TutorialRecommendations />
+          </>
         )}
 
         <div className="flex flex-col sm:flex-row gap-4">
