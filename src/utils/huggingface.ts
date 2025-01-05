@@ -5,7 +5,7 @@ export async function generateResponse(prompt: string, baseUrl?: string): Promis
     // Get the base URL, defaulting to window.location.origin if not provided
     const origin = baseUrl || window.location.origin;
     
-    // Parse the URL to handle it properly
+    // Create a proper URL object and ensure path is correctly joined
     const url = new URL('/api/generate', origin);
     
     Logger.log('info', 'Making request to assistant API', { 
