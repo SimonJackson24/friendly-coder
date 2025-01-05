@@ -1,12 +1,12 @@
-import { BrowserRouter } from "react-router-dom";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import { RouterProvider } from "react-router-dom";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import { ProjectProvider } from "./contexts/ProjectContext";
 import { supabase } from "./integrations/supabase/client";
-import { Routes } from "./routes";
+import { router } from "./routes";
 
 const queryClient = new QueryClient();
 
@@ -17,11 +17,9 @@ function App() {
         <DndProvider backend={HTML5Backend}>
           <SettingsProvider>
             <ProjectProvider>
-              <BrowserRouter>
-                <main className="min-h-screen bg-background">
-                  <Routes />
-                </main>
-              </BrowserRouter>
+              <main className="min-h-screen bg-background">
+                <RouterProvider router={router} />
+              </main>
             </ProjectProvider>
           </SettingsProvider>
         </DndProvider>
