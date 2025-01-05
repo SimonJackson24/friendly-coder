@@ -6,6 +6,19 @@ interface RepoContributorsProps {
   repositoryId: string;
 }
 
+interface Contributor {
+  email: string;
+  commitCount: number;
+}
+
+interface CommitAuthor {
+  email: string | null;
+}
+
+interface CommitWithAuthor {
+  author: CommitAuthor | null;
+}
+
 export function RepoContributors({ repositoryId }: RepoContributorsProps) {
   const { data: contributors, isLoading } = useQuery({
     queryKey: ["repository-contributors", repositoryId],
@@ -25,8 +38,8 @@ export function RepoContributors({ repositoryId }: RepoContributorsProps) {
       if (error) throw error;
 
       // Get unique contributors and count their commits
-      const contributorMap = new Map();
-      commits.forEach((commit) => {
+      const contributorMap = new Map<string, Contributor>();
+      (commits as CommitWithAuthor[]).forEach((commit) => {
         const email = commit.author?.email || 'Unknown';
         if (!contributorMap.has(email)) {
           contributorMap.set(email, {
@@ -34,7 +47,10 @@ export function RepoContributors({ repositoryId }: RepoContributorsProps) {
             commitCount: 1
           });
         } else {
-          contributorMap.get(email).commitCount++;
+          const contributor = contributorMap.get(email);
+          if (contributor) {
+            contributor.commitCount++;
+          }
         }
       });
 
