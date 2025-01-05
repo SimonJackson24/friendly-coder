@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, ArrowDownToLine, Clock } from "lucide-react";
 import { RollbackValidation, PackageVersion } from "../../types";
+import { ImpactAnalysisVisualization } from "./ImpactAnalysisVisualization";
 import { analyzeRollbackRisk } from "../../utils/changelogGenerator";
 
 interface RollbackConfirmationProps {
@@ -46,7 +47,18 @@ export function RollbackConfirmation({
             name: 'Breaking Changes Check',
             status: analysis.impact_analysis.breaking_changes.length > 0 ? 'failed' : 'passed'
           }
-        ]
+        ],
+        impactAnalysis: {
+          affectedServices: analysis.impact_analysis.affected_dependencies,
+          riskLevel: analysis.impact_analysis.risk_level,
+          breakingChanges: analysis.impact_analysis.breaking_changes,
+          estimatedDowntime: 5,
+          dependencyImpact: analysis.impact_analysis.affected_dependencies.map(dep => ({
+            name: dep,
+            impact: 'minor' as const,
+            details: `May require updates to maintain compatibility`
+          }))
+        }
       });
     } catch (error) {
       console.error('Error analyzing rollback:', error);
@@ -81,48 +93,30 @@ export function RollbackConfirmation({
               disabled={isAnalyzing}
               className="w-full"
             >
-              Analyze Impact
+              {isAnalyzing ? "Analyzing Impact..." : "Analyze Impact"}
             </Button>
           )}
 
           {validation && (
             <>
-              <Alert variant={validation.risk_level === 'high' ? 'destructive' : 'default'}>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Risk Level: {validation.risk_level}</AlertTitle>
-                <AlertDescription>
-                  {validation.breaking_changes.length > 0 && (
-                    <div>Found {validation.breaking_changes.length} breaking changes</div>
-                  )}
-                  {validation.affected_services.length > 0 && (
-                    <div>{validation.affected_services.length} dependencies will be affected</div>
-                  )}
-                </AlertDescription>
-              </Alert>
+              <ImpactAnalysisVisualization analysis={validation.impactAnalysis} />
 
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="w-4 h-4" />
-                  Estimated downtime: {validation.estimated_downtime} minutes
-                </div>
-                
-                <div className="space-y-2">
-                  {validation.validation_steps.map(step => (
-                    <div
-                      key={step.id}
-                      className="flex items-center justify-between p-2 border rounded"
-                    >
-                      <span>{step.name}</span>
-                      <span className={
-                        step.status === 'passed' ? 'text-green-500' :
-                        step.status === 'failed' ? 'text-red-500' :
-                        'text-yellow-500'
-                      }>
-                        {step.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                {validation.validation_steps.map(step => (
+                  <div
+                    key={step.id}
+                    className="flex items-center justify-between p-2 border rounded"
+                  >
+                    <span>{step.name}</span>
+                    <span className={
+                      step.status === 'passed' ? 'text-green-500' :
+                      step.status === 'failed' ? 'text-red-500' :
+                      'text-yellow-500'
+                    }>
+                      {step.status}
+                    </span>
+                  </div>
+                ))}
               </div>
             </>
           )}

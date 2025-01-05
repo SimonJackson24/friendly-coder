@@ -167,4 +167,23 @@ export interface RollbackValidation {
     status: 'pending' | 'passed' | 'failed';
     message?: string;
   }[];
+  impactAnalysis: ImpactAnalysisVisualization;
+}
+
+export interface BulkPermissionOperation {
+  userIds: string[];
+  accessLevel: AccessLevel;
+  template?: PermissionTemplate;
+}
+
+export interface ImpactAnalysisVisualization {
+  affectedServices: string[];
+  riskLevel: 'low' | 'medium' | 'high';
+  breakingChanges: string[];
+  estimatedDowntime: number;
+  dependencyImpact: {
+    name: string;
+    impact: 'none' | 'minor' | 'major';
+    details: string;
+  }[];
 }

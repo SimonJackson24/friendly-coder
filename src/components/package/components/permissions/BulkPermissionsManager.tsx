@@ -4,8 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { X, AlertTriangle, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { AccessLevel } from "../../types";
+import { AccessLevel, BulkPermissionOperation } from "../../types";
 import { PermissionTemplateSelector } from "./PermissionTemplateSelector";
 
 interface BulkPermissionsManagerProps {
@@ -38,20 +40,7 @@ export function BulkPermissionsManager({ packageId, onPermissionsUpdated }: Bulk
     try {
       console.log('Granting bulk access to users:', userIds);
       
-      // First, save the permission template
-      const { data: template, error: templateError } = await supabase
-        .from('permission_templates')
-        .insert({
-          name: `Bulk ${accessLevel} access`,
-          permissions: { accessLevel }
-        })
-        .select()
-        .single();
-
-      if (templateError) throw templateError;
-
-      // Then grant access to all users
-      const { error: accessError } = await supabase
+      const { error } = await supabase
         .from('package_access')
         .insert(
           userIds.map(userId => ({
@@ -61,7 +50,7 @@ export function BulkPermissionsManager({ packageId, onPermissionsUpdated }: Bulk
           }))
         );
 
-      if (accessError) throw accessError;
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -83,7 +72,12 @@ export function BulkPermissionsManager({ packageId, onPermissionsUpdated }: Bulk
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4 border rounded-lg">
+      <div className="flex items-center gap-2 mb-4">
+        <Shield className="w-5 h-5" />
+        <h3 className="text-lg font-semibold">Bulk Permissions Manager</h3>
+      </div>
+
       <div className="flex gap-2">
         <Input
           placeholder="Add user ID"
@@ -109,18 +103,35 @@ export function BulkPermissionsManager({ packageId, onPermissionsUpdated }: Bulk
         <div className="space-y-2">
           {userIds.map((userId) => (
             <div key={userId} className="flex justify-between items-center p-2 bg-accent rounded">
-              <span>{userId}</span>
+              <div className="flex items-center gap-2">
+                <Badge variant={accessLevel === 'admin' ? 'destructive' : 'default'}>
+                  {accessLevel}
+                </Badge>
+                <span>{userId}</span>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleRemoveUser(userId)}
               >
-                Remove
+                <X className="h-4 w-4" />
               </Button>
             </div>
           ))}
+          {userIds.length === 0 && (
+            <div className="flex items-center justify-center h-[100px] text-muted-foreground">
+              No users added yet
+            </div>
+          )}
         </div>
       </ScrollArea>
+
+      {userIds.length > 0 && accessLevel === 'admin' && (
+        <div className="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/10 rounded text-sm">
+          <AlertTriangle className="w-4 h-4 text-yellow-600" />
+          <span>Granting admin access to multiple users - please review carefully</span>
+        </div>
+      )}
 
       <Button 
         onClick={handleGrantAccess} 
