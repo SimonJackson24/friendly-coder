@@ -16,7 +16,11 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
 
   return (
     <ChatContextProvider projectId={projectId}>
-      <div className="h-full flex flex-col bg-background/50 backdrop-blur-lg rounded-lg border border-border/50 shadow-xl animate-fade-in">
+      <div className="h-full flex flex-col bg-gradient-to-br from-background/50 to-background/30 backdrop-blur-xl rounded-lg border border-border/50 shadow-2xl animate-fade-in">
+        <div className="p-4 border-b border-border/50 bg-card/30 backdrop-blur-md">
+          <h2 className="text-xl font-semibold text-foreground/90">AI Assistant</h2>
+          <p className="text-sm text-muted-foreground">Ask me anything about your project</p>
+        </div>
         <ContextAlerts context={context} />
         <ChatMessageList />
         <ChatInputForm />

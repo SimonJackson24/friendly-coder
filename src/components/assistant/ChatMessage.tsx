@@ -11,7 +11,7 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
   return (
     <div
       className={cn(
-        "flex gap-3 text-sm md:text-base animate-fade-in",
+        "flex gap-4 text-sm md:text-base animate-fade-in",
         role === "assistant" ? "justify-start" : "justify-end"
       )}
     >
@@ -22,9 +22,9 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
       )}
       <div
         className={cn(
-          "max-w-[85%] md:max-w-[75%] rounded-lg p-4 shadow-lg transition-all duration-200 hover:shadow-xl",
+          "max-w-[85%] md:max-w-[75%] rounded-2xl p-4 shadow-lg transition-all duration-200 hover:shadow-xl",
           role === "assistant" 
-            ? "bg-card/80 text-card-foreground backdrop-blur-md border border-border/50" 
+            ? "bg-card/90 text-card-foreground backdrop-blur-md border border-border/50" 
             : "bg-primary text-primary-foreground"
         )}
       >

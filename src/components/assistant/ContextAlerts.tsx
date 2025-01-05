@@ -20,7 +20,7 @@ export function ContextAlerts({ context }: ContextAlertsProps) {
   return (
     <div className="space-y-2 p-4 animate-fade-in">
       {context.buildErrorCount > 0 && (
-        <Alert variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20 animate-slide-in-right">
+        <Alert variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20 animate-slide-in-right backdrop-blur-sm">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle className="font-semibold">Build Errors</AlertTitle>
           <AlertDescription>
@@ -30,7 +30,7 @@ export function ContextAlerts({ context }: ContextAlertsProps) {
       )}
       
       {context.schemaChangeCount > 0 && (
-        <Alert className="bg-primary/5 border-primary/20 animate-slide-in-right">
+        <Alert className="bg-primary/5 border-primary/20 animate-slide-in-right backdrop-blur-sm">
           <Database className="h-4 w-4 text-primary" />
           <AlertTitle className="font-semibold">Schema Changes</AlertTitle>
           <AlertDescription>
@@ -40,7 +40,7 @@ export function ContextAlerts({ context }: ContextAlertsProps) {
       )}
       
       {context.packageOperationCount > 0 && (
-        <Alert className="bg-primary/5 border-primary/20 animate-slide-in-right">
+        <Alert className="bg-primary/5 border-primary/20 animate-slide-in-right backdrop-blur-sm">
           <Package className="h-4 w-4 text-primary" />
           <AlertTitle className="font-semibold">Package Changes</AlertTitle>
           <AlertDescription>
@@ -50,7 +50,7 @@ export function ContextAlerts({ context }: ContextAlertsProps) {
       )}
 
       {context.fileOperationCount > 0 && (
-        <Alert className="bg-primary/5 border-primary/20 animate-slide-in-right">
+        <Alert className="bg-primary/5 border-primary/20 animate-slide-in-right backdrop-blur-sm">
           <FileCode className="h-4 w-4 text-primary" />
           <AlertTitle className="font-semibold">File System Changes</AlertTitle>
           <AlertDescription>

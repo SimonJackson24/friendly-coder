@@ -12,12 +12,12 @@ interface ChatInputProps {
 export function ChatInput({ input, isLoading, onInputChange, onSubmit }: ChatInputProps) {
   return (
     <form onSubmit={onSubmit} className="p-4 border-t border-border/50 bg-card/30 backdrop-blur-md">
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         <Textarea
           value={input}
           onChange={(e) => onInputChange(e.target.value)}
           placeholder="Ask me anything about your project..."
-          className="flex-1 min-h-[60px] max-h-[120px] resize-none bg-background/50 border-border/50 focus:ring-primary/20 transition-all duration-200"
+          className="flex-1 min-h-[60px] max-h-[120px] resize-none bg-background/50 border-border/50 focus:ring-primary/20 transition-all duration-200 rounded-xl"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -29,12 +29,12 @@ export function ChatInput({ input, isLoading, onInputChange, onSubmit }: ChatInp
           type="submit" 
           size="icon"
           disabled={isLoading || !input.trim()}
-          className="h-[60px] w-[60px] bg-primary hover:bg-primary/90 transition-colors duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
+          className="h-[60px] w-[60px] bg-primary hover:bg-primary/90 transition-colors duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 rounded-xl"
         >
           {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
-            <Send className="h-4 w-4" />
+            <Send className="h-5 w-5" />
           )}
         </Button>
       </div>
