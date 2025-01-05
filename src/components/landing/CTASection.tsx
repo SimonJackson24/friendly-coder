@@ -30,11 +30,11 @@ export function CTASection() {
           </div>
           
           <h2 className="text-3xl md:text-4xl font-bold">
-            Transform Your Development Process Today
+            Transform Your Development Process with AI Studio
           </h2>
           
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Join thousands of enterprises and developers who are building the future with AI. 
+            Join thousands of enterprises and developers who are building the future with AI Studio. 
             Experience the power of Claude-3 Opus, enterprise version control, and advanced 
             package management in one unified platform.
           </p>

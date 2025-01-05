@@ -50,13 +50,13 @@ export const Navigation = () => {
               <Link to="/assistant">
                 <Button variant="ghost" className="hover:bg-white/10">
                   <MessageSquare className="h-5 w-5 mr-2" />
-                  Assistant
+                  AI Assistant
                 </Button>
               </Link>
               <Link to="/ads">
                 <Button variant="ghost" className="hover:bg-white/10">
                   <Megaphone className="h-5 w-5 mr-2" />
-                  Ad Studio
+                  AI Studio Ads
                 </Button>
               </Link>
               <Link to="/settings">
@@ -78,7 +78,7 @@ export const Navigation = () => {
               onClick={handleLogin}
               className="shadow-lg hover:shadow-primary/20 transition-all duration-300"
             >
-              Login with Supabase
+              Sign in to AI Studio
             </Button>
           )}
         </div>

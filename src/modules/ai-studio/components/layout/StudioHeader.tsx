@@ -10,10 +10,10 @@ export function StudioHeader({ projectTitle }: StudioHeaderProps) {
       <BrainCog className="h-8 w-8 text-primary" />
       <div>
         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-          {projectTitle || "AI Studio"}
+          {projectTitle ? `${projectTitle} - AI Studio` : "AI Studio"}
         </h1>
         <p className="text-white/80 mt-1">
-          Collaborate with AI to build your project
+          Build smarter with AI
         </p>
       </div>
     </div>
