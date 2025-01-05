@@ -7,11 +7,15 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const session = useSession();
+  const { toast } = useToast();
 
-  const { data: recentActivity, isLoading: isLoadingActivity } = useQuery({
+  const { data: recentActivity, isLoading: isLoadingActivity, error: activityError } = useQuery({
     queryKey: ['recent-activity'],
     queryFn: async () => {
       console.log("Fetching recent activity");
@@ -36,10 +40,17 @@ export default function Dashboard() {
         type: 'commit',
         files: Array.isArray(item.files) ? item.files : [item.files]
       }));
+    },
+    onError: (error) => {
+      toast({
+        title: "Error loading activity",
+        description: "Failed to load recent activity. Please try again.",
+        variant: "destructive",
+      });
     }
   });
 
-  const { data: projects, isLoading: isLoadingProjects } = useQuery({
+  const { data: projects, isLoading: isLoadingProjects, error: projectsError } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
       console.log("Fetching user projects");
@@ -54,6 +65,13 @@ export default function Dashboard() {
       }
 
       return projects;
+    },
+    onError: (error) => {
+      toast({
+        title: "Error loading projects",
+        description: "Failed to load your projects. Please try again.",
+        variant: "destructive",
+      });
     }
   });
 
@@ -61,6 +79,29 @@ export default function Dashboard() {
     console.log("No session found, redirecting to login");
     return <Navigate to="/login" />;
   }
+
+  const renderLoadingState = () => (
+    <div className="flex items-center justify-center p-8" role="status">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <span className="sr-only">Loading...</span>
+    </div>
+  );
+
+  const renderError = (message: string) => (
+    <Alert variant="destructive" role="alert">
+      <AlertTitle>Error</AlertTitle>
+      <AlertDescription>{message}</AlertDescription>
+    </Alert>
+  );
+
+  const renderEmptyState = (message: string) => (
+    <div className="text-center p-8 border rounded-lg bg-card" role="status">
+      <p className="text-muted-foreground mb-4">{message}</p>
+      <Button asChild>
+        <Link to="/assistant">Create New Project</Link>
+      </Button>
+    </div>
+  );
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
@@ -75,30 +116,47 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Recent Activity</h2>
+          <h2 className="text-2xl font-semibold mb-4" id="recent-activity">Recent Activity</h2>
           <div className="bg-card rounded-lg border p-4">
             {isLoadingActivity ? (
-              <p className="text-muted-foreground">Loading activity...</p>
+              renderLoadingState()
+            ) : activityError ? (
+              renderError("Failed to load recent activity")
+            ) : !recentActivity?.length ? (
+              renderEmptyState("No recent activity")
             ) : (
-              <RecentActivity activities={recentActivity || []} />
+              <RecentActivity activities={recentActivity} />
             )}
           </div>
         </div>
 
         <div>
-          <h2 className="text-2xl font-semibold mb-4">Active Projects</h2>
+          <h2 className="text-2xl font-semibold mb-4" id="active-projects">Active Projects</h2>
           <div className="bg-card rounded-lg border p-4">
             {isLoadingProjects ? (
-              <p className="text-muted-foreground">Loading projects...</p>
-            ) : projects?.length > 0 ? (
+              renderLoadingState()
+            ) : projectsError ? (
+              renderError("Failed to load projects")
+            ) : !projects?.length ? (
+              renderEmptyState("No active projects")
+            ) : (
               <div className="space-y-4">
                 {projects.slice(0, 5).map((project) => (
-                  <div key={project.id} className="flex items-center justify-between p-2 hover:bg-accent rounded-lg">
+                  <div 
+                    key={project.id} 
+                    className="flex items-center justify-between p-2 hover:bg-accent rounded-lg"
+                    role="listitem"
+                  >
                     <div>
                       <h3 className="font-medium">{project.title}</h3>
                       <p className="text-sm text-muted-foreground">{project.description}</p>
                     </div>
-                    <Button asChild variant="ghost" size="sm">
+                    <Button 
+                      asChild 
+                      variant="ghost" 
+                      size="sm"
+                      aria-label={`Open ${project.title}`}
+                    >
                       <Link to={`/assistant?projectId=${project.id}`}>
                         Open
                       </Link>
@@ -106,8 +164,6 @@ export default function Dashboard() {
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="text-muted-foreground">No active projects</p>
             )}
           </div>
         </div>
