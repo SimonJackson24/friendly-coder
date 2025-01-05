@@ -12,6 +12,7 @@ interface DiffViewerProps {
   newVersion?: string;
   hasConflicts?: boolean;
   onResolveConflict?: (resolvedContent: string) => void;
+  onLineClick?: (lineNumber: number) => void; // Added this prop
 }
 
 interface DiffLine {
@@ -28,7 +29,8 @@ export function DiffViewer({
   oldVersion,
   newVersion,
   hasConflicts,
-  onResolveConflict
+  onResolveConflict,
+  onLineClick
 }: DiffViewerProps) {
   const [selectedLines, setSelectedLines] = useState<Set<number>>(new Set());
   const [currentConflictIndex, setCurrentConflictIndex] = useState(0);
@@ -86,6 +88,11 @@ export function DiffViewer({
   }, [oldContent, newContent, hasConflicts]);
 
   const handleLineClick = (lineNumber: number) => {
+    if (!hasConflicts && onLineClick) {
+      onLineClick(lineNumber);
+      return;
+    }
+    
     if (!hasConflicts) return;
     
     const newSelected = new Set(selectedLines);

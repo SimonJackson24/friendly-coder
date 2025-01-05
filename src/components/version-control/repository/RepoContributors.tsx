@@ -15,7 +15,6 @@ export function RepoContributors({ repositoryId }: { repositoryId: string }) {
     queryFn: async () => {
       console.log("Fetching repository contributors:", repositoryId);
       
-      // First get all commits
       const { data: commits, error } = await supabase
         .from("commits")
         .select(`

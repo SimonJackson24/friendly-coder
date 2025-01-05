@@ -33,7 +33,7 @@ export function RepoActivity({ repositoryId }: { repositoryId: string }) {
         .limit(10);
 
       if (error) throw error;
-      return data as Commit[];
+      return data as unknown as Commit[];
     },
   });
 
@@ -48,7 +48,7 @@ export function RepoActivity({ repositoryId }: { repositoryId: string }) {
           <div className="flex-1">
             <p className="text-sm font-medium">{activity.message}</p>
             <p className="text-xs text-muted-foreground">
-              by {activity.author?.email} • {formatDistanceToNow(new Date(activity.created_at))} ago
+              by {activity.author?.email || 'Unknown'} • {formatDistanceToNow(new Date(activity.created_at))} ago
             </p>
           </div>
         </div>

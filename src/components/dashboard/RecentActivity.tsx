@@ -6,6 +6,7 @@ interface ActivityItem {
   type: string;
   commit_message?: string;
   created_at: string;
+  files?: { name: string; }[];
 }
 
 interface RecentActivityProps {
