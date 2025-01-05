@@ -8,7 +8,12 @@ import {
   Globe, 
   Workflow,
   Smartphone,
-  ArrowRightLeft
+  ArrowRightLeft,
+  GitBranch,
+  Package,
+  Users,
+  Settings,
+  Activity
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -41,7 +46,6 @@ export default function Dashboard() {
         throw error;
       }
 
-      // Transform the data to include the required type field
       return activity.map(item => ({
         ...item,
         type: 'commit',
@@ -57,8 +61,7 @@ export default function Dashboard() {
       const { data: projects, error } = await supabase
         .from('projects')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(5);
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error("Error fetching projects:", error);
@@ -102,6 +105,34 @@ export default function Dashboard() {
       icon: ArrowRightLeft,
       color: "text-orange-500",
       route: "/assistant?type=web-to-android"
+    },
+    {
+      title: "Version Control",
+      description: "Manage your code with Git-based version control",
+      icon: GitBranch,
+      color: "text-indigo-500",
+      route: "/version-control"
+    },
+    {
+      title: "Package Management",
+      description: "Manage and publish packages for your projects",
+      icon: Package,
+      color: "text-pink-500",
+      route: "/packages"
+    },
+    {
+      title: "Team Collaboration",
+      description: "Work together with your team members",
+      icon: Users,
+      color: "text-teal-500",
+      route: "/team"
+    },
+    {
+      title: "Project Settings",
+      description: "Configure your project settings and preferences",
+      icon: Settings,
+      color: "text-gray-500",
+      route: "/settings"
     }
   ];
 
@@ -114,12 +145,20 @@ export default function Dashboard() {
             Welcome back, {session.user.email}
           </p>
         </div>
-        <Button asChild>
-          <Link to="/assistant">
-            <BrainCog className="mr-2 h-4 w-4" />
-            New Project
-          </Link>
-        </Button>
+        <div className="flex gap-4">
+          <Button asChild variant="outline">
+            <Link to="/version-control">
+              <GitBranch className="mr-2 h-4 w-4" />
+              Version Control
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link to="/assistant">
+              <BrainCog className="mr-2 h-4 w-4" />
+              New Project
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <QuickStats 
@@ -127,13 +166,54 @@ export default function Dashboard() {
         recentUpdates={recentActivity?.length || 0}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {projectTypes.map((type) => (
-          <ProjectTypeCard key={type.title} {...type} />
-        ))}
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {projectTypes.map((type) => (
+            <ProjectTypeCard key={type.title} {...type} />
+          ))}
+        </div>
       </div>
 
-      <RecentActivity activities={recentActivity || []} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">Recent Activity</h2>
+          <div className="bg-card rounded-lg border p-4">
+            {isLoadingActivity ? (
+              <p className="text-muted-foreground">Loading activity...</p>
+            ) : (
+              <RecentActivity activities={recentActivity || []} />
+            )}
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">Active Projects</h2>
+          <div className="bg-card rounded-lg border p-4">
+            {isLoadingProjects ? (
+              <p className="text-muted-foreground">Loading projects...</p>
+            ) : projects?.length > 0 ? (
+              <div className="space-y-4">
+                {projects.slice(0, 5).map((project) => (
+                  <div key={project.id} className="flex items-center justify-between p-2 hover:bg-accent rounded-lg">
+                    <div>
+                      <h3 className="font-medium">{project.title}</h3>
+                      <p className="text-sm text-muted-foreground">{project.description}</p>
+                    </div>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link to={`/assistant?projectId=${project.id}`}>
+                        Open
+                      </Link>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">No active projects</p>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
