@@ -1,27 +1,36 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Rocket } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Plus } from "lucide-react";
+import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
+import { useSession } from "@supabase/auth-helpers-react";
 
 export function DeploymentCard() {
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const session = useSession();
+
   return (
-    <Card className="p-6 hover:shadow-lg transition-shadow">
-      <div className="flex items-start space-x-4">
-        <div className="text-blue-500 p-3 rounded-lg bg-background">
-          <Rocket className="h-6 w-6" />
-        </div>
-        <div className="space-y-1">
-          <h3 className="font-semibold">Quick Deploy</h3>
+    <>
+      <Card className="p-6 flex flex-col items-center justify-center text-center space-y-4 min-h-[200px]">
+        <div className="space-y-2">
+          <h3 className="font-semibold">Create New Project</h3>
           <p className="text-sm text-muted-foreground">
-            Deploy your project to Vercel, Netlify, or Cloudflare
+            Start building your next great idea
           </p>
-          <Button asChild variant="link" className="p-0">
-            <Link to="/dashboard?tab=deployment">
-              Deploy Now →
-            </Link>
-          </Button>
         </div>
-      </div>
-    </Card>
+        <Button onClick={() => setIsCreateOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Project
+        </Button>
+      </Card>
+
+      {session && (
+        <CreateProjectDialog 
+          isOpen={isCreateOpen} 
+          onOpenChange={setIsCreateOpen}
+          userId={session.user.id}
+        />
+      )}
+    </>
   );
 }
