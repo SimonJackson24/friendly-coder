@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ProjectTypeCard } from "./ProjectTypeCard";
 import { DeploymentCard } from "./DeploymentCard";
 import { 
@@ -10,36 +11,41 @@ import {
   Users,
   Settings
 } from "lucide-react";
+import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
+import { useSession } from "@supabase/auth-helpers-react";
 
 export function QuickActions() {
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const session = useSession();
+
   const projectTypes = [
     {
       title: "Responsive Website with PWA",
       description: "Create a modern, responsive website with Progressive Web App capabilities",
       icon: Globe,
       color: "text-blue-500",
-      route: "/assistant?type=responsive-pwa"
+      onClick: () => setIsCreateOpen(true)
     },
     {
       title: "Full Stack Web Application",
       description: "Build a complete application with frontend, backend, and database",
       icon: Workflow,
       color: "text-purple-500",
-      route: "/assistant?type=fullstack"
+      onClick: () => setIsCreateOpen(true)
     },
     {
       title: "Android App",
       description: "Develop a native Android application from scratch",
       icon: Smartphone,
       color: "text-green-500",
-      route: "/assistant?type=android"
+      onClick: () => setIsCreateOpen(true)
     },
     {
       title: "Convert Web App to Android",
       description: "Convert your web application into a native Android app",
       icon: ArrowRightLeft,
       color: "text-orange-500",
-      route: "/assistant?type=web-to-android"
+      onClick: () => setIsCreateOpen(true)
     },
     {
       title: "Version Control",
@@ -80,6 +86,14 @@ export function QuickActions() {
           <ProjectTypeCard key={type.title} {...type} />
         ))}
       </div>
+
+      {session && (
+        <CreateProjectDialog 
+          isOpen={isCreateOpen} 
+          onOpenChange={setIsCreateOpen}
+          userId={session.user.id}
+        />
+      )}
     </div>
   );
 }
