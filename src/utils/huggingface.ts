@@ -5,13 +5,18 @@ export async function generateResponse(prompt: string, baseUrl?: string): Promis
     // Get the base URL, defaulting to window.location.origin if not provided
     const origin = baseUrl || window.location.origin;
     
-    // Clean the URL by removing any trailing slashes and ensuring no trailing colon
-    const cleanBaseUrl = origin.replace(/[:\/]+$/, '').replace(/:$/, '');
+    // Remove any trailing slashes and port number from the URL
+    const cleanBaseUrl = origin.replace(/:\d+/, '').replace(/\/+$/, '');
     
     // Construct the full API URL
     const url = `${cleanBaseUrl}/api/generate`;
     
-    Logger.log('info', 'Making request to assistant API', { url, prompt });
+    Logger.log('info', 'Making request to assistant API', { 
+      url, 
+      prompt,
+      cleanBaseUrl,
+      originalUrl: origin 
+    });
     
     const response = await fetch(url, {
       method: 'POST',
