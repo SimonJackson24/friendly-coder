@@ -10,6 +10,7 @@ import { Layout } from "@/components/Layout";
 import { VersionControl } from "@/components/version-control/VersionControl";
 import { PackageManager } from "@/components/package/PackageManager";
 import { TeamCollaboration } from "@/components/team/TeamCollaboration";
+import { TutorialDetail } from "@/components/learning/TutorialDetail";
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
       {
         path: "/learning",
         element: <LearningHub />,
+      },
+      {
+        path: "/tutorial/:id",
+        element: <TutorialDetail />,
       },
       {
         path: "/version-control",
