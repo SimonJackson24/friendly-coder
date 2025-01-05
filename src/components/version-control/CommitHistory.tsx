@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2024. All Rights Reserved.
+ * 
+ * This file is part of the proprietary software developed by the copyright holder.
+ * 
+ * This software uses the following open source packages under their respective licenses:
+ * - @tanstack/react-query: MIT License (https://github.com/tanstack/query/blob/main/LICENSE)
+ * - shadcn/ui components: MIT License (https://github.com/shadcn/ui/blob/main/LICENSE.md)
+ * - Lucide Icons: MIT License (https://github.com/lucide-icons/lucide/blob/main/LICENSE)
+ * 
+ * While these dependencies are open source, this file and its contents remain proprietary
+ * and may not be copied, modified, or distributed without explicit permission.
+ */
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
