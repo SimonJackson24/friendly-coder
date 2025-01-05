@@ -1,6 +1,5 @@
 import { RouterProvider } from "react-router-dom";
 import { router } from "./routes";
-import { Navigation } from "./components/Navigation";
 import { Toaster } from "./components/ui/toaster";
 import { createClient } from "@supabase/supabase-js";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
@@ -18,10 +17,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <SessionContextProvider supabaseClient={supabase}>
         <div className="min-h-screen flex flex-col">
-          <Navigation />
-          <main className="flex-1">
-            <RouterProvider router={router} />
-          </main>
+          <RouterProvider router={router} />
           <Toaster />
         </div>
       </SessionContextProvider>
