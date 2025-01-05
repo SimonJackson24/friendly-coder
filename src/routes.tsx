@@ -1,65 +1,55 @@
 import { createBrowserRouter } from "react-router-dom";
-import Index from "@/pages/Index";
-import Login from "@/pages/Login";
-import Dashboard from "@/pages/Dashboard";
-import Assistant from "@/pages/Assistant";
-import Ads from "@/pages/Ads";
-import Settings from "@/pages/Settings";
-import LearningHub from "@/pages/LearningHub";
-import { Layout } from "@/components/Layout";
+import { Layout } from "@/components/layout/Layout";
+import { ProjectLayout } from "@/components/layout/ProjectLayout";
+import { StudioLayout } from "@/modules/ai-studio/components/layout/StudioLayout";
+import { ProjectSettings } from "@/components/ProjectSettings";
 import { VersionControl } from "@/components/version-control/VersionControl";
-import { PackageManager } from "@/components/package/PackageManager";
-import { TeamCollaboration } from "@/components/team/TeamCollaboration";
+import { IssueList } from "@/components/issues/IssueList";
+import { LearningHub } from "@/pages/LearningHub";
 import { TutorialDetail } from "@/components/learning/TutorialDetail";
+import { LearningPaths } from "@/pages/LearningPaths";
 
-export const router = createBrowserRouter([
+const routes = [
   {
+    path: "/",
     element: <Layout />,
     children: [
       {
-        path: "/",
-        element: <Index />,
-      },
-      {
-        path: "/login",
-        element: <Login />,
-      },
-      {
-        path: "/dashboard",
-        element: <Dashboard />,
-      },
-      {
-        path: "/assistant",
-        element: <Assistant />,
-      },
-      {
-        path: "/ads",
-        element: <Ads />,
-      },
-      {
-        path: "/settings",
-        element: <Settings />,
+        path: "/project/:id",
+        element: <ProjectLayout />,
+        children: [
+          {
+            path: "studio",
+            element: <StudioLayout />
+          },
+          {
+            path: "settings",
+            element: <ProjectSettings />
+          },
+          {
+            path: "version-control",
+            element: <VersionControl />
+          },
+          {
+            path: "issues",
+            element: <IssueList />
+          }
+        ]
       },
       {
         path: "/learning",
-        element: <LearningHub />,
+        element: <LearningHub />
       },
       {
         path: "/tutorial/:id",
-        element: <TutorialDetail />,
+        element: <TutorialDetail />
       },
       {
-        path: "/version-control",
-        element: <VersionControl projectId={null} />,
-      },
-      {
-        path: "/packages",
-        element: <PackageManager />,
-      },
-      {
-        path: "/team",
-        element: <TeamCollaboration />,
-      },
-    ],
-  },
-]);
+        path: "/learning-paths",
+        element: <LearningPaths />
+      }
+    ]
+  }
+];
+
+export const router = createBrowserRouter(routes);
