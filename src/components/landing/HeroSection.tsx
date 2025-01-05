@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
-import { Award, ArrowRight, Code, Shield, Database, ChartBarIcon } from "lucide-react";
+import { Award, ArrowRight, Code, Shield, Database, ChartBarIcon, BrainCog, Megaphone } from "lucide-react";
 
 export function HeroSection() {
   const navigate = useNavigate();
@@ -40,7 +40,9 @@ export function HeroSection() {
 
   const capabilities = [
     "Full-stack Applications",
-    "Native Android Apps",
+    "AI Ad Studio",
+    "Cross-Platform Ad Management",
+    "Advanced Analytics",
     "Enterprise Security",
     "Advanced Version Control",
     "Package Management",
@@ -48,7 +50,10 @@ export function HeroSection() {
     "Automated DevOps",
     "Performance Optimization",
     "Real-time Analytics",
-    "AI-powered Development"
+    "AI-powered Development",
+    "Multi-Platform Integration",
+    "Campaign Management",
+    "Ad Performance Tracking"
   ];
 
   return (
@@ -63,20 +68,36 @@ export function HeroSection() {
           <div className="flex items-center justify-center gap-3 mb-12">
             <Award className="h-8 w-8 text-primary" />
             <span className="text-primary font-semibold bg-primary/10 px-6 py-2 rounded-full">
-              World's Most Advanced AI Development Platform
+              World's Most Advanced AI Development & Ad Management Platform
             </span>
           </div>
           
           {/* Main Headline */}
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary/80 leading-tight">
-            Build Enterprise Applications with Advanced AI Technology
+            Build & Promote Enterprise Applications with Advanced AI Technology
           </h1>
           
           {/* Subheadline */}
           <p className="text-xl md:text-2xl text-gray-300 text-center max-w-3xl mx-auto">
             The only platform that combines Claude-3 Opus AI, enterprise-grade version control, 
-            advanced package management, and bank-grade security in one powerful solution.
+            advanced package management, AI-powered ad creation, and bank-grade security in one powerful solution.
           </p>
+
+          {/* Feature Icons */}
+          <div className="flex justify-center gap-8 my-8">
+            <div className="flex flex-col items-center gap-2">
+              <BrainCog className="h-8 w-8 text-primary" />
+              <span className="text-sm">AI Development</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Megaphone className="h-8 w-8 text-primary" />
+              <span className="text-sm">Ad Management</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Shield className="h-8 w-8 text-primary" />
+              <span className="text-sm">Enterprise Security</span>
+            </div>
+          </div>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center my-16">
@@ -100,7 +121,7 @@ export function HeroSection() {
 
           {/* Platform Capabilities */}
           <div className="text-center mb-16">
-            <h2 className="text-2xl font-semibold mb-8">Enterprise-Grade Development Platform</h2>
+            <h2 className="text-2xl font-semibold mb-8">Enterprise-Grade Development & Ad Platform</h2>
             <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
               {capabilities.map((capability, index) => (
                 <span

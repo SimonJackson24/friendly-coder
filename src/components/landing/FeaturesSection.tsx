@@ -1,13 +1,11 @@
 import { Card } from "@/components/ui/card";
 import { 
   BrainCog, 
-  Smartphone, 
   Target, 
   Rocket,
   Shield,
   Database,
   Cloud,
-  AppWindow,
   Workflow,
   MessageSquare,
   Share2,
@@ -19,7 +17,12 @@ import {
   Lock,
   PackageCheck,
   Users,
-  Zap
+  Zap,
+  Megaphone,
+  LineChart,
+  LayoutDashboard,
+  Settings,
+  Globe
 } from "lucide-react";
 
 const features = [
@@ -36,6 +39,18 @@ const features = [
     ]
   },
   {
+    icon: Megaphone,
+    title: "AI Ad Studio",
+    description: "Revolutionary AI-powered ad creation and management platform. Create, optimize, and manage ads across multiple platforms with intelligent insights.",
+    benefits: [
+      "Multi-platform ad management",
+      "AI-generated ad content",
+      "Performance analytics",
+      "A/B testing automation",
+      "Campaign optimization"
+    ]
+  },
+  {
     icon: Bot,
     title: "Claude-3 Opus Integration",
     description: "Powered by the latest Claude-3 Opus model, offering unparalleled understanding of complex development requirements and natural language processing.",
@@ -45,6 +60,18 @@ const features = [
       "Intelligent debugging assistance",
       "Natural language requirements processing",
       "Automated documentation generation"
+    ]
+  },
+  {
+    icon: LineChart,
+    title: "Advanced Analytics",
+    description: "Comprehensive analytics suite for tracking ad performance, user engagement, and campaign effectiveness across all platforms.",
+    benefits: [
+      "Real-time performance tracking",
+      "Cross-platform analytics",
+      "Custom report generation",
+      "ROI analysis",
+      "Audience insights"
     ]
   },
   {
@@ -142,6 +169,30 @@ const features = [
       "Performance monitoring",
       "Resource optimization"
     ]
+  },
+  {
+    icon: LayoutDashboard,
+    title: "Campaign Management",
+    description: "Comprehensive campaign management tools for planning, executing, and monitoring advertising campaigns across multiple platforms.",
+    benefits: [
+      "Multi-platform campaign planning",
+      "Budget optimization",
+      "Audience targeting",
+      "Schedule management",
+      "Performance tracking"
+    ]
+  },
+  {
+    icon: Globe,
+    title: "Multi-Platform Integration",
+    description: "Seamless integration with major advertising platforms including Facebook, Google, LinkedIn, and more.",
+    benefits: [
+      "One-click platform connection",
+      "Unified dashboard",
+      "Cross-platform optimization",
+      "Automated data sync",
+      "Centralized management"
+    ]
   }
 ];
 
@@ -152,11 +203,11 @@ export function FeaturesSection() {
         <div className="text-center mb-16">
           <Rocket className="h-12 w-12 text-primary mx-auto mb-6" />
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Enterprise-Grade AI Technology
+            Enterprise-Grade AI Technology & Ad Management
           </h2>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
             Our cutting-edge platform combines advanced AI models with industry-leading 
-            development tools and enterprise security for unparalleled results.
+            development tools, ad management capabilities, and enterprise security for unparalleled results.
           </p>
         </div>
         
