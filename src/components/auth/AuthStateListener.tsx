@@ -17,13 +17,14 @@ export const AuthStateListener = () => {
             title: "Welcome back!",
             description: "Successfully logged in",
           });
-          navigate("/");
+          navigate("/dashboard");
           break;
         case 'SIGNED_OUT':
           toast({
             title: "Signed out",
             description: "You have been logged out",
           });
+          navigate("/login");
           break;
         case 'PASSWORD_RECOVERY':
           toast({
@@ -43,7 +44,7 @@ export const AuthStateListener = () => {
               title: "Welcome!",
               description: "Successfully signed in",
             });
-            navigate("/");
+            navigate("/dashboard");
           }
           break;
       }

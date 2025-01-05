@@ -21,6 +21,7 @@ export default function Dashboard() {
 
   // Redirect to login if not authenticated
   if (!session) {
+    console.log("No session found, redirecting to login");
     return <Navigate to="/login" />;
   }
 

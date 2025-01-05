@@ -11,8 +11,8 @@ export const AuthRedirect = () => {
   useEffect(() => {
     console.log("Session state:", session);
     if (session) {
-      console.log("User is logged in, redirecting to home");
-      navigate("/");
+      console.log("User is logged in, redirecting to dashboard");
+      navigate("/dashboard");
     }
   }, [session, navigate]);
 
