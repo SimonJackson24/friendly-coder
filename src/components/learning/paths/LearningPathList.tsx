@@ -44,7 +44,7 @@ export function LearningPathList() {
           difficulty={path.difficulty_level}
           category={path.category}
           estimatedDuration={path.estimated_duration || 0}
-          prerequisites={path.prerequisites || []}
+          prerequisites={Array.isArray(path.prerequisites) ? path.prerequisites : []}
           tutorialCount={path.learning_path_tutorials?.length || 0}
         />
       ))}
