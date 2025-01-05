@@ -1239,6 +1239,87 @@ export type Database = {
           },
         ]
       }
+      learning_path_tutorials: {
+        Row: {
+          created_at: string | null
+          id: string
+          order_index: number
+          path_id: string | null
+          tutorial_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          order_index: number
+          path_id?: string | null
+          tutorial_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          order_index?: number
+          path_id?: string | null
+          tutorial_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_path_tutorials_path_id_fkey"
+            columns: ["path_id"]
+            isOneToOne: false
+            referencedRelation: "learning_paths"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_path_tutorials_tutorial_id_fkey"
+            columns: ["tutorial_id"]
+            isOneToOne: false
+            referencedRelation: "tutorials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_paths: {
+        Row: {
+          category: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          difficulty_level: string
+          estimated_duration: number | null
+          id: string
+          is_published: boolean | null
+          prerequisites: Json | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty_level: string
+          estimated_duration?: number | null
+          id?: string
+          is_published?: boolean | null
+          prerequisites?: Json | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: string
+          estimated_duration?: number | null
+          id?: string
+          is_published?: boolean | null
+          prerequisites?: Json | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       milestone_issues: {
         Row: {
           created_at: string | null
