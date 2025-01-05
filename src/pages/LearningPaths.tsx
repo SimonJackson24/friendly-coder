@@ -61,14 +61,15 @@ export default function LearningPaths() {
     queryFn: async () => {
       if (!session?.user?.id) return [];
       
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('user_progress')
         .select('learning_path:learning_paths(*)')
         .eq('user_id', session.user.id)
         .is('completed_at', null);
       
-      if (error) return [];
-      return (data || []).map(progress => progress.learning_path) as LearningPath[];
+      // If there's an error, return empty array instead of throwing
+      return ((data || []).map(progress => progress.learning_path || null)
+        .filter(Boolean)) as LearningPath[];
     },
     enabled: !!session?.user?.id
   });
