@@ -10,6 +10,14 @@
  * and may not be copied, modified, or distributed without explicit permission.
  */
 
+export interface MergeDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  sourceBranchId: string;
+  targetBranchId: string;
+  onMergeComplete: () => void;
+}
+
 export interface MergeConflict {
   id: string;
   filePath: string;
