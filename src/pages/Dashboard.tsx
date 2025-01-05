@@ -10,10 +10,65 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { Breadcrumbs } from "@/components/navigation/Breadcrumbs";
+import { useEffect } from "react";
+
+// Add offline support with a custom hook
+function useOfflineStatus() {
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    const handleOffline = () => {
+      toast({
+        title: "You're offline",
+        description: "Some features may be limited",
+        variant: "destructive",
+      });
+    };
+    
+    const handleOnline = () => {
+      toast({
+        title: "You're back online",
+        description: "All features are now available",
+      });
+    };
+    
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [toast]);
+}
 
 export default function Dashboard() {
   const session = useSession();
   const { toast } = useToast();
+  useOfflineStatus(); // Add offline status monitoring
+
+  // Session expiry check
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.expires_at) {
+        const expiryTime = new Date(session.expires_at * 1000);
+        const timeUntilExpiry = expiryTime.getTime() - Date.now();
+        
+        if (timeUntilExpiry < 300000) { // 5 minutes
+          toast({
+            title: "Session expiring soon",
+            description: "Your session will expire in 5 minutes. Please save your work.",
+            variant: "warning",
+          });
+        }
+      }
+    };
+    
+    const interval = setInterval(checkSession, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, [toast]);
 
   const { data: recentActivity, isLoading: isLoadingActivity, error: activityError } = useQuery({
     queryKey: ['recent-activity'],
@@ -41,12 +96,8 @@ export default function Dashboard() {
         files: Array.isArray(item.files) ? item.files : [item.files]
       }));
     },
-    onError: (error) => {
-      toast({
-        title: "Error loading activity",
-        description: "Failed to load recent activity. Please try again.",
-        variant: "destructive",
-      });
+    meta: {
+      errorMessage: "Failed to load recent activity"
     }
   });
 
@@ -66,12 +117,8 @@ export default function Dashboard() {
 
       return projects;
     },
-    onError: (error) => {
-      toast({
-        title: "Error loading projects",
-        description: "Failed to load your projects. Please try again.",
-        variant: "destructive",
-      });
+    meta: {
+      errorMessage: "Failed to load your projects"
     }
   });
 
@@ -105,6 +152,7 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto p-6 max-w-7xl">
+      <Breadcrumbs />
       <DashboardHeader userEmail={session.user.email || ''} />
       
       <QuickStats 
@@ -144,7 +192,7 @@ export default function Dashboard() {
                 {projects.slice(0, 5).map((project) => (
                   <div 
                     key={project.id} 
-                    className="flex items-center justify-between p-2 hover:bg-accent rounded-lg"
+                    className="flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors"
                     role="listitem"
                   >
                     <div>
