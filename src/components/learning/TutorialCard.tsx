@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Clock, BookOpen } from "lucide-react";
 
 interface TutorialCardProps {
   tutorial: {
@@ -10,10 +11,12 @@ interface TutorialCardProps {
     content: string;
     difficulty_level: string;
     category: string;
+    estimated_duration?: number;
   };
+  inProgress?: boolean;
 }
 
-export function TutorialCard({ tutorial }: TutorialCardProps) {
+export function TutorialCard({ tutorial, inProgress }: TutorialCardProps) {
   const navigate = useNavigate();
 
   const getDifficultyColor = (level: string) => {
@@ -43,15 +46,26 @@ export function TutorialCard({ tutorial }: TutorialCardProps) {
           {tutorial.content}
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow">
-        {/* Preview content could go here */}
+      <CardContent className="flex-grow space-y-2">
+        {tutorial.estimated_duration && (
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Clock className="mr-2 h-4 w-4" />
+            {tutorial.estimated_duration} min
+          </div>
+        )}
+        {inProgress && (
+          <div className="flex items-center text-sm text-blue-500">
+            <BookOpen className="mr-2 h-4 w-4" />
+            Continue learning
+          </div>
+        )}
       </CardContent>
       <CardFooter>
         <Button 
           className="w-full" 
           onClick={() => navigate(`/tutorial/${tutorial.id}`)}
         >
-          Start Tutorial
+          {inProgress ? 'Continue Tutorial' : 'Start Tutorial'}
         </Button>
       </CardFooter>
     </Card>
