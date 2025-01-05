@@ -212,3 +212,83 @@ export interface VersionHistoryTable {
     version_number?: number
   }
 }
+
+export interface AdCampaignsTable {
+  Row: {
+    id: string;
+    user_id: string;
+    name: string;
+    description: string | null;
+    status: string;
+    budget: number;
+    spent: number;
+    reach: number;
+    start_date: string | null;
+    end_date: string | null;
+    targeting: Json;
+    schedule: Json;
+    budget_allocation: Json;
+    created_at: string | null;
+    updated_at: string | null;
+  };
+  Insert: {
+    id?: string;
+    user_id: string;
+    name: string;
+    description?: string | null;
+    status?: string;
+    budget?: number;
+    spent?: number;
+    reach?: number;
+    start_date?: string | null;
+    end_date?: string | null;
+    targeting?: Json;
+    schedule?: Json;
+    budget_allocation?: Json;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+  Update: {
+    id?: string;
+    user_id?: string;
+    name?: string;
+    description?: string | null;
+    status?: string;
+    budget?: number;
+    spent?: number;
+    reach?: number;
+    start_date?: string | null;
+    end_date?: string | null;
+    targeting?: Json;
+    schedule?: Json;
+    budget_allocation?: Json;
+    created_at?: string | null;
+    updated_at?: string | null;
+  };
+}
+
+// Update the Database interface to include the new table
+export interface Database {
+  public: {
+    Tables: {
+      files: FilesTable;
+      projects: ProjectsTable;
+      settings: SettingsTable;
+      supabase_connections: SupabaseConnectionsTable;
+      version_history: VersionHistoryTable;
+      ad_campaigns: AdCampaignsTable;
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}

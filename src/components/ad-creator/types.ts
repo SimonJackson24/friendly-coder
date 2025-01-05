@@ -9,12 +9,13 @@ export interface PlatformConnection {
 export interface Campaign {
   id: string;
   name: string;
-  status: "active" | "paused" | "completed";
+  description: string | null;
+  status: string;
   budget: number;
   spent: number;
   reach: number;
-  startDate: string;
-  endDate: string;
+  start_date: string | null;
+  end_date: string | null;
   targeting: {
     locations: string[];
     ageRange: { min: number; max: number };
@@ -26,9 +27,12 @@ export interface Campaign {
     dayParting: string[];
     timeZone: string;
   };
-  budgetAllocation: {
+  budget_allocation: {
     daily: number;
     total: number;
     platforms: { [key: string]: number };
   };
+  created_at: string;
+  updated_at: string;
+  user_id: string;
 }

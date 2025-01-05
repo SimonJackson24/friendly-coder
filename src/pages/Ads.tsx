@@ -6,14 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Campaign {
-  id: string;
-  name: string;
-  description: string | null;
-  status: string;
-  created_at: string;
-}
+import { Campaign } from "@/components/ad-creator/types";
 
 export default function Ads() {
   const navigate = useNavigate();
