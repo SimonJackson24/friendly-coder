@@ -58,13 +58,10 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-screen">
-      {/* Hero Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-background to-background/50 pointer-events-none" />
 
-      {/* Main Hero Content */}
       <div className="container mx-auto px-4 py-32 relative">
         <div className="max-w-5xl mx-auto space-y-8">
-          {/* Award Badge */}
           <div className="flex items-center justify-center gap-3 mb-12">
             <Award className="h-8 w-8 text-primary" />
             <span className="text-primary font-semibold bg-primary/10 px-6 py-2 rounded-full">
@@ -72,18 +69,15 @@ export function HeroSection() {
             </span>
           </div>
           
-          {/* Main Headline */}
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary/80 leading-tight">
-            Build & Promote Enterprise Applications with Advanced AI Technology
+            Build & Promote Enterprise Applications with AI Studio
           </h1>
           
-          {/* Subheadline */}
           <p className="text-xl md:text-2xl text-gray-300 text-center max-w-3xl mx-auto">
             The only platform that combines Claude-3 Opus AI, enterprise-grade version control, 
             advanced package management, AI-powered ad creation, and bank-grade security in one powerful solution.
           </p>
 
-          {/* Feature Icons */}
           <div className="flex justify-center gap-8 my-8">
             <div className="flex flex-col items-center gap-2">
               <BrainCog className="h-8 w-8 text-primary" />
@@ -99,7 +93,6 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center my-16">
             <Button 
               size="lg" 
@@ -119,7 +112,6 @@ export function HeroSection() {
             </Button>
           </div>
 
-          {/* Platform Capabilities */}
           <div className="text-center mb-16">
             <h2 className="text-2xl font-semibold mb-8">Enterprise-Grade Development & Ad Platform</h2>
             <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
@@ -134,7 +126,6 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Statistics Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
             {stats.map((stat, index) => (
               <div key={index} className="p-8 glass rounded-lg hover:scale-105 transition-transform">
@@ -147,7 +138,6 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* Trust Indicators */}
       <div className="container mx-auto px-4 py-8 border-t border-gray-800">
         <div className="flex flex-wrap justify-center items-center gap-12">
           <div className="flex items-center gap-2">

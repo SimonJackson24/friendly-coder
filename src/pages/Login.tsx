@@ -1,29 +1,36 @@
-import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { BrainCog } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { LoginForm } from "@/components/auth/LoginForm";
-import { AuthRedirect } from "@/components/auth/AuthRedirect";
-import { AuthStateListener } from "@/components/auth/AuthStateListener";
 import { useSession } from "@supabase/auth-helpers-react";
 
-const Login = () => {
-  const session = useSession();
+export default function Login() {
   const navigate = useNavigate();
+  const session = useSession();
 
-  useEffect(() => {
+  const handleLogin = () => {
     if (session) {
-      console.log("User already logged in, redirecting to dashboard");
-      navigate("/dashboard");
+      navigate("/assistant");
+    } else {
+      navigate("/login");
     }
-  }, [session, navigate]);
+  };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center p-4 bg-background/50">
-      <div className="w-full">
-        <LoginForm />
-        <AuthStateListener />
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="max-w-md w-full space-y-8 p-6">
+        <div className="text-center">
+          <BrainCog className="mx-auto h-12 w-12 text-primary" />
+          <h2 className="mt-6 text-3xl font-bold">Welcome to AI Studio</h2>
+          <p className="mt-2 text-gray-400">
+            Sign in to start building smarter applications
+          </p>
+        </div>
+        <div className="space-y-4">
+          <Button onClick={handleLogin} className="w-full">
+            Sign In
+          </Button>
+        </div>
       </div>
     </div>
   );
-};
-
-export default Login;
+}
