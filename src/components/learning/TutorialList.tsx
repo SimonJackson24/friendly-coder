@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Tutorial } from "@/types/tutorial";
+import { Tutorial, TutorialStep } from "@/types/tutorial";
+import { TutorialCard } from "./TutorialCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
@@ -16,7 +17,19 @@ export const TutorialList = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Tutorial[];
+
+      // Transform the data to match the Tutorial interface
+      return (data as any[]).map((tutorial): Tutorial => ({
+        ...tutorial,
+        steps: (tutorial.steps as any[])?.map((step): TutorialStep => ({
+          index: step.index,
+          title: step.title,
+          content: step.content,
+          type: step.type,
+          duration: step.duration,
+          quiz: step.quiz
+        })) || []
+      }));
     },
   });
 
@@ -31,20 +44,7 @@ export const TutorialList = () => {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {tutorials?.map((tutorial) => (
-        <Card key={tutorial.id}>
-          <CardHeader>
-            <CardTitle>{tutorial.title}</CardTitle>
-            <div className="flex gap-2 mt-2">
-              <Badge>{tutorial.difficulty_level}</Badge>
-              <Badge variant="outline">{tutorial.category}</Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground line-clamp-3">
-              {tutorial.content.substring(0, 150)}...
-            </p>
-          </CardContent>
-        </Card>
+        <TutorialCard key={tutorial.id} tutorial={tutorial} />
       ))}
     </div>
   );
