@@ -19,6 +19,7 @@ export default function Dashboard() {
   const session = useSession();
   const { toast } = useToast();
 
+  // Redirect to login if not authenticated
   if (!session) {
     return <Navigate to="/login" />;
   }
