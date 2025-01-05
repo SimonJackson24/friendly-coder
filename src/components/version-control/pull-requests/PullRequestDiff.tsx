@@ -5,7 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, ArrowRight, MessageSquare, CheckCircle, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
-import { DiffViewer } from "../diff/DiffViewer";
+import { DiffViewer } from "@/components/package/components/diff/DiffViewer";
 
 interface PullRequestDiffProps {
   pullRequestId: string;
@@ -35,6 +35,7 @@ export function PullRequestDiff({ pullRequestId, oldContent, newContent }: PullR
           review_id: pullRequestId,
           line_number: selectedLine,
           content: comment.trim(),
+          file_path: "main", // Default file path since we're viewing the main diff
         });
 
       if (error) throw error;

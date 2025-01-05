@@ -2,6 +2,17 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 
+interface CommitAuthor {
+  email: string;
+}
+
+interface Commit {
+  id: string;
+  message: string;
+  created_at: string;
+  author: CommitAuthor | null;
+}
+
 export function RepoActivity({ repositoryId }: { repositoryId: string }) {
   const { data: activities } = useQuery({
     queryKey: ["repo-activity", repositoryId],
@@ -13,14 +24,16 @@ export function RepoActivity({ repositoryId }: { repositoryId: string }) {
           id,
           message,
           created_at,
-          author:author_id(email)
+          author:author_id (
+            email
+          )
         `)
         .eq("branch_id", repositoryId)
         .order("created_at", { ascending: false })
         .limit(10);
 
       if (error) throw error;
-      return data;
+      return data as Commit[];
     },
   });
 
