@@ -9,6 +9,12 @@ import { FileNode } from "@/hooks/useFileSystem";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+interface Project {
+  id: string;
+  title: string;
+  description?: string;
+}
+
 interface MainContentProps {
   projectId: string | null;
   selectedFile: FileNode | null;
@@ -16,7 +22,7 @@ interface MainContentProps {
   buildErrors: string[];
   onSaveFile: (id: string, content: string) => void;
   onClearConsole: () => void;
-  project: any;
+  project: Project;
 }
 
 export function MainContent({

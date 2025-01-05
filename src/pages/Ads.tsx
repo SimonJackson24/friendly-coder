@@ -7,6 +7,14 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+interface Campaign {
+  id: string;
+  name: string;
+  description: string | null;
+  status: string;
+  created_at: string;
+}
+
 export default function Ads() {
   const navigate = useNavigate();
   const session = useSession();
@@ -21,7 +29,7 @@ export default function Ads() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as Campaign[];
     },
     enabled: !!session?.user?.id,
   });
@@ -38,11 +46,13 @@ export default function Ads() {
 
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-4 flex-1 max-w-xl">
-          <Input
-            placeholder="Search campaigns..."
-            className="w-full"
-            prefix={<Search className="h-4 w-4 text-gray-400" />}
-          />
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search campaigns..."
+              className="pl-10 w-full"
+            />
+          </div>
           <Button variant="outline" size="icon">
             <Filter className="h-4 w-4" />
           </Button>

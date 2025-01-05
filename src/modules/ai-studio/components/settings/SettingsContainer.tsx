@@ -1,7 +1,13 @@
 import { ProjectSettings } from "@/components/ProjectSettings";
 
+interface Project {
+  id: string;
+  title: string;
+  description?: string;
+}
+
 interface SettingsContainerProps {
-  project: any;
+  project: Project;
 }
 
 export function SettingsContainer({ project }: SettingsContainerProps) {

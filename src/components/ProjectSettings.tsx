@@ -3,7 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { BrainCog } from "lucide-react";
 
-export function ProjectSettings() {
+interface ProjectSettingsProps {
+  project: {
+    id: string;
+    title: string;
+    description?: string;
+  };
+}
+
+export function ProjectSettings({ project }: ProjectSettingsProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -12,15 +20,25 @@ export function ProjectSettings() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col">
           <label className="text-sm font-medium">Project Name</label>
-          <input type="text" className="mt-1 p-2 border rounded" placeholder="Enter project name" />
+          <input 
+            type="text" 
+            className="mt-1 p-2 border rounded" 
+            placeholder="Enter project name"
+            defaultValue={project.title}
+          />
         </div>
         <div className="flex flex-col">
           <label className="text-sm font-medium">Description</label>
-          <textarea className="mt-1 p-2 border rounded" placeholder="Enter project description" rows={3} />
+          <textarea 
+            className="mt-1 p-2 border rounded" 
+            placeholder="Enter project description" 
+            rows={3}
+            defaultValue={project.description}
+          />
         </div>
       </div>
       <div className="flex justify-end">
-        <Button variant="primary">Save Changes</Button>
+        <Button variant="default">Save Changes</Button>
       </div>
     </div>
   );
